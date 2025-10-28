@@ -1,0 +1,38 @@
+{
+  "@@locale": "en",
+  "appTitle": "SWE Mobile",
+  "@appTitle": {
+    "description": "The application title"
+  },
+  "welcome": "Welcome",
+  "signInToContinue": "Sign in to continue",
+  "email": "Email",
+  "emailPlaceholder": "Enter your email",
+  "@emailPlaceholder": {
+    "description": "Placeholder text for email input field"
+  },
+  "emailRequired": "Please enter your email",
+  "@emailRequired": {
+    "description": "Validation message for empty email field"
+  },
+  "password": "Password",
+  "passwordPlaceholder": "Enter your password",
+  "@passwordPlaceholder": {
+    "description": "Placeholder text for password input field"
+  },
+  "passwordRequired": "Please enter your password",
+  "@passwordRequired": {
+    "description": "Validation message for empty password field"
+  },
+  "signIn": "Sign In",
+  "signUp": "Sign Up",
+  "logout": "Logout",
+  "home": "Home",
+  "search": "Search",
+  "add": "Add",
+  "notifications": "Notifications",
+  "profile": "Profile",
+  "emailAndPasswordRequired": "Email and password are required"
+}
+
+

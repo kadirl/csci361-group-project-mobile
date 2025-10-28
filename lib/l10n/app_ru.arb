@@ -1,0 +1,23 @@
+{
+  "@@locale": "ru",
+  "appTitle": "APP",
+  "welcome": "Добро пожаловать!",
+  "signInToContinue": "Войдите чтобы продолжить",
+  "email": "Электронная почта",
+  "emailPlaceholder": "Введите вашу электронную почту",
+  "emailRequired": "Пожалуйста, введите электронную почту",
+  "password": "Пароль",
+  "passwordPlaceholder": "Введите пароль",
+  "passwordRequired": "Пожалуйста, введите пароль",
+  "signIn": "Войти",
+  "signUp": "Создать аккаунт",
+  "logout": "Выйти",
+  "home": "Главная",
+  "search": "Поиск",
+  "add": "Добавить",
+  "notifications": "Уведомления",
+  "profile": "Профиль",
+  "emailAndPasswordRequired": "Требуется электронная почта и пароль"
+}
+
+

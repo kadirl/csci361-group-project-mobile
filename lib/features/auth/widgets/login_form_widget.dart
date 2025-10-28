@@ -5,7 +5,8 @@ import '../../../core/providers/auth_provider.dart';
 
 // Login form widget
 class LoginFormWidget extends ConsumerStatefulWidget {
-  const LoginFormWidget({super.key});
+  const LoginFormWidget({super.key, this.onSignUpPressed});
+  final VoidCallback? onSignUpPressed;
 
   @override
   ConsumerState<LoginFormWidget> createState() => _LoginFormWidgetState();
@@ -35,17 +36,6 @@ class _LoginFormWidgetState extends ConsumerState<LoginFormWidget> {
     // Validate form
     if (_formKey.currentState!.validate()) {
       await ref.read(authProvider.notifier).signIn(
-            email: _emailController.text.trim(),
-            password: _passwordController.text,
-          );
-    }
-  }
-
-  // Handle sign up button press
-  Future<void> _handleSignUp() async {
-    // Validate form
-    if (_formKey.currentState!.validate()) {
-      await ref.read(authProvider.notifier).signUp(
             email: _emailController.text.trim(),
             password: _passwordController.text,
           );
@@ -139,13 +129,10 @@ class _LoginFormWidgetState extends ConsumerState<LoginFormWidget> {
             if (authState.error != null) const SizedBox(height: 16),
 
             // Sign in button
-            ElevatedButton(
+            FilledButton(
               onPressed: isLoading ? null : _handleSignIn,
-              style: ElevatedButton.styleFrom(
+              style: FilledButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
               ),
               child: isLoading
                   ? const SizedBox(
@@ -165,13 +152,10 @@ class _LoginFormWidgetState extends ConsumerState<LoginFormWidget> {
             const SizedBox(height: 12),
 
             // Sign up button
-            OutlinedButton(
-              onPressed: isLoading ? null : _handleSignUp,
-              style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
+            FilledButton.tonal(
+              onPressed: isLoading ? null : widget.onSignUpPressed,
+              style: FilledButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 16)
               ),
               child: Text(
                 l10n.signUp,

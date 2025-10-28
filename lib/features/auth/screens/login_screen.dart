@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:swe_mobile/l10n/app_localizations.dart';
 import '../widgets/login_form_widget.dart';
+import 'signup_screen.dart';
 
 // Login screen
 class LoginScreen extends StatelessWidget {
@@ -47,7 +48,16 @@ class LoginScreen extends StatelessWidget {
                 const SizedBox(height: 48),
 
                 // Login form
-                const LoginFormWidget(),
+                LoginFormWidget(
+                  onSignUpPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const SignupScreen()),
+                    );
+                  },
+                ),
+
+                 
               ],
             ),
           ),

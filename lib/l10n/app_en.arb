@@ -25,7 +25,7 @@
     "description": "Validation message for empty password field"
   },
   "signIn": "Sign In",
-  "signUp": "Sign Up",
+  "signUp": "Create a Company",
   "logout": "Logout",
   "home": "Home",
   "search": "Search",

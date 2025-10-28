@@ -161,7 +161,7 @@ abstract class AppLocalizations {
   /// No description provided for @signUp.
   ///
   /// In en, this message translates to:
-  /// **'Sign Up'**
+  /// **'Create a Company'**
   String get signUp;
 
   /// No description provided for @logout.

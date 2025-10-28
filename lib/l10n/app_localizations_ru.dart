@@ -39,7 +39,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get signIn => 'Войти';
 
   @override
-  String get signUp => 'Создать аккаунт';
+  String get signUp => 'Создать компанию';
 
   @override
   String get logout => 'Выйти';

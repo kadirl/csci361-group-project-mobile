@@ -17,13 +17,8 @@
   },
   "password": "Password",
   "passwordPlaceholder": "Enter your password",
-  "@passwordPlaceholder": {
-    "description": "Placeholder text for password input field"
-  },
   "passwordRequired": "Please enter your password",
-  "@passwordRequired": {
-    "description": "Validation message for empty password field"
-  },
+
   "signIn": "Sign In",
   "signUp": "Create a Company",
   "logout": "Logout",
@@ -32,7 +27,43 @@
   "add": "Add",
   "notifications": "Notifications",
   "profile": "Profile",
-  "emailAndPasswordRequired": "Email and password are required"
+  "emailAndPasswordRequired": "Email and password are required",
+
+
+
+  "signupTitle": "Create a Company",
+
+  "signupStep1Title": "Company Type",
+  "signupStep1Consumer": "Consumer",
+  "signupStep1Supplier": "Supplier",
+
+  "signupStep2Title": "Owner Details",
+  "signupStep2FirstName": "First name",
+  "signupStep2FirstNamePlaceholder": "Please enter your first name",
+  "signupStep2LastName": "Last name",
+  "signupStep2LastNamePlaceholder": "Please enter your last name",
+  "signupStep2PhoneNumber": "Phone number",
+  "signupStep2PhoneNumberPlaceholder": "+7-000-000-00-00",
+  "signupStep2Email": "Email",
+  "signupStep2EmailPlaceholder": "example@mail.com",
+  "signupStep2Password": "Password",
+  "signupStep2passwordPlaceholder": "Enter your password",
+  "signupStep2passwordRequired": "Please enter your password",
+
+  "signupStep3Title": "Company Details",
+  "signupStep3Name": "Company name",
+  "signupStep3NamePlaceholder": "Enter company name",
+  "signupStep3Description": "Description",
+  "signupStep3DescriptionPlaceholder": "Enter company description",
+  "signupStep3Logo": "Company logo",
+  "signupStep3LogoPlaceholder": "Select logo file",
+  "signupStep3Location": "Location",
+  "signupStep3LocationPlaceholder": "Select city",
+
+  "commonBack": "Back",
+  "commonNext": "Next",
+  "commonSubmit": "Submit",
+  "commonCancel": "Cancel"
 }
 
 

@@ -140,13 +140,13 @@ abstract class AppLocalizations {
   /// **'Password'**
   String get password;
 
-  /// Placeholder text for password input field
+  /// No description provided for @passwordPlaceholder.
   ///
   /// In en, this message translates to:
   /// **'Enter your password'**
   String get passwordPlaceholder;
 
-  /// Validation message for empty password field
+  /// No description provided for @passwordRequired.
   ///
   /// In en, this message translates to:
   /// **'Please enter your password'**
@@ -205,6 +205,180 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Email and password are required'**
   String get emailAndPasswordRequired;
+
+  /// No description provided for @signupTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a Company'**
+  String get signupTitle;
+
+  /// No description provided for @signupStep1Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Company Type'**
+  String get signupStep1Title;
+
+  /// No description provided for @signupStep1Consumer.
+  ///
+  /// In en, this message translates to:
+  /// **'Consumer'**
+  String get signupStep1Consumer;
+
+  /// No description provided for @signupStep1Supplier.
+  ///
+  /// In en, this message translates to:
+  /// **'Supplier'**
+  String get signupStep1Supplier;
+
+  /// No description provided for @signupStep2Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Owner Details'**
+  String get signupStep2Title;
+
+  /// No description provided for @signupStep2FirstName.
+  ///
+  /// In en, this message translates to:
+  /// **'First name'**
+  String get signupStep2FirstName;
+
+  /// No description provided for @signupStep2FirstNamePlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter your first name'**
+  String get signupStep2FirstNamePlaceholder;
+
+  /// No description provided for @signupStep2LastName.
+  ///
+  /// In en, this message translates to:
+  /// **'Last name'**
+  String get signupStep2LastName;
+
+  /// No description provided for @signupStep2LastNamePlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter your last name'**
+  String get signupStep2LastNamePlaceholder;
+
+  /// No description provided for @signupStep2PhoneNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone number'**
+  String get signupStep2PhoneNumber;
+
+  /// No description provided for @signupStep2PhoneNumberPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'+7-000-000-00-00'**
+  String get signupStep2PhoneNumberPlaceholder;
+
+  /// No description provided for @signupStep2Email.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get signupStep2Email;
+
+  /// No description provided for @signupStep2EmailPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'example@mail.com'**
+  String get signupStep2EmailPlaceholder;
+
+  /// No description provided for @signupStep2Password.
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get signupStep2Password;
+
+  /// No description provided for @signupStep2passwordPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your password'**
+  String get signupStep2passwordPlaceholder;
+
+  /// No description provided for @signupStep2passwordRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter your password'**
+  String get signupStep2passwordRequired;
+
+  /// No description provided for @signupStep3Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Company Details'**
+  String get signupStep3Title;
+
+  /// No description provided for @signupStep3Name.
+  ///
+  /// In en, this message translates to:
+  /// **'Company name'**
+  String get signupStep3Name;
+
+  /// No description provided for @signupStep3NamePlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter company name'**
+  String get signupStep3NamePlaceholder;
+
+  /// No description provided for @signupStep3Description.
+  ///
+  /// In en, this message translates to:
+  /// **'Description'**
+  String get signupStep3Description;
+
+  /// No description provided for @signupStep3DescriptionPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter company description'**
+  String get signupStep3DescriptionPlaceholder;
+
+  /// No description provided for @signupStep3Logo.
+  ///
+  /// In en, this message translates to:
+  /// **'Company logo'**
+  String get signupStep3Logo;
+
+  /// No description provided for @signupStep3LogoPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Select logo file'**
+  String get signupStep3LogoPlaceholder;
+
+  /// No description provided for @signupStep3Location.
+  ///
+  /// In en, this message translates to:
+  /// **'Location'**
+  String get signupStep3Location;
+
+  /// No description provided for @signupStep3LocationPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Select city'**
+  String get signupStep3LocationPlaceholder;
+
+  /// No description provided for @commonBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get commonBack;
+
+  /// No description provided for @commonNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get commonNext;
+
+  /// No description provided for @commonSubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit'**
+  String get commonSubmit;
+
+  /// No description provided for @commonCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get commonCancel;
 }
 
 class _AppLocalizationsDelegate

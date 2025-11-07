@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swe_mobile/l10n/app_localizations.dart';
 import '../../../core/providers/auth_provider.dart';
+import '../../../core/constants/button_sizes.dart';
 
 // Login form widget
 class LoginFormWidget extends ConsumerStatefulWidget {
@@ -132,7 +133,7 @@ class _LoginFormWidgetState extends ConsumerState<LoginFormWidget> {
             FilledButton(
               onPressed: isLoading ? null : _handleSignIn,
               style: FilledButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
+                minimumSize: ButtonSizes.mdFill,
               ),
               child: isLoading
                   ? const SizedBox(
@@ -155,7 +156,7 @@ class _LoginFormWidgetState extends ConsumerState<LoginFormWidget> {
             FilledButton.tonal(
               onPressed: isLoading ? null : widget.onSignUpPressed,
               style: FilledButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16)
+                minimumSize: ButtonSizes.mdFill,
               ),
               child: Text(
                 l10n.signUp,

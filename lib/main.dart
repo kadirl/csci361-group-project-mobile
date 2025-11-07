@@ -39,7 +39,7 @@ class MyApp extends StatelessWidget {
         Locale('ru', ''), // Russian
       ],
       // Set default locale (defaults to system locale if not specified)
-      locale: const Locale('ru'), // Change 'ru' to 'en' for English
+      locale: const Locale('en'), // Change 'ru' to 'en' for English
       
       // Use Consumer to watch auth state and navigate accordinlgy
       home: const AuthWrapper(),

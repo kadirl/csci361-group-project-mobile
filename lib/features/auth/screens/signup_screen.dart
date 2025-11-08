@@ -1,4 +1,7 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:swe_mobile/l10n/app_localizations.dart';
 import 'package:swe_mobile/core/constants/button_sizes.dart';
 
@@ -27,6 +30,19 @@ class _SignupScreenState extends State<SignupScreen> {
   final _companyDescriptionController = TextEditingController();
   String? _selectedCity;
   String? _logoFilePath;
+  
+  // Initialize default values for the form controllers
+  @override
+  void initState() {
+    super.initState();
+
+    _phoneNumberController.text = '+7';
+  }
+
+  // Formatter to enforce "+7 707 707 7777" phone number structure
+  static const List<TextInputFormatter> _phoneNumberFormatters = [
+    _PhoneNumberFormatter(),
+  ];
   
   // Placeholder cities list
   final List<String> _cities = [
@@ -118,6 +134,7 @@ class _SignupScreenState extends State<SignupScreen> {
             TextFormField(
               controller: _phoneNumberController,
               keyboardType: TextInputType.phone,
+              inputFormatters: _phoneNumberFormatters,
               decoration: InputDecoration(
                 labelText: l10n.signupStep2PhoneNumber,
                 hintText: l10n.signupStep2PhoneNumberPlaceholder,
@@ -335,6 +352,62 @@ class _SignupScreenState extends State<SignupScreen> {
           ],
         ),
       ),
+    );
+  }
+}
+
+// Custom phone number formatter for Kazakh numbers
+class _PhoneNumberFormatter extends TextInputFormatter {
+  const _PhoneNumberFormatter();
+
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    // Extract only digits to normalize the input
+    String digitsOnly = newValue.text.replaceAll(RegExp(r'\D'), '');
+
+    // Ensure the value always starts with the country code digit "7"
+    if (!digitsOnly.startsWith('7')) {
+      digitsOnly = '7${digitsOnly.replaceFirst(RegExp(r'^7'), '')}';
+    }
+
+    // Limit input to country code plus 10 digits
+    if (digitsOnly.length > 11) {
+      digitsOnly = digitsOnly.substring(0, 11);
+    }
+
+    // Remove the leading country code digit to format the rest
+    final String localDigits = digitsOnly.length > 1 ? digitsOnly.substring(1) : '';
+
+    // Prepare the formatted output starting with "+7"
+    final StringBuffer formatted = StringBuffer('+7');
+
+    if (localDigits.isNotEmpty) {
+      // Append the first block of three digits
+      formatted.write(' ');
+      formatted.write(localDigits.substring(0, math.min(3, localDigits.length)));
+    }
+
+    if (localDigits.length > 3) {
+      // Append the second block of three digits
+      formatted.write(' ');
+      formatted.write(localDigits.substring(3, math.min(6, localDigits.length)));
+    }
+
+    if (localDigits.length > 6) {
+      // Append the final block of up to four digits
+      formatted.write(' ');
+      formatted.write(localDigits.substring(6, math.min(10, localDigits.length)));
+    }
+
+    final String formattedText = formatted.toString();
+
+    return TextEditingValue(
+      text: formattedText,
+      // Collapse the cursor to the end of the formatted input
+      selection: TextSelection.collapsed(offset: formattedText.length),
     );
   }
 }

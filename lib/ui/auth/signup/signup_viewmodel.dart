@@ -1,0 +1,247 @@
+import 'dart:math' as math;
+import 'dart:typed_data';
+
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/services.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:flutter/foundation.dart';
+
+// Immutable state that represents all signup form data
+@immutable
+class SignupState {
+  const SignupState({
+    required this.currentStep,
+    required this.selectedCompanyType,
+    required this.isPasswordVisible,
+    required this.selectedCity,
+    required this.logoFilePath,
+    required this.logoPreviewBytes,
+    required this.cityOptions,
+  });
+
+  final int currentStep;
+  final int selectedCompanyType;
+  final bool isPasswordVisible;
+  final String? selectedCity;
+  final String? logoFilePath;
+  final Uint8List? logoPreviewBytes;
+  final List<String> cityOptions;
+
+  // Create a new state instance with updated values
+  SignupState copyWith({
+    int? currentStep,
+    int? selectedCompanyType,
+    bool? isPasswordVisible,
+    String? selectedCity,
+    String? logoFilePath,
+    Uint8List? logoPreviewBytes,
+    List<String>? cityOptions,
+  }) {
+    return SignupState(
+      currentStep: currentStep ?? this.currentStep,
+      selectedCompanyType: selectedCompanyType ?? this.selectedCompanyType,
+      isPasswordVisible: isPasswordVisible ?? this.isPasswordVisible,
+      selectedCity: selectedCity ?? this.selectedCity,
+      logoFilePath: logoFilePath ?? this.logoFilePath,
+      logoPreviewBytes: logoPreviewBytes ?? this.logoPreviewBytes,
+      cityOptions: cityOptions ?? this.cityOptions,
+    );
+  }
+}
+
+// View-model that encapsulates the signup screen business logic
+class SignupViewModel extends Notifier<SignupState> {
+  @override
+  SignupState build() {
+    return const SignupState(
+      currentStep: 0,
+      selectedCompanyType: 0,
+      isPasswordVisible: false,
+      selectedCity: null,
+      logoFilePath: null,
+      logoPreviewBytes: null,
+      cityOptions: <String>[
+        'Astana',
+        'Almaty',
+        'Shymkent',
+        'Karaganda',
+        'Aktobe',
+        'Taraz',
+        'Pavlodar',
+        'Ust-Kamenogorsk',
+        'Semey',
+        'Atyrau',
+      ],
+    );
+  }
+
+  // Toggle the password field visibility flag
+  void togglePasswordVisibility() {
+    state = state.copyWith(
+      isPasswordVisible: !state.isPasswordVisible,
+    );
+  }
+
+  // Change the current step directly
+  void jumpToStep(int targetStep) {
+    state = state.copyWith(currentStep: targetStep);
+  }
+
+  // Advance to the next step in the flow
+  void goToNextStep() {
+    state = state.copyWith(currentStep: state.currentStep + 1);
+  }
+
+  // Return to the previous step in the flow
+  void goToPreviousStep() {
+    state = state.copyWith(currentStep: state.currentStep - 1);
+  }
+
+  // Persist the selected company type
+  void setCompanyType(int companyType) {
+    state = state.copyWith(selectedCompanyType: companyType);
+  }
+
+  // Persist the selected city
+  void setSelectedCity(String? city) {
+    state = state.copyWith(selectedCity: city);
+  }
+
+  // Store the selected logo file metadata and preview bytes
+  void setLogoPreview({
+    required String? path,
+    required Uint8List? bytes,
+  }) {
+    state = state.copyWith(
+      logoFilePath: path,
+      logoPreviewBytes: bytes,
+    );
+  }
+
+  // Helper to trigger the image picker and save the selection
+  Future<void> pickLogo({
+    required ImagePicker imagePicker,
+  }) async {
+    final XFile? pickedImage = await imagePicker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 1024,
+      maxHeight: 1024,
+    );
+
+    if (pickedImage == null) {
+      return;
+    }
+
+    final Uint8List logoBytes = await pickedImage.readAsBytes();
+
+    setLogoPreview(
+      path: pickedImage.path,
+      bytes: logoBytes,
+    );
+  }
+}
+
+// Collection of reusable signup form validators
+class SignupValidators {
+  const SignupValidators._();
+
+  // Validate that a field is not empty
+  static String? validateRequiredField(String? value, String fieldLabel) {
+    if (value == null || value.trim().isEmpty) {
+      return '$fieldLabel is required.';
+    }
+
+    return null;
+  }
+
+  // Validate that a field contains a valid email
+  static String? validateEmail(String? value, String fieldLabel) {
+    final String? requiredValidation =
+        validateRequiredField(value, fieldLabel);
+
+    if (requiredValidation != null) {
+      return requiredValidation;
+    }
+
+    final RegExp emailPattern = RegExp(r'^[\w.+-]+@[\w-]+\.[\w.-]+$');
+
+    if (!emailPattern.hasMatch(value!.trim())) {
+      return 'Please enter a valid email address.';
+    }
+
+    return null;
+  }
+
+  // Validate that a phone number contains the required number of digits
+  static String? validatePhoneNumber(String? value, String fieldLabel) {
+    final String? requiredValidation =
+        validateRequiredField(value, fieldLabel);
+
+    if (requiredValidation != null) {
+      return requiredValidation;
+    }
+
+    final String digitsOnly = value!.replaceAll(RegExp(r'\D'), '');
+
+    if (digitsOnly.length != 11) {
+      return 'Please enter a complete phone number.';
+    }
+
+    return null;
+  }
+}
+
+// Riverpod provider that exposes the signup view-model
+final signupViewModelProvider =
+    NotifierProvider<SignupViewModel, SignupState>(
+  SignupViewModel.new,
+);
+
+// Formatter to enforce the "+7 707 707 7777" structure across the app
+class PhoneNumberFormatter extends TextInputFormatter {
+  const PhoneNumberFormatter();
+
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    String digitsOnly = newValue.text.replaceAll(RegExp(r'\D'), '');
+
+    if (!digitsOnly.startsWith('7')) {
+      digitsOnly = '7${digitsOnly.replaceFirst(RegExp(r'^7'), '')}';
+    }
+
+    if (digitsOnly.length > 11) {
+      digitsOnly = digitsOnly.substring(0, 11);
+    }
+
+    final String localDigits =
+        digitsOnly.length > 1 ? digitsOnly.substring(1) : '';
+
+    final StringBuffer formatted = StringBuffer('+7');
+
+    if (localDigits.isNotEmpty) {
+      formatted.write(' ');
+      formatted.write(localDigits.substring(0, math.min(3, localDigits.length)));
+    }
+
+    if (localDigits.length > 3) {
+      formatted.write(' ');
+      formatted.write(localDigits.substring(3, math.min(6, localDigits.length)));
+    }
+
+    if (localDigits.length > 6) {
+      formatted.write(' ');
+      formatted.write(localDigits.substring(6, math.min(10, localDigits.length)));
+    }
+
+    final String formattedText = formatted.toString();
+
+    return TextEditingValue(
+      text: formattedText,
+      selection: TextSelection.collapsed(offset: formattedText.length),
+    );
+  }
+}
+

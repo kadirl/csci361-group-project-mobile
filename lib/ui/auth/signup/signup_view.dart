@@ -1,28 +1,21 @@
-import 'dart:math' as math;
-import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:swe_mobile/core/constants/button_sizes.dart';
 import 'package:swe_mobile/l10n/app_localizations.dart';
 import 'package:path/path.dart' as path;
+import 'signup_viewmodel.dart';
 
 // Signup screen with stepper
-class SignupScreen extends StatefulWidget {
+class SignupScreen extends ConsumerStatefulWidget {
   const SignupScreen({super.key});
 
   @override
-  State<SignupScreen> createState() => _SignupScreenState();
+  ConsumerState<SignupScreen> createState() => _SignupScreenState();
 }
 
-class _SignupScreenState extends State<SignupScreen> {
-  // Track the current step within the Stepper flow
-  int _currentStep = 0;
-
-  // Track the selected company type option
-  int _selectedCompanyType = 0;
-
+class _SignupScreenState extends ConsumerState<SignupScreen> {
   // Keep each step's form state isolated for validation
   final List<GlobalKey<FormState>> _stepFormKeys = List<GlobalKey<FormState>>.generate(
     2,
@@ -36,36 +29,16 @@ class _SignupScreenState extends State<SignupScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   
-  // Toggle the visibility of the password field
-  bool _isPasswordVisible = false;
-  
   // Manage text input and selections for the business information step
   final TextEditingController _companyNameController = TextEditingController();
   final TextEditingController _companyDescriptionController = TextEditingController();
-  String? _selectedCity;
-  String? _logoFilePath;
-  Uint8List? _logoPreviewBytes;
 
   // Manage image selection from gallery or camera
   final ImagePicker _imagePicker = ImagePicker();
   
   // Formatter to enforce "+7 707 707 7777" phone number structure
   static const List<TextInputFormatter> _phoneNumberFormatters = [
-    _PhoneNumberFormatter(),
-  ];
-  
-  // Provide available city options for the dropdown
-  final List<String> _cities = [
-    'Astana',
-    'Almaty',
-    'Shymkent',
-    'Karaganda',
-    'Aktobe',
-    'Taraz',
-    'Pavlodar',
-    'Ust-Kamenogorsk',
-    'Semey',
-    'Atyrau',
+    PhoneNumberFormatter(),
   ];
   
   // Initialize default values for the form controllers
@@ -88,49 +61,6 @@ class _SignupScreenState extends State<SignupScreen> {
     super.dispose();
   }
 
-  // Validator helper to enforce required fields
-  String? _validateRequiredField(String? value, String fieldLabel) {
-    if (value == null || value.trim().isEmpty) {
-      return '$fieldLabel is required.';
-    }
-
-    return null;
-  }
-
-  // Validator helper to perform a minimal email check
-  String? _validateEmail(String? value, String fieldLabel) {
-    final String? requiredValidation = _validateRequiredField(value, fieldLabel);
-
-    if (requiredValidation != null) {
-      return requiredValidation;
-    }
-
-    final RegExp emailPattern = RegExp(r'^[\w.+-]+@[\w-]+\.[\w.-]+$');
-
-    if (!emailPattern.hasMatch(value!.trim())) {
-      return 'Please enter a valid email address.';
-    }
-
-    return null;
-  }
-
-  // Validator helper to ensure the phone number contains all required digits
-  String? _validatePhoneNumber(String? value, String fieldLabel) {
-    final String? requiredValidation = _validateRequiredField(value, fieldLabel);
-
-    if (requiredValidation != null) {
-      return requiredValidation;
-    }
-
-    final String digitsOnly = value!.replaceAll(RegExp(r'\D'), '');
-
-    if (digitsOnly.length != 11) {
-      return 'Please enter a complete phone number.';
-    }
-
-    return null;
-  }
-
   // Validate the form belonging to the provided step index
   bool _validateStep(int stepIndex) {
     final FormState? formState = _stepFormKeys[stepIndex].currentState;
@@ -143,8 +73,11 @@ class _SignupScreenState extends State<SignupScreen> {
   }
 
   // Confirm that each step between the current position and the target is valid
-  bool _canAdvanceToStep(int targetStep) {
-    for (int stepIndex = _currentStep; stepIndex < targetStep; stepIndex++) {
+  bool _canAdvanceToStep({
+    required int fromStep,
+    required int toStep,
+  }) {
+    for (int stepIndex = fromStep; stepIndex < toStep; stepIndex++) {
       final bool isStepValid = _validateStep(stepIndex);
 
       if (!isStepValid) {
@@ -155,256 +88,281 @@ class _SignupScreenState extends State<SignupScreen> {
     return true;
   }
 
-  List<Step> stepList(AppLocalizations l10n) => [
-    Step(
-      title: Text(l10n.signupStep2Title),
-      content: Form(
-        key: _stepFormKeys[0],
-        autovalidateMode: AutovalidateMode.onUnfocus,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 16.0),
-          child: Column(
-            children: [
-              // First Name
-              TextFormField(
-                controller: _firstNameController,
-                validator: (value) => _validateRequiredField(value, l10n.signupStep2FirstName),
-                decoration: InputDecoration(
-                  labelText: l10n.signupStep2FirstName,
-                  hintText: l10n.signupStep2FirstNamePlaceholder,
-                  border: const OutlineInputBorder(),
-                ),
-              ),
-              
-              const SizedBox(height: 16),
-              
-              // Last Name
-              TextFormField(
-                controller: _lastNameController,
-                validator: (value) => _validateRequiredField(value, l10n.signupStep2LastName),
-                decoration: InputDecoration(
-                  labelText: l10n.signupStep2LastName,
-                  hintText: l10n.signupStep2LastNamePlaceholder,
-                  border: const OutlineInputBorder(),
-                ),
-              ),
-              
-              const SizedBox(height: 16),
-              
-              // Phone Number
-              TextFormField(
-                controller: _phoneNumberController,
-                keyboardType: TextInputType.phone,
-                inputFormatters: _phoneNumberFormatters,
-                validator: (value) => _validatePhoneNumber(value, l10n.signupStep2PhoneNumber),
-                decoration: InputDecoration(
-                  labelText: l10n.signupStep2PhoneNumber,
-                  hintText: l10n.signupStep2PhoneNumberPlaceholder,
-                  border: const OutlineInputBorder(),
-                ),
-              ),
-              
-              const SizedBox(height: 16),
-              
-              // Email
-              TextFormField(
-                controller: _emailController,
-                keyboardType: TextInputType.emailAddress,
-                validator: (value) => _validateEmail(value, l10n.signupStep2Email),
-                decoration: InputDecoration(
-                  labelText: l10n.signupStep2Email,
-                  hintText: l10n.signupStep2EmailPlaceholder,
-                  border: const OutlineInputBorder(),
-                ),
-              ),
-              
-              const SizedBox(height: 16),
-              
-              // Password
-              TextFormField(
-                controller: _passwordController,
-                obscureText: !_isPasswordVisible,
-                validator: (value) => _validateRequiredField(value, l10n.signupStep2Password),
-                decoration: InputDecoration(
-                  labelText: l10n.signupStep2Password,
-                  hintText: l10n.signupStep2passwordPlaceholder,
-                  border: const OutlineInputBorder(),
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        _isPasswordVisible = !_isPasswordVisible;
-                      });
-                    },
+  // Build the list of steps using the latest view-model state
+  List<Step> _buildSteps({
+    required AppLocalizations l10n,
+    required SignupState signupState,
+    required SignupViewModel signupViewModel,
+  }) {
+    return [
+      Step(
+        title: Text(l10n.signupStep2Title),
+        content: Form(
+          key: _stepFormKeys[0],
+          autovalidateMode: AutovalidateMode.onUnfocus,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16.0),
+            child: Column(
+              children: [
+                // First Name
+                TextFormField(
+                  controller: _firstNameController,
+                  validator: (value) => SignupValidators.validateRequiredField(
+                    value,
+                    l10n.signupStep2FirstName,
                   ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    ),
-
-    Step(
-      title: Text(l10n.signupStep3Title),
-      content: Form(
-        key: _stepFormKeys[1],
-        autovalidateMode: AutovalidateMode.onUnfocus,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 16.0),
-          child: Column(
-            children: [
-              // Select the company type
-              Align(
-                alignment: Alignment.centerLeft,
-                child: RadioGroup<int>(
-                  groupValue: _selectedCompanyType,
-                  onChanged: (int? value) {
-                    if (value != null) {
-                      setState(() {
-                        _selectedCompanyType = value;
-                      });
-                    }
-                  },
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      RadioListTile<int>(
-                        title: Text(l10n.signupStep1Consumer),
-                        value: 0,
-                      ),
-                      RadioListTile<int>(
-                        title: Text(l10n.signupStep1Supplier),
-                        value: 1,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              
-              const SizedBox(height: 16),
-              
-              // Company Name
-              TextFormField(
-                controller: _companyNameController,
-                validator: (value) => _validateRequiredField(value, l10n.signupStep3Name),
-                decoration: InputDecoration(
-                  labelText: l10n.signupStep3Name,
-                  hintText: l10n.signupStep3NamePlaceholder,
-                  border: const OutlineInputBorder(),
-                ),
-              ),
-              
-              const SizedBox(height: 16),
-              
-              // Company Description
-              TextFormField(
-                controller: _companyDescriptionController,
-                maxLines: 3,
-                validator: (value) => _validateRequiredField(value, l10n.signupStep3Description),
-                decoration: InputDecoration(
-                  labelText: l10n.signupStep3Description,
-                  hintText: l10n.signupStep3DescriptionPlaceholder,
-                  border: const OutlineInputBorder(),
-                ),
-              ),
-              
-              const SizedBox(height: 16),
-              
-              // Logo File Selector
-              InkWell(
-                onTap: () async {
-                  // Prompt the user to pick an image from the gallery
-                  final XFile? pickedImage = await _imagePicker.pickImage(
-                    source: ImageSource.gallery,
-                    maxWidth: 1024,
-                    maxHeight: 1024,
-                  );
-
-                  // Update the selected image path when the user picks one
-                  if (pickedImage == null) {
-                    return;
-                  }
-
-                  final Uint8List logoBytes = await pickedImage.readAsBytes();
-
-                  setState(() {
-                    _logoFilePath = pickedImage.path;
-                    _logoPreviewBytes = logoBytes;
-                  });
-                },
-                child: InputDecorator(
                   decoration: InputDecoration(
-                    labelText: l10n.signupStep3Logo,
+                    labelText: l10n.signupStep2FirstName,
+                    hintText: l10n.signupStep2FirstNamePlaceholder,
                     border: const OutlineInputBorder(),
-                    suffixIcon: const Icon(Icons.file_upload),
-                  ),
-                  child: Text(
-                    _logoFilePath == null ? l10n.signupStep3LogoPlaceholder : path.basename(_logoFilePath!),
-                    style: TextStyle(
-                      color: _logoFilePath == null ? Colors.grey : null,
-                    ),
                   ),
                 ),
-              ),
 
-              if (_logoPreviewBytes != null) ...[
-                const SizedBox(height: 12),
+                const SizedBox(height: 16),
 
-                // Display a preview of the selected logo file
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: Image.memory(
-                      _logoPreviewBytes!,
-                      width: 96,
-                      height: 96,
-                      fit: BoxFit.cover,
+                // Last Name
+                TextFormField(
+                  controller: _lastNameController,
+                  validator: (value) => SignupValidators.validateRequiredField(
+                    value,
+                    l10n.signupStep2LastName,
+                  ),
+                  decoration: InputDecoration(
+                    labelText: l10n.signupStep2LastName,
+                    hintText: l10n.signupStep2LastNamePlaceholder,
+                    border: const OutlineInputBorder(),
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                // Phone Number
+                TextFormField(
+                  controller: _phoneNumberController,
+                  keyboardType: TextInputType.phone,
+                  inputFormatters: _phoneNumberFormatters,
+                  validator: (value) => SignupValidators.validatePhoneNumber(
+                    value,
+                    l10n.signupStep2PhoneNumber,
+                  ),
+                  decoration: InputDecoration(
+                    labelText: l10n.signupStep2PhoneNumber,
+                    hintText: l10n.signupStep2PhoneNumberPlaceholder,
+                    border: const OutlineInputBorder(),
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                // Email
+                TextFormField(
+                  controller: _emailController,
+                  keyboardType: TextInputType.emailAddress,
+                  validator: (value) => SignupValidators.validateEmail(
+                    value,
+                    l10n.signupStep2Email,
+                  ),
+                  decoration: InputDecoration(
+                    labelText: l10n.signupStep2Email,
+                    hintText: l10n.signupStep2EmailPlaceholder,
+                    border: const OutlineInputBorder(),
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                // Password
+                TextFormField(
+                  controller: _passwordController,
+                  obscureText: !signupState.isPasswordVisible,
+                  validator: (value) => SignupValidators.validateRequiredField(
+                    value,
+                    l10n.signupStep2Password,
+                  ),
+                  decoration: InputDecoration(
+                    labelText: l10n.signupStep2Password,
+                    hintText: l10n.signupStep2passwordPlaceholder,
+                    border: const OutlineInputBorder(),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        signupState.isPasswordVisible
+                            ? Icons.visibility
+                            : Icons.visibility_off,
+                      ),
+                      onPressed: () {
+                        signupViewModel.togglePasswordVisibility();
+                      },
                     ),
                   ),
                 ),
               ],
-              
-              const SizedBox(height: 16),
-              
-              // Location Dropdown
-              DropdownButtonFormField<String>(
-                initialValue: _selectedCity,
-                decoration: InputDecoration(
-                  labelText: l10n.signupStep3Location,
-                  border: const OutlineInputBorder(),
-                ),
-                hint: Text(l10n.signupStep3LocationPlaceholder),
-                items: _cities.map((String city) {
-                  return DropdownMenuItem<String>(
-                    value: city,
-                    child: Text(city),
-                  );
-                }).toList(),
-                validator: (value) => _validateRequiredField(value, l10n.signupStep3Location),
-                onChanged: (String? newValue) {
-                  setState(() {
-                    _selectedCity = newValue;
-                  });
-                },
-              ),
-            ],
+            ),
           ),
         ),
       ),
-    ),
-  ];
+      Step(
+        title: Text(l10n.signupStep3Title),
+        content: Form(
+          key: _stepFormKeys[1],
+          autovalidateMode: AutovalidateMode.onUnfocus,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16.0),
+            child: Column(
+              children: [
+                // Select the company type
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: RadioGroup<int>(
+                    groupValue: signupState.selectedCompanyType,
+                    onChanged: (int? value) {
+                      if (value != null) {
+                        signupViewModel.setCompanyType(value);
+                      }
+                    },
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        RadioListTile<int>(
+                          title: Text(l10n.signupStep1Consumer),
+                          value: 0,
+                        ),
+                        RadioListTile<int>(
+                          title: Text(l10n.signupStep1Supplier),
+                          value: 1,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                // Company Name
+                TextFormField(
+                  controller: _companyNameController,
+                  validator: (value) => SignupValidators.validateRequiredField(
+                    value,
+                    l10n.signupStep3Name,
+                  ),
+                  decoration: InputDecoration(
+                    labelText: l10n.signupStep3Name,
+                    hintText: l10n.signupStep3NamePlaceholder,
+                    border: const OutlineInputBorder(),
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                // Company Description
+                TextFormField(
+                  controller: _companyDescriptionController,
+                  maxLines: 3,
+                  validator: (value) => SignupValidators.validateRequiredField(
+                    value,
+                    l10n.signupStep3Description,
+                  ),
+                  decoration: InputDecoration(
+                    labelText: l10n.signupStep3Description,
+                    hintText: l10n.signupStep3DescriptionPlaceholder,
+                    border: const OutlineInputBorder(),
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                // Logo File Selector
+                InkWell(
+                  onTap: () async {
+                    await signupViewModel.pickLogo(
+                      imagePicker: _imagePicker,
+                    );
+                  },
+                  child: InputDecorator(
+                    decoration: InputDecoration(
+                      labelText: l10n.signupStep3Logo,
+                      border: const OutlineInputBorder(),
+                      suffixIcon: const Icon(Icons.file_upload),
+                    ),
+                    child: Text(
+                      signupState.logoFilePath == null
+                          ? l10n.signupStep3LogoPlaceholder
+                          : path.basename(signupState.logoFilePath!),
+                      style: TextStyle(
+                        color: signupState.logoFilePath == null
+                            ? Colors.grey
+                            : null,
+                      ),
+                    ),
+                  ),
+                ),
+
+                if (signupState.logoPreviewBytes != null) ...[
+                  const SizedBox(height: 12),
+
+                  // Display a preview of the selected logo file
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.memory(
+                        signupState.logoPreviewBytes!,
+                        width: 96,
+                        height: 96,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ),
+                ],
+
+                const SizedBox(height: 16),
+
+                // Location Dropdown
+                DropdownButtonFormField<String>(
+                  initialValue: signupState.selectedCity,
+                  decoration: InputDecoration(
+                    labelText: l10n.signupStep3Location,
+                    border: const OutlineInputBorder(),
+                  ),
+                  hint: Text(l10n.signupStep3LocationPlaceholder),
+                  items: signupState.cityOptions.map((String city) {
+                    return DropdownMenuItem<String>(
+                      value: city,
+                      child: Text(city),
+                    );
+                  }).toList(),
+                  validator: (value) => SignupValidators.validateRequiredField(
+                    value,
+                    l10n.signupStep3Location,
+                  ),
+                  onChanged: (String? newValue) {
+                    signupViewModel.setSelectedCity(newValue);
+                  },
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
     // Get localized strings
     final l10n = AppLocalizations.of(context)!;
-    
+
+    // Watch the current signup state
+    final signupState = ref.watch(signupViewModelProvider);
+
+    // Read the view-model instance to trigger mutations
+    final signupViewModel = ref.read(signupViewModelProvider.notifier);
+
     // Prepare steps once to keep references consistent during this build cycle
-    final List<Step> steps = stepList(l10n);
+    final List<Step> steps = _buildSteps(
+      l10n: l10n,
+      signupState: signupState,
+      signupViewModel: signupViewModel,
+    );
 
     return Scaffold(
       appBar: AppBar(
@@ -417,23 +375,24 @@ class _SignupScreenState extends State<SignupScreen> {
               child: Stepper(
                 type: StepperType.vertical,
                 steps: steps,
-                currentStep: _currentStep,
+                currentStep: signupState.currentStep,
                 onStepTapped: (int index) {
-                  if (index == _currentStep) {
+                  if (index == signupState.currentStep) {
                     return;
                   }
 
-                  if (index > _currentStep) {
-                    final bool canAdvance = _canAdvanceToStep(index);
+                  if (index > signupState.currentStep) {
+                    final bool canAdvance = _canAdvanceToStep(
+                      fromStep: signupState.currentStep,
+                      toStep: index,
+                    );
 
                     if (!canAdvance) {
                       return;
                     }
                   }
 
-                  setState(() {
-                    _currentStep = index;
-                  });
+                  signupViewModel.jumpToStep(index);
                 },
                 controlsBuilder: (context, details) {
                   // Return empty container to hide the default buttons
@@ -453,18 +412,16 @@ class _SignupScreenState extends State<SignupScreen> {
                         minimumSize: ButtonSizes.mdFill,
                       ),
                       onPressed: () {
-                        if (_currentStep < steps.length - 1) {
+                        if (signupState.currentStep < steps.length - 1) {
                           // Validate the current step before advancing
-                          final bool isCurrentStepValid = _validateStep(_currentStep);
+                          final bool isCurrentStepValid = _validateStep(signupState.currentStep);
 
                           if (isCurrentStepValid) {
-                            setState(() {
-                              _currentStep++;
-                            });
+                            signupViewModel.goToNextStep();
                           }
                         } else {
                           // On last step, ensure the final step validates before submission
-                          final bool isFinalStepValid = _validateStep(_currentStep);
+                          final bool isFinalStepValid = _validateStep(signupState.currentStep);
 
                           if (isFinalStepValid) {
                             ScaffoldMessenger.of(context).showSnackBar(
@@ -475,7 +432,7 @@ class _SignupScreenState extends State<SignupScreen> {
                         }
                       },
                       child: Text(
-                          _currentStep < steps.length - 1 ? l10n.commonNext : l10n.commonSubmit,
+                          signupState.currentStep < steps.length - 1 ? l10n.commonNext : l10n.commonSubmit,
                       ),
                     ),
                   ),
@@ -489,11 +446,9 @@ class _SignupScreenState extends State<SignupScreen> {
                         minimumSize: ButtonSizes.mdFill,
                       ),
                       onPressed: () {
-                        if (_currentStep > 0) {
+                        if (signupState.currentStep > 0) {
                           // Go back to previous step
-                          setState(() {
-                            _currentStep--;
-                          });
+                          signupViewModel.goToPreviousStep();
                         } else {
                           // On first step, pop the screen
                           Navigator.pop(context);
@@ -508,62 +463,6 @@ class _SignupScreenState extends State<SignupScreen> {
           ],
         ),
       ),
-    );
-  }
-}
-
-// Custom phone number formatter for Kazakh numbers
-class _PhoneNumberFormatter extends TextInputFormatter {
-  const _PhoneNumberFormatter();
-
-  @override
-  TextEditingValue formatEditUpdate(
-    TextEditingValue oldValue,
-    TextEditingValue newValue,
-  ) {
-    // Extract only digits to normalize the input
-    String digitsOnly = newValue.text.replaceAll(RegExp(r'\D'), '');
-
-    // Ensure the value always starts with the country code digit "7"
-    if (!digitsOnly.startsWith('7')) {
-      digitsOnly = '7${digitsOnly.replaceFirst(RegExp(r'^7'), '')}';
-    }
-
-    // Limit input to country code plus 10 digits
-    if (digitsOnly.length > 11) {
-      digitsOnly = digitsOnly.substring(0, 11);
-    }
-
-    // Remove the leading country code digit to format the rest
-    final String localDigits = digitsOnly.length > 1 ? digitsOnly.substring(1) : '';
-
-    // Prepare the formatted output starting with "+7"
-    final StringBuffer formatted = StringBuffer('+7');
-
-    if (localDigits.isNotEmpty) {
-      // Append the first block of three digits
-      formatted.write(' ');
-      formatted.write(localDigits.substring(0, math.min(3, localDigits.length)));
-    }
-
-    if (localDigits.length > 3) {
-      // Append the second block of three digits
-      formatted.write(' ');
-      formatted.write(localDigits.substring(3, math.min(6, localDigits.length)));
-    }
-
-    if (localDigits.length > 6) {
-      // Append the final block of up to four digits
-      formatted.write(' ');
-      formatted.write(localDigits.substring(6, math.min(10, localDigits.length)));
-    }
-
-    final String formattedText = formatted.toString();
-
-    return TextEditingValue(
-      text: formattedText,
-      // Collapse the cursor to the end of the formatted input
-      selection: TextSelection.collapsed(offset: formattedText.length),
     );
   }
 }

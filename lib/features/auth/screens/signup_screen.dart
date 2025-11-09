@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:swe_mobile/core/constants/button_sizes.dart';
 import 'package:swe_mobile/l10n/app_localizations.dart';
+import 'package:path/path.dart' as path;
 
 // Signup screen with stepper
 class SignupScreen extends StatefulWidget {
@@ -24,7 +25,7 @@ class _SignupScreenState extends State<SignupScreen> {
 
   // Keep each step's form state isolated for validation
   final List<GlobalKey<FormState>> _stepFormKeys = List<GlobalKey<FormState>>.generate(
-    3,
+    2,
     (_) => GlobalKey<FormState>(),
   );
   
@@ -156,42 +157,9 @@ class _SignupScreenState extends State<SignupScreen> {
 
   List<Step> stepList(AppLocalizations l10n) => [
     Step(
-      title: Text(l10n.signupStep1Title),
-      content: Form(
-        key: _stepFormKeys[0],
-        autovalidateMode: AutovalidateMode.onUnfocus,
-        child: Center(
-          child: RadioGroup<int>(
-            groupValue: _selectedCompanyType,
-            onChanged: (int? value) {
-              if (value != null) {
-                setState(() {
-                  _selectedCompanyType = value;
-                });
-              }
-            },
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                RadioListTile<int>(
-                  title: Text(l10n.signupStep1Consumer),
-                  value: 0,
-                ),
-                RadioListTile<int>(
-                  title: Text(l10n.signupStep1Supplier),
-                  value: 1,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    ),
-
-    Step(
       title: Text(l10n.signupStep2Title),
       content: Form(
-        key: _stepFormKeys[1],
+        key: _stepFormKeys[0],
         autovalidateMode: AutovalidateMode.onUnfocus,
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 16.0),
@@ -282,12 +250,42 @@ class _SignupScreenState extends State<SignupScreen> {
     Step(
       title: Text(l10n.signupStep3Title),
       content: Form(
-        key: _stepFormKeys[2],
+        key: _stepFormKeys[1],
         autovalidateMode: AutovalidateMode.onUnfocus,
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 16.0),
           child: Column(
             children: [
+              // Select the company type
+              Align(
+                alignment: Alignment.centerLeft,
+                child: RadioGroup<int>(
+                  groupValue: _selectedCompanyType,
+                  onChanged: (int? value) {
+                    if (value != null) {
+                      setState(() {
+                        _selectedCompanyType = value;
+                      });
+                    }
+                  },
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      RadioListTile<int>(
+                        title: Text(l10n.signupStep1Consumer),
+                        value: 0,
+                      ),
+                      RadioListTile<int>(
+                        title: Text(l10n.signupStep1Supplier),
+                        value: 1,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              
+              const SizedBox(height: 16),
+              
               // Company Name
               TextFormField(
                 controller: _companyNameController,
@@ -344,7 +342,7 @@ class _SignupScreenState extends State<SignupScreen> {
                     suffixIcon: const Icon(Icons.file_upload),
                   ),
                   child: Text(
-                    _logoFilePath ?? l10n.signupStep3LogoPlaceholder,
+                    _logoFilePath == null ? l10n.signupStep3LogoPlaceholder : path.basename(_logoFilePath!),
                     style: TextStyle(
                       color: _logoFilePath == null ? Colors.grey : null,
                     ),

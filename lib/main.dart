@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:swe_mobile/l10n/app_localizations.dart';
-import 'core/providers/auth_provider.dart';
-import 'features/auth/screens/login_screen.dart';
-import 'features/main_screen/screens/main_screen.dart';
+import 'package:swe_mobile/core/providers/auth_provider.dart';
+import 'package:swe_mobile/ui/auth/login/login_view.dart';
+import 'package:swe_mobile/ui/main_screen/screens/main_screen.dart';
 
 void main() {
   runApp(

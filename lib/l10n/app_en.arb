@@ -63,7 +63,10 @@
   "commonBack": "Back",
   "commonNext": "Next",
   "commonSubmit": "Submit",
-  "commonCancel": "Cancel"
+  "commonCancel": "Cancel",
+  "commonRetry": "Retry",
+  "commonBackToLogin": "Back to sign in",
+  "errorLoadingCitiesTitle": "Unable to load cities"
 }
 
 

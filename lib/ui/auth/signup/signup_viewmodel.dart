@@ -1,10 +1,11 @@
 import 'dart:math' as math;
 import 'dart:typed_data';
 
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 
 // Immutable state that represents all signup form data
 @immutable
@@ -16,7 +17,6 @@ class SignupState {
     required this.selectedCity,
     required this.logoFilePath,
     required this.logoPreviewBytes,
-    required this.cityOptions,
   });
 
   final int currentStep;
@@ -25,7 +25,6 @@ class SignupState {
   final String? selectedCity;
   final String? logoFilePath;
   final Uint8List? logoPreviewBytes;
-  final List<String> cityOptions;
 
   // Create a new state instance with updated values
   SignupState copyWith({
@@ -35,7 +34,6 @@ class SignupState {
     String? selectedCity,
     String? logoFilePath,
     Uint8List? logoPreviewBytes,
-    List<String>? cityOptions,
   }) {
     return SignupState(
       currentStep: currentStep ?? this.currentStep,
@@ -44,7 +42,6 @@ class SignupState {
       selectedCity: selectedCity ?? this.selectedCity,
       logoFilePath: logoFilePath ?? this.logoFilePath,
       logoPreviewBytes: logoPreviewBytes ?? this.logoPreviewBytes,
-      cityOptions: cityOptions ?? this.cityOptions,
     );
   }
 }
@@ -60,18 +57,6 @@ class SignupViewModel extends Notifier<SignupState> {
       selectedCity: null,
       logoFilePath: null,
       logoPreviewBytes: null,
-      cityOptions: <String>[
-        'Astana',
-        'Almaty',
-        'Shymkent',
-        'Karaganda',
-        'Aktobe',
-        'Taraz',
-        'Pavlodar',
-        'Ust-Kamenogorsk',
-        'Semey',
-        'Atyrau',
-      ],
     );
   }
 

@@ -24,9 +24,9 @@ class AuthService {
   final AppConfig config;
   final Dio _dio;
 
-  static const String _registerPath = '/auth/register';
-  static const String _loginPath = '/auth/login';
-  static const String _refreshPath = '/auth/refresh';
+  static const String _registerPath = 'auth/register';
+  static const String _loginPath = 'auth/login';
+  static const String _refreshPath = 'auth/refresh';
 
   Future<void> registerCompany({
     required RegisterCompanyRequest request,

@@ -148,4 +148,13 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get commonCancel => 'Cancel';
+
+  @override
+  String get commonRetry => 'Retry';
+
+  @override
+  String get commonBackToLogin => 'Back to sign in';
+
+  @override
+  String get errorLoadingCitiesTitle => 'Unable to load cities';
 }

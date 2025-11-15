@@ -379,6 +379,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Cancel'**
   String get commonCancel;
+
+  /// No description provided for @commonRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get commonRetry;
+
+  /// No description provided for @commonBackToLogin.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to sign in'**
+  String get commonBackToLogin;
+
+  /// No description provided for @errorLoadingCitiesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load cities'**
+  String get errorLoadingCitiesTitle;
 }
 
 class _AppLocalizationsDelegate

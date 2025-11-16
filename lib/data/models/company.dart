@@ -16,7 +16,7 @@ class Company {
   final int? id;
   final String name;
   final String location;
-  final String companyType;
+  final CompanyType companyType;
   final String? description;
   final String? logoUrl;
   final Map<String, dynamic> extra;
@@ -26,11 +26,25 @@ class Company {
       id: json['id'] as int?,
       name: json['name'] as String? ?? '',
       location: json['location'] as String? ?? '',
-      companyType: json['company_type'] as String? ?? '',
+      companyType: CompanyTypeX.fromJson(json['company_type'] as String?),
       description: json['description'] as String?,
       logoUrl: json['logo_url'] as String?,
       extra: Map<String, dynamic>.from(json),
     );
   }
+}
+
+// Enumerates the only valid company types returned by the backend.
+enum CompanyType { supplier, consumer }
+
+extension CompanyTypeX on CompanyType {
+  static CompanyType fromJson(String? value) {
+    return CompanyType.values.firstWhere(
+      (type) => type.name == value,
+      orElse: () => CompanyType.supplier,
+    );
+  }
+
+  String get apiValue => name;
 }
 

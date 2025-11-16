@@ -4,6 +4,7 @@ import 'package:swe_mobile/core/constants/button_sizes.dart';
 import 'package:swe_mobile/core/providers/auth_provider.dart';
 import 'package:swe_mobile/l10n/app_localizations.dart';
 import '../signup/signup_view.dart';
+import 'package:swe_mobile/core/providers/app_locale_provider.dart';
 
 // Login screen
 class LoginScreen extends ConsumerStatefulWidget {
@@ -54,8 +55,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     // Watch isLoading state
     final bool isLoading = authState.isLoading;
+    final Locale currentLocale = ref.watch(appLocaleProvider);
 
     return Scaffold(
+      appBar: AppBar(
+        actions: [
+          TextButton.icon(
+            onPressed: () => _showLocalePicker(context, ref, currentLocale),
+            icon: const Icon(Icons.language),
+            label: Text(currentLocale.languageCode.toUpperCase()),
+          ),
+        ],
+      ),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -221,5 +232,46 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       ),
     );
   }
+}
+
+Future<void> _showLocalePicker(
+  BuildContext context,
+  WidgetRef ref,
+  Locale currentLocale,
+) async {
+  await showModalBottomSheet<void>(
+    context: context,
+    builder: (context) {
+      return SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            RadioListTile<Locale>(
+              title: const Text('English'),
+              value: const Locale('en'),
+              groupValue: currentLocale,
+              onChanged: (value) {
+                if (value != null) {
+                  ref.read(appLocaleProvider.notifier).setLocale(value);
+                  Navigator.of(context).pop();
+                }
+              },
+            ),
+            RadioListTile<Locale>(
+              title: const Text('Русский'),
+              value: const Locale('ru'),
+              groupValue: currentLocale,
+              onChanged: (value) {
+                if (value != null) {
+                  ref.read(appLocaleProvider.notifier).setLocale(value);
+                  Navigator.of(context).pop();
+                }
+              },
+            ),
+          ],
+        ),
+      );
+    },
+  );
 }
 

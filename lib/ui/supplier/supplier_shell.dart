@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'views/dashboard_view.dart';
-import 'views/catalog_view.dart';
+import 'views/catalog/catalog_view.dart';
 import 'views/linkings_view.dart';
 import 'views/chats_view.dart';
 import 'package:swe_mobile/ui/settings/settings_view.dart';

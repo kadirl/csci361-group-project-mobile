@@ -2,7 +2,8 @@ import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:flutter/services.dart';
-import 'package:image_picker/image_picker.dart';
+// Image selection helpers are disabled for now. Keeping import for future reuse.
+// import 'package:image_picker/image_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swe_mobile/core/providers/auth_provider.dart';
@@ -113,27 +114,27 @@ class SignupViewModel extends Notifier<SignupState> {
     );
   }
 
-  // Helper to trigger the image picker and save the selection
-  Future<void> pickLogo({
-    required ImagePicker imagePicker,
-  }) async {
-    final XFile? pickedImage = await imagePicker.pickImage(
-      source: ImageSource.gallery,
-      maxWidth: 1024,
-      maxHeight: 1024,
-    );
-
-    if (pickedImage == null) {
-      return;
-    }
-
-    final Uint8List logoBytes = await pickedImage.readAsBytes();
-
-    setLogoPreview(
-      path: pickedImage.path,
-      bytes: logoBytes,
-    );
-  }
+  // Helper to trigger the image picker and save the selection - disabled for now.
+  // Future<void> pickLogo({
+  //   required ImagePicker imagePicker,
+  // }) async {
+  //   final XFile? pickedImage = await imagePicker.pickImage(
+  //     source: ImageSource.gallery,
+  //     maxWidth: 1024,
+  //     maxHeight: 1024,
+  //   );
+  //
+  //   if (pickedImage == null) {
+  //     return;
+  //   }
+  //
+  //   final Uint8List logoBytes = await pickedImage.readAsBytes();
+  //
+  //   setLogoPreview(
+  //     path: pickedImage.path,
+  //     bytes: logoBytes,
+  //   );
+  // }
 
   // Submit signup by mapping the current form inputs to an API request
   Future<SignupResult> submitSignup({

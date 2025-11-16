@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:image_picker/image_picker.dart';
+// Image selection is temporarily disabled on the signup page. Keeping the
+// import commented for future reuse.
+// import 'package:image_picker/image_picker.dart';
 import 'package:swe_mobile/core/constants/button_sizes.dart';
 import 'package:swe_mobile/l10n/app_localizations.dart';
 import 'package:swe_mobile/data/models/city.dart';
 import 'package:swe_mobile/data/repositories/city_repository.dart';
 import 'package:swe_mobile/core/providers/auth_provider.dart';
-import 'package:path/path.dart' as path;
+// Path utilities were only used for the image selector. Commented for now.
+// import 'package:path/path.dart' as path;
 import 'signup_viewmodel.dart';
 
 // Signup screen with stepper
@@ -35,8 +38,8 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
   final TextEditingController _companyDescriptionController =
       TextEditingController();
 
-  // Manage image selection from gallery or camera
-  final ImagePicker _imagePicker = ImagePicker();
+  // Image selection support is temporarily disabled. Keep this for future use.
+  // final ImagePicker _imagePicker = ImagePicker();
 
   // Formatter to enforce "+7 707 707 7777" phone number structure
   static const List<TextInputFormatter> _phoneNumberFormatters = [
@@ -312,47 +315,48 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
 
                 const SizedBox(height: 16),
 
-                // Logo File Selector
-                InkWell(
-                  onTap: () async {
-                    await signupViewModel.pickLogo(imagePicker: _imagePicker);
-                  },
-                  child: InputDecorator(
-                    decoration: InputDecoration(
-                      labelText: l10n.signupStep3Logo,
-                      border: const OutlineInputBorder(),
-                      suffixIcon: const Icon(Icons.file_upload),
-                    ),
-                    child: Text(
-                      signupState.logoFilePath == null
-                          ? l10n.signupStep3LogoPlaceholder
-                          : path.basename(signupState.logoFilePath!),
-                      style: TextStyle(
-                        color: signupState.logoFilePath == null
-                            ? Colors.grey
-                            : null,
-                      ),
-                    ),
-                  ),
-                ),
+                // Logo File Selector - disabled for now, preserved for future reuse.
+                // InkWell(
+                //   onTap: () async {
+                //     await signupViewModel.pickLogo(imagePicker: _imagePicker);
+                //   },
+                //   child: InputDecorator(
+                //     decoration: InputDecoration(
+                //       labelText: l10n.signupStep3Logo,
+                //       border: const OutlineInputBorder(),
+                //       suffixIcon: const Icon(Icons.file_upload),
+                //     ),
+                //     child: Text(
+                //       signupState.logoFilePath == null
+                //           ? l10n.signupStep3LogoPlaceholder
+                //           : path.basename(signupState.logoFilePath!),
+                //       style: TextStyle(
+                //         color: signupState.logoFilePath == null
+                //             ? Colors.grey
+                //             : null,
+                //       ),
+                //     ),
+                //   ),
+                // ),
 
-                if (signupState.logoPreviewBytes != null) ...[
-                  const SizedBox(height: 12),
+                // Optional logo preview - disabled for now.
+                // if (signupState.logoPreviewBytes != null) ...[
+                //   const SizedBox(height: 12),
 
-                  // Display a preview of the selected logo file
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: Image.memory(
-                        signupState.logoPreviewBytes!,
-                        width: 96,
-                        height: 96,
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  ),
-                ],
+                //   // Display a preview of the selected logo file
+                //   Align(
+                //     alignment: Alignment.centerLeft,
+                //     child: ClipRRect(
+                //       borderRadius: BorderRadius.circular(8),
+                //       child: Image.memory(
+                //         signupState.logoPreviewBytes!,
+                //         width: 96,
+                //         height: 96,
+                //         fit: BoxFit.cover,
+                //       ),
+                //     ),
+                //   ),
+                // ],
 
                 const SizedBox(height: 16),
 

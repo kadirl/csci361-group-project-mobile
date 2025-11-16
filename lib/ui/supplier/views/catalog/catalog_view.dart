@@ -40,7 +40,13 @@ class _SupplierCatalogViewState extends ConsumerState<SupplierCatalogView> {
       return const Center(child: CircularProgressIndicator());
     }
 
-    // If user or company is missing, block access.
+    // Get user profile which contains company_id.
+    final appUser = userState.value;
+    if (appUser == null || appUser.companyId == null) {
+      return const Center(child: Text('User profile or company ID not found.'));
+    }
+
+    // If company is missing, block access.
     final company = companyState.value;
     if (company == null) {
       return const Center(child: Text('Company not found.'));
@@ -51,11 +57,11 @@ class _SupplierCatalogViewState extends ConsumerState<SupplierCatalogView> {
       return const Center(child: Text('Catalog is available for suppliers only.'));
     }
 
-    // Load products via repository.
+    // Load products via repository using company ID from user profile.
     final productRepo = ref.watch(productRepositoryProvider);
 
     return FutureBuilder<List<Product>>(
-      future: productRepo.listProducts(),
+      future: productRepo.listProducts(companyId: appUser.companyId!),
       builder: (context, snapshot) {
         // Basic loading and error states.
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -68,9 +74,7 @@ class _SupplierCatalogViewState extends ConsumerState<SupplierCatalogView> {
         final List<Product> products = snapshot.data ?? const <Product>[];
 
         // Determine whether current user can manage products.
-        final appUser = userState.value;
-        final bool canManageProducts = appUser != null &&
-            (appUser.role == UserRole.owner || appUser.role == UserRole.manager);
+        final bool canManageProducts = appUser.role == UserRole.owner || appUser.role == UserRole.manager;
 
         return Scaffold(
           // Floating action button for creating a new product.

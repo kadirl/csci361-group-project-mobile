@@ -8,6 +8,7 @@ import 'package:swe_mobile/ui/supplier/supplier_shell.dart';
 import 'package:swe_mobile/ui/consumer/consumer_shell.dart';
 import 'package:swe_mobile/core/providers/user_profile_provider.dart';
 import 'package:swe_mobile/core/providers/company_profile_provider.dart';
+import 'package:swe_mobile/data/models/company.dart';
 
 void main() {
   runApp(
@@ -78,9 +79,7 @@ class AuthWrapper extends ConsumerWidget {
 
         return companyProfileAsync.when(
           data: (company) {
-            final String companyType = company?.companyType.toLowerCase() ?? '';
-
-            if (companyType == 'consumer') {
+            if (company?.companyType == CompanyType.consumer) {
               return const ConsumerShell();
             }
 

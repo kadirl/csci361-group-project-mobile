@@ -157,4 +157,76 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get errorLoadingCitiesTitle => 'Unable to load cities';
+
+  @override
+  String get settingsUserProfile => 'User profile';
+
+  @override
+  String get settingsCompanyProfile => 'Company profile';
+
+  @override
+  String get settingsLanguage => 'Language';
+
+  @override
+  String get userProfileTitle => 'User profile';
+
+  @override
+  String get firstName => 'First name';
+
+  @override
+  String get lastName => 'Last name';
+
+  @override
+  String get phoneNumber => 'Phone number';
+
+  @override
+  String get userRole => 'Role';
+
+  @override
+  String get userLocale => 'Locale';
+
+  @override
+  String get companyLabel => 'Company';
+
+  @override
+  String get refreshProfile => 'Refresh profile';
+
+  @override
+  String get errorLoadingProfile => 'Failed to load profile';
+
+  @override
+  String get noUserProfile => 'No user profile available';
+
+  @override
+  String get companyProfileTitle => 'Company profile';
+
+  @override
+  String get companyName => 'Name';
+
+  @override
+  String get companyLocation => 'Location';
+
+  @override
+  String get companyType => 'Type';
+
+  @override
+  String get companyDescription => 'Description';
+
+  @override
+  String get companyId => 'Company ID';
+
+  @override
+  String get refreshCompany => 'Refresh company';
+
+  @override
+  String get errorLoadingCompany => 'Failed to load company';
+
+  @override
+  String get noCompanyProfile => 'No company profile available';
+
+  @override
+  String get companyTypeSupplier => 'Supplier';
+
+  @override
+  String get companyTypeConsumer => 'Consumer';
 }

@@ -397,6 +397,150 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Unable to load cities'**
   String get errorLoadingCitiesTitle;
+
+  /// No description provided for @settingsUserProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'User profile'**
+  String get settingsUserProfile;
+
+  /// No description provided for @settingsCompanyProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Company profile'**
+  String get settingsCompanyProfile;
+
+  /// No description provided for @settingsLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get settingsLanguage;
+
+  /// No description provided for @userProfileTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'User profile'**
+  String get userProfileTitle;
+
+  /// No description provided for @firstName.
+  ///
+  /// In en, this message translates to:
+  /// **'First name'**
+  String get firstName;
+
+  /// No description provided for @lastName.
+  ///
+  /// In en, this message translates to:
+  /// **'Last name'**
+  String get lastName;
+
+  /// No description provided for @phoneNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone number'**
+  String get phoneNumber;
+
+  /// No description provided for @userRole.
+  ///
+  /// In en, this message translates to:
+  /// **'Role'**
+  String get userRole;
+
+  /// No description provided for @userLocale.
+  ///
+  /// In en, this message translates to:
+  /// **'Locale'**
+  String get userLocale;
+
+  /// No description provided for @companyLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Company'**
+  String get companyLabel;
+
+  /// No description provided for @refreshProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh profile'**
+  String get refreshProfile;
+
+  /// No description provided for @errorLoadingProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load profile'**
+  String get errorLoadingProfile;
+
+  /// No description provided for @noUserProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'No user profile available'**
+  String get noUserProfile;
+
+  /// No description provided for @companyProfileTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Company profile'**
+  String get companyProfileTitle;
+
+  /// No description provided for @companyName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get companyName;
+
+  /// No description provided for @companyLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Location'**
+  String get companyLocation;
+
+  /// No description provided for @companyType.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get companyType;
+
+  /// No description provided for @companyDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Description'**
+  String get companyDescription;
+
+  /// No description provided for @companyId.
+  ///
+  /// In en, this message translates to:
+  /// **'Company ID'**
+  String get companyId;
+
+  /// No description provided for @refreshCompany.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh company'**
+  String get refreshCompany;
+
+  /// No description provided for @errorLoadingCompany.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load company'**
+  String get errorLoadingCompany;
+
+  /// No description provided for @noCompanyProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'No company profile available'**
+  String get noCompanyProfile;
+
+  /// No description provided for @companyTypeSupplier.
+  ///
+  /// In en, this message translates to:
+  /// **'Supplier'**
+  String get companyTypeSupplier;
+
+  /// No description provided for @companyTypeConsumer.
+  ///
+  /// In en, this message translates to:
+  /// **'Consumer'**
+  String get companyTypeConsumer;
 }
 
 class _AppLocalizationsDelegate

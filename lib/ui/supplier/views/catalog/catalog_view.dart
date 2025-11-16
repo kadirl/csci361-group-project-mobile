@@ -5,8 +5,10 @@ import '../../../../core/providers/company_profile_provider.dart';
 import '../../../../core/providers/user_profile_provider.dart';
 import '../../../../data/models/company.dart';
 import '../../../../data/models/product.dart';
+import '../../../../data/models/app_user.dart';
 import '../../../../data/repositories/product_repository.dart';
 import 'product/product_detail_view.dart';
+import 'product/create_product_view.dart';
 
 // Supplier catalog page showing the current supplier's products.
 class SupplierCatalogView extends ConsumerStatefulWidget {
@@ -65,17 +67,26 @@ class _SupplierCatalogViewState extends ConsumerState<SupplierCatalogView> {
 
         final List<Product> products = snapshot.data ?? const <Product>[];
 
+        // Determine whether current user can manage products.
+        final appUser = userState.value;
+        final bool canManageProducts = appUser != null &&
+            (appUser.role == UserRole.owner || appUser.role == UserRole.manager);
+
         return Scaffold(
-          // Floating action button for creating a new product (not implemented).
-          floatingActionButton: FloatingActionButton(
-            onPressed: () {
-              // Creation UI intentionally not implemented as requested.
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Create product: not implemented yet')),
-              );
-            },
-            child: const Icon(Icons.add),
-          ),
+          // Floating action button for creating a new product.
+          floatingActionButton: canManageProducts
+              ? FloatingActionButton(
+                  onPressed: () {
+                    // Navigate to full-screen create product page.
+                    Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => const CreateProductView(),
+                      ),
+                    );
+                  },
+                  child: const Icon(Icons.add),
+                )
+              : null,
 
           // Catalog content with a search field and the product list.
           body: Column(

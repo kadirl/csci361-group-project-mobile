@@ -4,7 +4,7 @@ import 'views/dashboard_view.dart';
 import 'views/catalog_view.dart';
 import 'views/linkings_view.dart';
 import 'views/chats_view.dart';
-import 'views/settings_view.dart';
+import 'views/settings/settings_view.dart';
 
 // Entry point for the supplier experience with a bottom tab bar.
 class SupplierShell extends StatefulWidget {

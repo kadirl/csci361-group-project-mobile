@@ -102,16 +102,33 @@ class AuthNotifier extends Notifier<AuthState> {
     }
   }
 
-  // Sign up method
+  // Sign up method - registers company and automatically authenticates the user
   Future<void> signUp({required RegisterCompanyRequest request}) async {
     // Set loading state
     state = state.copyWith(isLoading: true, error: null);
 
     try {
-      await _authRepository.registerCompany(request: request);
+      final SignUpResponse signUpResponse = await _authRepository.registerCompany(request: request);
 
-      state = state.copyWith(isLoading: false, error: null);
+      // Save tokens to secure storage
+      await _tokenStorage.saveTokens(signUpResponse.tokens);
+
+      // Create user from signup request email
+      final User user = User(
+        email: request.user.email,
+        name: '${request.user.firstName} ${request.user.lastName}',
+      );
+
+      // Update state with tokens and user - user is now authenticated
+      state = state.copyWith(
+        user: user,
+        isLoading: false,
+        error: null,
+        accessToken: signUpResponse.tokens.accessToken,
+        refreshToken: signUpResponse.tokens.refreshToken,
+      );
     } catch (e) {
+      // Set error state
       state = state.copyWith(isLoading: false, error: e.toString());
     }
   }

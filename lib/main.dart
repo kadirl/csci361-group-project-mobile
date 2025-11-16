@@ -4,7 +4,10 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:swe_mobile/l10n/app_localizations.dart';
 import 'package:swe_mobile/core/providers/auth_provider.dart';
 import 'package:swe_mobile/ui/auth/login/login_view.dart';
-import 'package:swe_mobile/ui/main_screen/screens/main_screen.dart';
+import 'package:swe_mobile/ui/supplier/supplier_shell.dart';
+import 'package:swe_mobile/ui/consumer/consumer_shell.dart';
+import 'package:swe_mobile/core/providers/user_profile_provider.dart';
+import 'package:swe_mobile/core/providers/company_profile_provider.dart';
 
 void main() {
   runApp(
@@ -59,8 +62,56 @@ class AuthWrapper extends ConsumerWidget {
 
     // Show login screen if not authenticated
     // Show main screen if authenticated
-    return authState.isAuthenticated
-        ? const MainScreen()
-        : const LoginScreen();
+    if (!authState.isAuthenticated) {
+      return const LoginScreen();
+    }
+
+    final userProfileAsync = ref.watch(userProfileProvider);
+
+    return userProfileAsync.when(
+      data: (user) {
+        if (user == null) {
+          return const LoginScreen();
+        }
+
+        final companyProfileAsync = ref.watch(companyProfileProvider);
+
+        return companyProfileAsync.when(
+          data: (company) {
+            final String companyType = company?.companyType.toLowerCase() ?? '';
+
+            if (companyType == 'consumer') {
+              return const ConsumerShell();
+            }
+
+            return const SupplierShell();
+          },
+          loading: () => _buildSplashLoader(),
+          error: (_, __) => _buildFallbackError(),
+        );
+      },
+      loading: () => _buildSplashLoader(),
+      error: (_, __) => _buildFallbackError(),
+    );
+  }
+
+  Widget _buildSplashLoader() {
+    return const Scaffold(
+      body: Center(child: CircularProgressIndicator()),
+    );
+  }
+
+  Widget _buildFallbackError() {
+    return const Scaffold(
+      body: Center(
+        child: Padding(
+          padding: EdgeInsets.all(24),
+          child: Text(
+            'Unable to load your workspace. Please try again.',
+            textAlign: TextAlign.center,
+          ),
+        ),
+      ),
+    );
   }
 }

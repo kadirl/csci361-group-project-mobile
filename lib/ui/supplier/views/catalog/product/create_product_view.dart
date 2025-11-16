@@ -166,6 +166,22 @@ class _CreateProductViewState extends ConsumerState<CreateProductView> {
                   placeholderText: localization.catalogProductImagesPlaceholder,
                   uploadImage: _uploadProductImageToS3,
                   onImagesChanged: _handleProductImagesChanged,
+                  onMaxImagesExceeded: () {
+                    // Show alert when user tries to add more than 5 images.
+                    showDialog<void>(
+                      context: context,
+                      builder: (BuildContext dialogContext) => AlertDialog(
+                        title: Text(localization.catalogProductImagesMaxExceededTitle),
+                        content: Text(localization.catalogProductImagesMaxExceededMessage),
+                        actions: <Widget>[
+                          FilledButton(
+                            onPressed: () => Navigator.of(dialogContext).pop(),
+                            child: const Text('OK'),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
                 ),
 
                 const SizedBox(height: 24),

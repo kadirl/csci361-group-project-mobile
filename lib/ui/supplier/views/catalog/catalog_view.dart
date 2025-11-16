@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/providers/company_profile_provider.dart';
-import '../../../core/providers/user_profile_provider.dart';
-import '../../../data/models/company.dart';
-import '../../../data/models/product.dart';
-import '../../../data/repositories/product_repository.dart';
-import 'product_detail_view.dart';
+import '../../../../core/providers/company_profile_provider.dart';
+import '../../../../core/providers/user_profile_provider.dart';
+import '../../../../data/models/company.dart';
+import '../../../../data/models/product.dart';
+import '../../../../data/repositories/product_repository.dart';
+import 'product/product_detail_view.dart';
 
 // Supplier catalog page showing the current supplier's products.
 class SupplierCatalogView extends ConsumerStatefulWidget {

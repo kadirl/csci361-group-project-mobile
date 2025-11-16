@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
-import 'company_profile/company_profile_view.dart';
 import 'user_profile/user_profile_view.dart';
+import 'company_profile/company_profile_view.dart';
 
-// Settings root view showing a simple list of links.
-class SupplierSettingsView extends StatelessWidget {
-  const SupplierSettingsView({super.key});
+// Shared settings view that can be used by any shell.
+class SettingsView extends StatelessWidget {
+  const SettingsView({super.key});
 
   @override
   Widget build(BuildContext context) {

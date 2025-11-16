@@ -4,7 +4,7 @@ import 'views/dashboard_view.dart';
 import 'views/catalog_view.dart';
 import 'views/linkings_view.dart';
 import 'views/chats_view.dart';
-import 'views/settings/settings_view.dart';
+import 'package:swe_mobile/ui/settings/settings_view.dart';
 
 // Entry point for the supplier experience with a bottom tab bar.
 class SupplierShell extends StatefulWidget {
@@ -24,7 +24,7 @@ class _SupplierShellState extends State<SupplierShell> {
     SupplierCatalogView(),
     SupplierLinkingsView(),
     SupplierChatsView(),
-    SupplierSettingsView(),
+    SettingsView(),
   ];
 
   // Titles for the AppBar corresponding to the selected tab

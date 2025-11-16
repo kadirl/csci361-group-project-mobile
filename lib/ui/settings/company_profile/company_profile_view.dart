@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../../../core/providers/company_profile_provider.dart';
-import '../../../../../../data/models/company.dart';
+import '../../../core/providers/company_profile_provider.dart';
+import '../../../data/models/company.dart';
 
 // Displays current company profile information using companyProfileProvider.
 class CompanyProfileView extends ConsumerWidget {
@@ -18,7 +18,8 @@ class CompanyProfileView extends ConsumerWidget {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) => _ErrorState(
           message: error.toString(),
-          onRetry: () => ref.read(companyProfileProvider.notifier).refreshCompany(),
+          onRetry: () =>
+              ref.read(companyProfileProvider.notifier).refreshCompany(),
         ),
         data: (company) {
           if (company == null) {

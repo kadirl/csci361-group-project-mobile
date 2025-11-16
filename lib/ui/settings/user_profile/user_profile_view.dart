@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../../../core/providers/user_profile_provider.dart';
-import '../../../../../../core/providers/company_profile_provider.dart';
+import '../../../core/providers/user_profile_provider.dart';
+import '../../../core/providers/company_profile_provider.dart';
 
 // Displays current user's profile information using user & company providers.
 class UserProfileView extends ConsumerWidget {
@@ -119,4 +119,5 @@ class _ErrorState extends StatelessWidget {
     );
   }
 }
+
 

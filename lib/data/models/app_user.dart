@@ -1,5 +1,26 @@
 import 'package:flutter/foundation.dart';
 
+/// Supported application user roles.
+enum UserRole {
+  owner,
+  manager,
+  staff,
+}
+
+/// Parse a raw role string from backend into a UserRole enum.
+UserRole parseUserRole(String? raw) {
+  switch ((raw ?? '').toLowerCase()) {
+    case 'owner':
+      return UserRole.owner;
+    case 'manager':
+      return UserRole.manager;
+    case 'staff':
+      return UserRole.staff;
+    default:
+      throw ArgumentError('Invalid user role: $raw');
+  }
+}
+
 /// Immutable representation of a user returned by the backend.
 @immutable
 class AppUser {
@@ -21,7 +42,7 @@ class AppUser {
   final String lastName;
   final String phoneNumber;
   final String email;
-  final String role;
+  final UserRole role;
   final String locale;
 
   /// Store any unmodeled payload fields so we do not silently drop data.
@@ -38,7 +59,8 @@ class AppUser {
       lastName: json['last_name'] as String? ?? '',
       phoneNumber: json['phone_number'] as String? ?? '',
       email: json['email'] as String? ?? '',
-      role: json['role'] as String? ?? '',
+      // Enforce only supported roles from backend payload.
+      role: parseUserRole(json['role'] as String?),
       locale: json['locale'] as String? ?? '',
       additionalData: extra,
     );

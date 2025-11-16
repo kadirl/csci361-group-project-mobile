@@ -39,7 +39,8 @@ class UserProfileView extends ConsumerWidget {
               _InfoTile(label: l10n.lastName, value: user.lastName),
               _InfoTile(label: l10n.email, value: user.email),
               _InfoTile(label: l10n.phoneNumber, value: user.phoneNumber),
-              _InfoTile(label: l10n.userRole, value: user.role),
+              // Display enum role as its name.
+              _InfoTile(label: l10n.userRole, value: user.role.name),
               _InfoTile(label: l10n.userLocale, value: user.locale),
               companyAsync.when(
                 loading: () => const ListTile(

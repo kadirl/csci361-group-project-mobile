@@ -28,12 +28,17 @@ class AuthService {
   static const String _loginPath = 'auth/login';
   static const String _refreshPath = 'auth/refresh';
 
-  Future<void> registerCompany({
+  Future<SignUpResponse> registerCompany({
     required RegisterCompanyRequest request,
   }) async {
     log('AuthService -> POST $_registerPath');
     try {
-      await _dio.post<dynamic>(_registerPath, data: request.toJson());
+      final Response<dynamic> response = await _dio.post<dynamic>(
+        _registerPath,
+        data: request.toJson(),
+      );
+
+      return SignUpResponse.fromJson(_decodeJsonObject(response.data));
     } on DioException catch (error, stackTrace) {
       _logAndRethrow(error, stackTrace);
     }
@@ -49,6 +54,14 @@ class AuthService {
 
       return AuthTokens.fromJson(_decodeJsonObject(response.data));
     } on DioException catch (error, stackTrace) {
+      // Map 404 to a clear invalid credentials message.
+      final int? statusCode = error.response?.statusCode;
+      if (statusCode == 404) {
+        Error.throwWithStackTrace(
+          Exception('Invalid login or password'),
+          stackTrace,
+        );
+      }
       _logAndRethrow(error, stackTrace);
     }
   }

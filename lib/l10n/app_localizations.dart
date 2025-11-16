@@ -608,6 +608,18 @@ abstract class AppLocalizations {
   /// **'Unit'**
   String get catalogProductUnitLabel;
 
+  /// No description provided for @catalogProductImagesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Product images'**
+  String get catalogProductImagesLabel;
+
+  /// No description provided for @catalogProductImagesPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Select product images (up to 5)'**
+  String get catalogProductImagesPlaceholder;
+
   /// No description provided for @catalogCreateProductSuccess.
   ///
   /// In en, this message translates to:
@@ -619,6 +631,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Failed to create product: {error}'**
   String catalogCreateProductErrorGeneric(Object error);
+
+  /// No description provided for @catalogEditProductTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit product'**
+  String get catalogEditProductTitle;
+
+  /// No description provided for @catalogUpdateProductSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Product updated successfully'**
+  String get catalogUpdateProductSuccess;
+
+  /// No description provided for @catalogUpdateProductErrorGeneric.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to update product: {error}'**
+  String catalogUpdateProductErrorGeneric(Object error);
 
   /// No description provided for @staffCreateUserSuccess.
   ///

@@ -264,11 +264,29 @@ class AppLocalizationsEn extends AppLocalizations {
   String get catalogProductUnitLabel => 'Unit';
 
   @override
+  String get catalogProductImagesLabel => 'Product images';
+
+  @override
+  String get catalogProductImagesPlaceholder =>
+      'Select product images (up to 5)';
+
+  @override
   String get catalogCreateProductSuccess => 'Product created successfully';
 
   @override
   String catalogCreateProductErrorGeneric(Object error) {
     return 'Failed to create product: $error';
+  }
+
+  @override
+  String get catalogEditProductTitle => 'Edit product';
+
+  @override
+  String get catalogUpdateProductSuccess => 'Product updated successfully';
+
+  @override
+  String catalogUpdateProductErrorGeneric(Object error) {
+    return 'Failed to update product: $error';
   }
 
   @override

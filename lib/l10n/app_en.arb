@@ -105,8 +105,13 @@
   "catalogProductBulkPriceLabel": "Bulk price",
   "catalogProductMinimumOrderLabel": "Minimum order",
   "catalogProductUnitLabel": "Unit",
+  "catalogProductImagesLabel": "Product images",
+  "catalogProductImagesPlaceholder": "Select product images (up to 5)",
   "catalogCreateProductSuccess": "Product created successfully",
   "catalogCreateProductErrorGeneric": "Failed to create product: {error}",
+  "catalogEditProductTitle": "Edit product",
+  "catalogUpdateProductSuccess": "Product updated successfully",
+  "catalogUpdateProductErrorGeneric": "Failed to update product: {error}",
   "staffCreateUserSuccess": "User created successfully"
 }
 

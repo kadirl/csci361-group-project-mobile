@@ -2,7 +2,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/models/auth_models.dart';
 import '../../data/repositories/auth_repository.dart';
+import '../../data/repositories/city_repository.dart';
+import '../../ui/auth/signup/signup_viewmodel.dart';
+import '../../ui/settings/staff_management/staff_management_view.dart';
 import '../storage/secure_token_storage.dart';
+import 'company_profile_provider.dart';
+import 'user_profile_provider.dart';
 
 // User model to store logged-in user data
 class User {
@@ -160,9 +165,29 @@ class AuthNotifier extends Notifier<AuthState> {
     }
   }
 
-  // Sign out method
+  // Sign out method - clears tokens, resets auth state, and invalidates all user-specific providers
   Future<void> signOut() async {
+    // Clear secure token storage
     await _tokenStorage.clearTokens();
+
+    // Invalidate user-specific providers to ensure they cleanup
+    ref.invalidate(userProfileProvider);
+    ref.invalidate(companyProfileProvider);
+    ref.invalidate(staffListProvider);
+    ref.invalidate(userByIdProvider);
+    
+    // Reset signup view model to initial state
+    ref.invalidate(signupViewModelProvider);
+    
+    // Clear city repository cache (if it exists)
+    try {
+      final cityRepository = ref.read(cityRepositoryProvider);
+      cityRepository.clearCache();
+    } catch (_) {
+      // Ignore if repository is not available
+    }
+
+    // Reset auth state to initial empty state
     state = const AuthState();
   }
 }

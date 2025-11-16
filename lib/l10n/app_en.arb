@@ -106,7 +106,8 @@
   "catalogProductMinimumOrderLabel": "Minimum order",
   "catalogProductUnitLabel": "Unit",
   "catalogCreateProductSuccess": "Product created successfully",
-  "catalogCreateProductErrorGeneric": "Failed to create product: {error}"
+  "catalogCreateProductErrorGeneric": "Failed to create product: {error}",
+  "staffCreateUserSuccess": "User created successfully"
 }
 
 

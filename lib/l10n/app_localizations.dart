@@ -619,6 +619,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Failed to create product: {error}'**
   String catalogCreateProductErrorGeneric(Object error);
+
+  /// No description provided for @staffCreateUserSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'User created successfully'**
+  String get staffCreateUserSuccess;
 }
 
 class _AppLocalizationsDelegate

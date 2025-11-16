@@ -270,4 +270,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String catalogCreateProductErrorGeneric(Object error) {
     return 'Failed to create product: $error';
   }
+
+  @override
+  String get staffCreateUserSuccess => 'User created successfully';
 }

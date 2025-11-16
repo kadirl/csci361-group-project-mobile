@@ -9,7 +9,7 @@ class AuthRepository {
 
   final AuthService _authService;
 
-  Future<void> registerCompany({required RegisterCompanyRequest request}) {
+  Future<SignUpResponse> registerCompany({required RegisterCompanyRequest request}) {
     return _authService.registerCompany(request: request);
   }
 

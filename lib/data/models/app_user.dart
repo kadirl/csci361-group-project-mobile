@@ -53,7 +53,8 @@ class AppUser {
     final Map<String, dynamic> extra = Map<String, dynamic>.from(json);
 
     return AppUser(
-      id: json['id'] as int?,
+      // Some endpoints return user_id instead of id
+      id: (json['id'] as int?) ?? (json['user_id'] as int?),
       companyId: json['company_id'] as int?,
       firstName: json['first_name'] as String? ?? '',
       lastName: json['last_name'] as String? ?? '',

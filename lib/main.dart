@@ -76,6 +76,8 @@ class AuthWrapper extends ConsumerWidget {
     return userProfileAsync.when(
       data: (user) {
         if (user == null) {
+          // If user profile cannot be resolved, sign out defensively
+          ref.read(authProvider.notifier).signOut();
           return const LoginScreen();
         }
 
@@ -90,31 +92,25 @@ class AuthWrapper extends ConsumerWidget {
             return const SupplierShell();
           },
           loading: () => _buildSplashLoader(),
-          error: (_, __) => _buildFallbackError(),
+          error: (_, __) {
+            // Company failed to load (e.g., company deleted) -> sign out
+            ref.read(authProvider.notifier).signOut();
+            return const LoginScreen();
+          },
         );
       },
       loading: () => _buildSplashLoader(),
-      error: (_, __) => _buildFallbackError(),
+      error: (_, __) {
+        // User failed to load (e.g., user deleted) -> sign out
+        ref.read(authProvider.notifier).signOut();
+        return const LoginScreen();
+      },
     );
   }
 
   Widget _buildSplashLoader() {
     return const Scaffold(
       body: Center(child: CircularProgressIndicator()),
-    );
-  }
-
-  Widget _buildFallbackError() {
-    return const Scaffold(
-      body: Center(
-        child: Padding(
-          padding: EdgeInsets.all(24),
-          child: Text(
-            'Unable to load your workspace. Please try again.',
-            textAlign: TextAlign.center,
-          ),
-        ),
-      ),
     );
   }
 }

@@ -96,3 +96,22 @@ class AuthTokens {
     );
   }
 }
+
+// Signup response that includes tokens and company_id
+@immutable
+class SignUpResponse {
+  const SignUpResponse({
+    required this.companyId,
+    required this.tokens,
+  });
+
+  final int companyId;
+  final AuthTokens tokens;
+
+  factory SignUpResponse.fromJson(Map<String, dynamic> json) {
+    return SignUpResponse(
+      companyId: json['company_id'] as int? ?? 0,
+      tokens: AuthTokens.fromJson(json),
+    );
+  }
+}

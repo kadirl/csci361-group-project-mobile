@@ -229,4 +229,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get companyTypeConsumer => 'Consumer';
+
+  @override
+  String get settingsStaffManagement => 'Staff Management';
+
+  @override
+  String get staffManagementTitle => 'Staff Management';
 }

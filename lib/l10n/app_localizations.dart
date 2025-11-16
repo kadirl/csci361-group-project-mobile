@@ -541,6 +541,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Consumer'**
   String get companyTypeConsumer;
+
+  /// No description provided for @settingsStaffManagement.
+  ///
+  /// In en, this message translates to:
+  /// **'Staff Management'**
+  String get settingsStaffManagement;
+
+  /// No description provided for @staffManagementTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Staff Management'**
+  String get staffManagementTitle;
 }
 
 class _AppLocalizationsDelegate

@@ -92,6 +92,9 @@
   "noCompanyProfile": "No company profile available",
   "companyTypeSupplier": "Supplier",
   "companyTypeConsumer": "Consumer"
+  ,
+  "settingsStaffManagement": "Staff Management",
+  "staffManagementTitle": "Staff Management"
 }
 
 

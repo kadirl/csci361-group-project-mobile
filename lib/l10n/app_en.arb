@@ -94,7 +94,19 @@
   "companyTypeConsumer": "Consumer"
   ,
   "settingsStaffManagement": "Staff Management",
-  "staffManagementTitle": "Staff Management"
+  "staffManagementTitle": "Staff Management",
+
+  "catalogCreateProductTitle": "Create product",
+  "catalogProductNameLabel": "Name",
+  "catalogProductDescriptionLabel": "Description",
+  "catalogProductStockQuantityLabel": "Stock quantity",
+  "catalogProductRetailPriceLabel": "Retail price",
+  "catalogProductThresholdLabel": "Threshold",
+  "catalogProductBulkPriceLabel": "Bulk price",
+  "catalogProductMinimumOrderLabel": "Minimum order",
+  "catalogProductUnitLabel": "Unit",
+  "catalogCreateProductSuccess": "Product created successfully",
+  "catalogCreateProductErrorGeneric": "Failed to create product: {error}"
 }
 
 

@@ -553,6 +553,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Staff Management'**
   String get staffManagementTitle;
+
+  /// No description provided for @catalogCreateProductTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Create product'**
+  String get catalogCreateProductTitle;
+
+  /// No description provided for @catalogProductNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get catalogProductNameLabel;
+
+  /// No description provided for @catalogProductDescriptionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Description'**
+  String get catalogProductDescriptionLabel;
+
+  /// No description provided for @catalogProductStockQuantityLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Stock quantity'**
+  String get catalogProductStockQuantityLabel;
+
+  /// No description provided for @catalogProductRetailPriceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Retail price'**
+  String get catalogProductRetailPriceLabel;
+
+  /// No description provided for @catalogProductThresholdLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Threshold'**
+  String get catalogProductThresholdLabel;
+
+  /// No description provided for @catalogProductBulkPriceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Bulk price'**
+  String get catalogProductBulkPriceLabel;
+
+  /// No description provided for @catalogProductMinimumOrderLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimum order'**
+  String get catalogProductMinimumOrderLabel;
+
+  /// No description provided for @catalogProductUnitLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Unit'**
+  String get catalogProductUnitLabel;
+
+  /// No description provided for @catalogCreateProductSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Product created successfully'**
+  String get catalogCreateProductSuccess;
+
+  /// No description provided for @catalogCreateProductErrorGeneric.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to create product: {error}'**
+  String catalogCreateProductErrorGeneric(Object error);
 }
 
 class _AppLocalizationsDelegate

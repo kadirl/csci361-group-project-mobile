@@ -235,4 +235,39 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get staffManagementTitle => 'Staff Management';
+
+  @override
+  String get catalogCreateProductTitle => 'Create product';
+
+  @override
+  String get catalogProductNameLabel => 'Name';
+
+  @override
+  String get catalogProductDescriptionLabel => 'Description';
+
+  @override
+  String get catalogProductStockQuantityLabel => 'Stock quantity';
+
+  @override
+  String get catalogProductRetailPriceLabel => 'Retail price';
+
+  @override
+  String get catalogProductThresholdLabel => 'Threshold';
+
+  @override
+  String get catalogProductBulkPriceLabel => 'Bulk price';
+
+  @override
+  String get catalogProductMinimumOrderLabel => 'Minimum order';
+
+  @override
+  String get catalogProductUnitLabel => 'Unit';
+
+  @override
+  String get catalogCreateProductSuccess => 'Product created successfully';
+
+  @override
+  String catalogCreateProductErrorGeneric(Object error) {
+    return 'Failed to create product: $error';
+  }
 }

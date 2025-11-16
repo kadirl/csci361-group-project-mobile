@@ -1,3 +1,6 @@
+import 'dart:developer';
+
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -5,7 +8,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../../core/constants/button_sizes.dart';
 import '../../../../../../data/models/product.dart';
 import '../../../../../../data/repositories/product_repository.dart';
+import '../../../../../../data/repositories/uploads_repository.dart';
 import '../../../../../../l10n/app_localizations.dart';
+import '../../../../shared/product_images_picker.dart';
 
 // Full-screen page for creating a new product.
 class CreateProductView extends ConsumerStatefulWidget {
@@ -28,6 +33,12 @@ class _CreateProductViewState extends ConsumerState<CreateProductView> {
   final TextEditingController _bulkPriceController = TextEditingController();
   final TextEditingController _minimumOrderController = TextEditingController();
   final TextEditingController _unitController = TextEditingController();
+
+  // Store uploaded product image URLs.
+  List<String> _productImageUrls = <String>[];
+
+  // Dio client for direct PUT to S3 using the presigned URL.
+  final Dio _uploadDio = Dio();
 
   bool _isSubmitting = false;
 
@@ -146,6 +157,17 @@ class _CreateProductViewState extends ConsumerState<CreateProductView> {
                       _validateRequiredField(value, localization.catalogProductUnitLabel),
                 ),
 
+                const SizedBox(height: 12),
+
+                // Product images picker with immediate S3 upload.
+                ProductImagesPicker(
+                  maxImages: 5,
+                  labelText: localization.catalogProductImagesLabel,
+                  placeholderText: localization.catalogProductImagesPlaceholder,
+                  uploadImage: _uploadProductImageToS3,
+                  onImagesChanged: _handleProductImagesChanged,
+                ),
+
                 const SizedBox(height: 24),
 
                 // Submit button (no images yet; uses placeholder URLs on submit).
@@ -220,6 +242,94 @@ class _CreateProductViewState extends ConsumerState<CreateProductView> {
     return null;
   }
 
+  // Upload a single image to S3 using the presigned POST from UploadsRepository.
+  Future<String> _uploadProductImageToS3(
+    Uint8List imageBytes,
+    String fileExtension,
+  ) async {
+    try {
+      log(
+        'CreateProductView -> Starting image upload (ext: $fileExtension, '
+        'size: ${imageBytes.length} bytes)',
+      );
+
+      // Get repository from Riverpod.
+      final UploadsRepository uploadsRepository =
+          ref.read(uploadsRepositoryProvider);
+
+      // Ask backend for presigned POST response for this extension.
+      log(
+        'CreateProductView -> Requesting presigned POST for extension: '
+        '$fileExtension',
+      );
+      final presignedResponse =
+          await uploadsRepository.getUploadUrl(ext: fileExtension);
+      log(
+        'CreateProductView -> Received presigned POST: url=${presignedResponse.uploadUrl}, '
+        'finalUrl=${presignedResponse.finalUrl}',
+      );
+
+      // Build form data with all required fields plus the file.
+      final FormData formData = FormData.fromMap(<String, dynamic>{
+        ...presignedResponse.fields,
+        'file': MultipartFile.fromBytes(
+          imageBytes,
+          filename: 'image.$fileExtension',
+        ),
+      });
+
+      // Upload to S3 using POST with form data.
+      log('CreateProductView -> Uploading image to S3 via POST...');
+      final Response<dynamic> uploadResponse = await _uploadDio.post<dynamic>(
+        presignedResponse.uploadUrl,
+        data: formData,
+        options: Options(
+          validateStatus: (int? status) {
+            // S3 returns 204 No Content or 200 OK on successful upload.
+            return status != null && status >= 200 && status < 300;
+          },
+        ),
+      );
+
+      log(
+        'CreateProductView -> S3 upload response: status=${uploadResponse.statusCode}, '
+        'headers=${uploadResponse.headers}',
+      );
+
+      if (uploadResponse.statusCode != null &&
+          uploadResponse.statusCode! >= 200 &&
+          uploadResponse.statusCode! < 300) {
+        log(
+          'CreateProductView -> Successfully uploaded image to S3: '
+          '${presignedResponse.finalUrl}',
+        );
+      } else {
+        throw Exception(
+          'S3 upload failed with status ${uploadResponse.statusCode}',
+        );
+      }
+
+      // Return the final public URL where the file is accessible.
+      return presignedResponse.finalUrl;
+    } catch (error, stackTrace) {
+      log(
+        'CreateProductView -> Failed to upload image to S3: $error',
+        error: error,
+        stackTrace: stackTrace,
+      );
+
+      // Re-throw the error so the widget can handle it.
+      Error.throwWithStackTrace(error, stackTrace);
+    }
+  }
+
+  // Update local state when the image picker reports new URLs.
+  void _handleProductImagesChanged(List<String> urls) {
+    setState(() {
+      _productImageUrls = urls;
+    });
+  }
+
   Future<void> _handleSubmit(BuildContext context) async {
     final AppLocalizations localization = AppLocalizations.of(context)!;
 
@@ -233,14 +343,13 @@ class _CreateProductViewState extends ConsumerState<CreateProductView> {
       _isSubmitting = true;
     });
 
-    try {
-      // Build placeholder image URLs payload: four items alternating between given links.
-      const String urlA =
-          'https://csci361bucket.s3.eu-north-1.amazonaws.com/uploads/f5323d7c-b9fc-4396-99dc-eb30bb51c653.jpg';
-      const String urlB =
-          'https://csci361bucket.s3.eu-north-1.amazonaws.com/uploads/f8c7b4bf-b4a0-4140-8ac5-0851c6d6fcda.jpg';
+    // Store references before async gap to avoid BuildContext issues.
+    final NavigatorState navigator = Navigator.of(context);
+    final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
 
-      final List<String> pictureUrls = <String>[urlA, urlB, urlA, urlB];
+    try {
+      // Build picture URLs payload from uploaded images.
+      final List<String> pictureUrls = _productImageUrls;
 
       // Map form fields to ProductRequest.
       final ProductRequest request = ProductRequest(
@@ -259,24 +368,28 @@ class _CreateProductViewState extends ConsumerState<CreateProductView> {
 
       await repository.addProduct(request: request);
 
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(localization.catalogCreateProductSuccess),
-          ),
-        );
-        Navigator.of(context).pop();
+      if (!mounted) {
+        return;
       }
+
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(localization.catalogCreateProductSuccess),
+        ),
+      );
+      navigator.pop();
     } catch (error) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              localization.catalogCreateProductErrorGeneric(error.toString()),
-            ),
-          ),
-        );
+      if (!mounted) {
+        return;
       }
+
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            localization.catalogCreateProductErrorGeneric(error.toString()),
+          ),
+        ),
+      );
     } finally {
       if (mounted) {
         setState(() {

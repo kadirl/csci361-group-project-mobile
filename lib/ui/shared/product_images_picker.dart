@@ -61,6 +61,9 @@ class ProductImagesPicker extends StatefulWidget {
 
   final bool isEnabled;
 
+  /// Optional callback when user tries to add more images than [maxImages] allows.
+  final VoidCallback? onMaxImagesExceeded;
+
   const ProductImagesPicker({
     super.key,
     required this.maxImages,
@@ -69,6 +72,7 @@ class ProductImagesPicker extends StatefulWidget {
     required this.labelText,
     required this.placeholderText,
     this.isEnabled = true,
+    this.onMaxImagesExceeded,
   });
 
   @override
@@ -108,6 +112,11 @@ class _ProductImagesPickerState extends State<ProductImagesPicker> {
 
     if (pickedFiles.isEmpty) {
       return;
+    }
+
+    // Check if user tried to add more images than allowed.
+    if (pickedFiles.length > remainingSlots && widget.onMaxImagesExceeded != null) {
+      widget.onMaxImagesExceeded!();
     }
 
     // Only keep as many as we have remaining slots for.

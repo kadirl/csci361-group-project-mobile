@@ -9,6 +9,7 @@ import 'package:swe_mobile/ui/consumer/consumer_shell.dart';
 import 'package:swe_mobile/core/providers/user_profile_provider.dart';
 import 'package:swe_mobile/core/providers/company_profile_provider.dart';
 import 'package:swe_mobile/data/models/company.dart';
+import 'package:swe_mobile/core/providers/app_locale_provider.dart';
 
 void main() {
   runApp(
@@ -19,11 +20,14 @@ void main() {
   );
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends ConsumerWidget {
   const MyApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Observe app locale to support runtime changes.
+    final Locale currentLocale = ref.watch(appLocaleProvider);
+
     return MaterialApp(
       title: 'SWE Mobile',
       theme: ThemeData(
@@ -42,8 +46,8 @@ class MyApp extends StatelessWidget {
         Locale('en', ''), // English
         Locale('ru', ''), // Russian
       ],
-      // Set default locale (defaults to system locale if not specified)
-      locale: const Locale('en'), // Change 'ru' to 'en' for English
+      // Use app-level locale so it can be changed at runtime.
+      locale: currentLocale,
       
       // Use Consumer to watch auth state and navigate accordinlgy
       home: const AuthWrapper(),

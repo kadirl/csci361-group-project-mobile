@@ -316,4 +316,19 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get staffCreateUserSuccess => 'User created successfully';
+
+  @override
+  String get staffDeleteUserTitle => 'Delete user';
+
+  @override
+  String get staffDeleteUserMessage =>
+      'Are you sure you want to delete this user? This action cannot be undone.';
+
+  @override
+  String get staffDeleteUserSuccess => 'User deleted successfully';
+
+  @override
+  String staffDeleteUserErrorGeneric(Object error) {
+    return 'Failed to delete user: $error';
+  }
 }

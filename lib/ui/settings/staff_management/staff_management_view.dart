@@ -108,22 +108,42 @@ class StaffManagementView extends ConsumerWidget {
   }
 }
 
+// Helper function to check if current user's role is higher than target user's role.
+// Role hierarchy: owner > manager > staff
+bool _isRoleHigher(UserRole currentRole, UserRole targetRole) {
+  if (currentRole == UserRole.owner) {
+    return targetRole != UserRole.owner;
+  } else if (currentRole == UserRole.manager) {
+    return targetRole == UserRole.staff;
+  } else {
+    return false; // staff cannot manage anyone
+  }
+}
+
 // Simple wrapper to reuse user profile layout but load by id.
-class _UserDetailByIdView extends ConsumerWidget {
+class _UserDetailByIdView extends ConsumerStatefulWidget {
   const _UserDetailByIdView({required this.userId});
   final int userId;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final userAsync = ref.watch(userByIdProvider(userId));
+  ConsumerState<_UserDetailByIdView> createState() => _UserDetailByIdViewState();
+}
+
+class _UserDetailByIdViewState extends ConsumerState<_UserDetailByIdView> {
+  bool _isDeleting = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final userAsync = ref.watch(userByIdProvider(widget.userId));
     final l10n = AppLocalizations.of(context)!;
+    final currentUser = ref.watch(userProfileProvider).asData?.value;
 
     return userAsync.when(
       loading: () => const Scaffold(
         body: Center(child: CircularProgressIndicator()),
       ),
       error: (e, _) {
-        log('User detail load failed for id=$userId: $e');
+        log('User detail load failed for id=${widget.userId}: $e');
         return Scaffold(
           appBar: AppBar(),
           body: Center(
@@ -135,7 +155,7 @@ class _UserDetailByIdView extends ConsumerWidget {
                   Text(e.toString(), textAlign: TextAlign.center),
                   const SizedBox(height: 12),
                   FilledButton(
-                    onPressed: () => ref.refresh(userByIdProvider(userId)),
+                    onPressed: () => ref.refresh(userByIdProvider(widget.userId)),
                     child: Text(l10n.commonRetry),
                   ),
                 ],
@@ -147,8 +167,42 @@ class _UserDetailByIdView extends ConsumerWidget {
       data: (user) {
         // Minimal detail using the same info tiles style.
         final String fullName = '${user.firstName} ${user.lastName}'.trim();
+
+        // Check if current user can edit/delete this user.
+        final bool canEdit = currentUser != null &&
+            (currentUser.role == UserRole.owner || currentUser.role == UserRole.manager);
+        
+        final bool canDelete = currentUser != null &&
+            _isRoleHigher(currentUser.role, user.role) &&
+            currentUser.id != user.id; // Cannot delete yourself
+
         return Scaffold(
-          appBar: AppBar(title: Text(fullName.isEmpty ? user.email : fullName)),
+          appBar: AppBar(
+            title: Text(fullName.isEmpty ? user.email : fullName),
+            actions: <Widget>[
+              // Edit button - non-functional for now
+              if (canEdit)
+                IconButton(
+                  icon: const Icon(Icons.edit),
+                  onPressed: () {
+                    // Edit functionality not implemented yet
+                  },
+                ),
+
+              // Delete button - shows confirmation dialog
+              if (canDelete)
+                IconButton(
+                  icon: _isDeleting
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.delete_outline),
+                  onPressed: _isDeleting ? null : () => _handleDelete(context, l10n, user),
+                ),
+            ],
+          ),
           body: ListView(
             children: <Widget>[
               ListTile(title: Text(l10n.firstName), subtitle: Text(user.firstName.isEmpty ? '—' : user.firstName)),
@@ -157,17 +211,94 @@ class _UserDetailByIdView extends ConsumerWidget {
               ListTile(title: Text(l10n.phoneNumber), subtitle: Text(user.phoneNumber.isEmpty ? '—' : user.phoneNumber)),
               ListTile(title: Text(l10n.userRole), subtitle: Text(user.role.name)),
               ListTile(title: Text(l10n.userLocale), subtitle: Text(user.locale.isEmpty ? '—' : user.locale)),
-              const Divider(height: 0),
-              // Placeholder Edit entry point (non-functional for now)
-              const ListTile(
-                leading: Icon(Icons.edit_outlined),
-                title: Text('Edit (coming soon)'),
-              ),
             ],
           ),
         );
       },
     );
+  }
+
+  // Handle user deletion with confirmation dialog.
+  Future<void> _handleDelete(BuildContext context, AppLocalizations l10n, AppUser user) async {
+    // Show confirmation dialog
+    final bool? confirmed = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext dialogContext) => AlertDialog(
+        title: Text(l10n.staffDeleteUserTitle),
+        content: Text(l10n.staffDeleteUserMessage),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(l10n.commonCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(l10n.commonConfirm),
+          ),
+        ],
+      ),
+    );
+
+    // If user cancelled, do nothing
+    if (confirmed != true) {
+      return;
+    }
+
+    // Ensure user has an ID for deletion
+    if (user.id == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(l10n.staffDeleteUserErrorGeneric('User ID is missing')),
+          ),
+        );
+      }
+      return;
+    }
+
+    setState(() {
+      _isDeleting = true;
+    });
+
+    try {
+      final UserRepository repository = ref.read(userRepositoryProvider);
+
+      await repository.deleteUser(userId: user.id!);
+
+      // Invalidate the user detail provider
+      ref.invalidate(userByIdProvider(widget.userId));
+
+      // Invalidate the staff list provider to refresh the list
+      ref.invalidate(staffListProvider);
+
+      if (mounted) {
+        // Show success message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(l10n.staffDeleteUserSuccess),
+          ),
+        );
+
+        // Navigate back to previous screen
+        Navigator.of(context).pop();
+      }
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              l10n.staffDeleteUserErrorGeneric(error.toString()),
+            ),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isDeleting = false;
+        });
+      }
+    }
   }
 }
 

@@ -119,7 +119,11 @@
   "catalogDeleteProductSuccess": "Product deleted successfully",
   "catalogDeleteProductErrorGeneric": "Failed to delete product: {error}",
   "commonConfirm": "Confirm",
-  "staffCreateUserSuccess": "User created successfully"
+  "staffCreateUserSuccess": "User created successfully",
+  "staffDeleteUserTitle": "Delete user",
+  "staffDeleteUserMessage": "Are you sure you want to delete this user? This action cannot be undone.",
+  "staffDeleteUserSuccess": "User deleted successfully",
+  "staffDeleteUserErrorGeneric": "Failed to delete user: {error}"
 }
 
 

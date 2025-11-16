@@ -697,6 +697,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'User created successfully'**
   String get staffCreateUserSuccess;
+
+  /// No description provided for @staffDeleteUserTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete user'**
+  String get staffDeleteUserTitle;
+
+  /// No description provided for @staffDeleteUserMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete this user? This action cannot be undone.'**
+  String get staffDeleteUserMessage;
+
+  /// No description provided for @staffDeleteUserSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'User deleted successfully'**
+  String get staffDeleteUserSuccess;
+
+  /// No description provided for @staffDeleteUserErrorGeneric.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to delete user: {error}'**
+  String staffDeleteUserErrorGeneric(Object error);
 }
 
 class _AppLocalizationsDelegate

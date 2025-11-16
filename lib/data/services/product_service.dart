@@ -28,11 +28,14 @@ class ProductService {
   static const String _productsPath = 'products/';
 
   // Retrieve all products (protected endpoint).
-  Future<List<Product>> listProducts() async {
-    log('ProductService -> GET $_productsPath');
+  Future<List<Product>> listProducts({required int companyId}) async {
+    log('ProductService -> GET $_productsPath?company_id=$companyId');
 
     try {
-      final Response<dynamic> response = await _dio.get<dynamic>(_productsPath);
+      final Response<dynamic> response = await _dio.get<dynamic>(
+        _productsPath,
+        queryParameters: {'company_id': companyId},
+      );
       final dynamic body = response.data;
 
       // API returns: { "products": [ { ...product... }, ... ] }

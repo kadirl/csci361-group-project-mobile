@@ -13,8 +13,8 @@ class ProductRepository {
   final ProductService _service;
 
   // List available products.
-  Future<List<Product>> listProducts() {
-    return _service.listProducts();
+  Future<List<Product>> listProducts({required int companyId}) {
+    return _service.listProducts(companyId: companyId);
   }
 
   // Add a new product.

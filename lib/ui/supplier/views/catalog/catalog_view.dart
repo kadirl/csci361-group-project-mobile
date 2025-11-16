@@ -19,14 +19,92 @@ class SupplierCatalogView extends ConsumerStatefulWidget {
 }
 
 class _SupplierCatalogViewState extends ConsumerState<SupplierCatalogView> {
-  // Controller to hold the search query (search not implemented by request).
+  // Controller to hold the search query.
   final TextEditingController _searchController = TextEditingController();
+
+  // Current search query for filtering products.
+  String _searchQuery = '';
+
+  // Cache the loaded products to avoid reloading on every rebuild.
+  List<Product>? _cachedProducts;
+  bool _isLoadingProducts = false;
+  String? _productsError;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Listen to search field changes to update filter (no setState needed).
+    _searchController.addListener(_onSearchChanged);
+
+    // Load products once when widget initializes.
+    _loadProducts();
+  }
 
   @override
   void dispose() {
     // Dispose the controller to avoid memory leaks.
+    _searchController.removeListener(_onSearchChanged);
     _searchController.dispose();
     super.dispose();
+  }
+
+  // Handle search field changes without triggering full rebuild.
+  void _onSearchChanged() {
+    final String newQuery = _searchController.text.toLowerCase().trim();
+    if (newQuery != _searchQuery) {
+      setState(() {
+        _searchQuery = newQuery;
+      });
+    }
+  }
+
+  // Load products once and cache them.
+  Future<void> _loadProducts() async {
+    final userState = ref.read(userProfileProvider);
+    final appUser = userState.value;
+
+    if (appUser?.companyId == null) {
+      return;
+    }
+
+    setState(() {
+      _isLoadingProducts = true;
+      _productsError = null;
+    });
+
+    try {
+      final productRepo = ref.read(productRepositoryProvider);
+      final products = await productRepo.listProducts(companyId: appUser!.companyId!);
+
+      if (mounted) {
+        setState(() {
+          _cachedProducts = products;
+          _isLoadingProducts = false;
+        });
+      }
+    } catch (error) {
+      if (mounted) {
+        setState(() {
+          _productsError = error.toString();
+          _isLoadingProducts = false;
+        });
+      }
+    }
+  }
+
+  // Filter products by name based on search query.
+  List<Product> _filterProducts(List<Product> products, String query) {
+    if (query.isEmpty) {
+      return products;
+    }
+
+    return products
+        .where(
+          (Product product) =>
+              product.name.toLowerCase().contains(query),
+        )
+        .toList();
   }
 
   @override
@@ -57,67 +135,84 @@ class _SupplierCatalogViewState extends ConsumerState<SupplierCatalogView> {
       return const Center(child: Text('Catalog is available for suppliers only.'));
     }
 
-    // Load products via repository using company ID from user profile.
-    final productRepo = ref.watch(productRepositoryProvider);
+    // Show loading state while products are being loaded.
+    if (_isLoadingProducts) {
+      return const Center(child: CircularProgressIndicator());
+    }
 
-    return FutureBuilder<List<Product>>(
-      future: productRepo.listProducts(companyId: appUser.companyId!),
-      builder: (context, snapshot) {
-        // Basic loading and error states.
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        if (snapshot.hasError) {
-          return Center(child: Text('Failed to load catalog: ${snapshot.error}'));
-        }
+    // Show error state if products failed to load.
+    if (_productsError != null) {
+      return Center(child: Text('Failed to load catalog: $_productsError'));
+    }
 
-        final List<Product> products = snapshot.data ?? const <Product>[];
+    // Get cached products or empty list.
+    final List<Product> allProducts = _cachedProducts ?? const <Product>[];
 
-        // Determine whether current user can manage products.
-        final bool canManageProducts = appUser.role == UserRole.owner || appUser.role == UserRole.manager;
+    // Filter products based on search query.
+    final List<Product> filteredProducts = _filterProducts(allProducts, _searchQuery);
 
-        return Scaffold(
-          // Floating action button for creating a new product.
-          floatingActionButton: canManageProducts
-              ? FloatingActionButton(
-                  onPressed: () {
-                    // Navigate to full-screen create product page.
-                    Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        builder: (_) => const CreateProductView(),
-                      ),
-                    );
-                  },
-                  child: const Icon(Icons.add),
-                )
-              : null,
+    // Determine whether current user can manage products.
+    final bool canManageProducts = appUser.role == UserRole.owner || appUser.role == UserRole.manager;
 
-          // Catalog content with a search field and the product list.
-          body: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: <Widget>[
-              // Top search field - not wired to filtering yet per request.
-              Padding(
-                padding: const EdgeInsets.all(12.0),
-                child: TextField(
-                  controller: _searchController,
-                  readOnly: true,
-                  decoration: const InputDecoration(
-                    prefixIcon: Icon(Icons.search),
-                    hintText: 'Search (coming soon)',
-                    border: OutlineInputBorder(),
+    return Scaffold(
+      // Floating action button for creating a new product.
+      floatingActionButton: canManageProducts
+          ? FloatingActionButton(
+              onPressed: () async {
+                // Navigate to full-screen create product page.
+                await Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const CreateProductView(),
                   ),
-                ),
-              ),
+                );
+                // Reload products after returning from create view.
+                _loadProducts();
+              },
+              child: const Icon(Icons.add),
+            )
+          : null,
 
-              // Expand to show the list of product cards.
-              Expanded(
-                child: products.isEmpty
-                    ? const Center(child: Text('No products yet'))
+      // Catalog content with a search field and the product list.
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          // Top search field for filtering products by name.
+          Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                prefixIcon: const Icon(Icons.search),
+                suffixIcon: _searchQuery.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
+                          _searchController.clear();
+                        },
+                      )
+                    : null,
+                hintText: 'Search products...',
+                border: const OutlineInputBorder(),
+              ),
+            ),
+          ),
+
+          // Expand to show the list of product cards.
+          Expanded(
+            child: allProducts.isEmpty
+                ? const Center(child: Text('No products yet'))
+                : filteredProducts.isEmpty
+                    ? Center(
+                        child: Text(
+                          _searchQuery.isEmpty
+                              ? 'No products yet'
+                              : 'No products found matching "$_searchQuery"',
+                        ),
+                      )
                     : ListView.builder(
-                        itemCount: products.length,
+                        itemCount: filteredProducts.length,
                         itemBuilder: (context, index) {
-                          final Product product = products[index];
+                          final Product product = filteredProducts[index];
 
                           // Tap opens the product details page.
                           return InkWell(
@@ -132,11 +227,9 @@ class _SupplierCatalogViewState extends ConsumerState<SupplierCatalogView> {
                           );
                         },
                       ),
-              ),
-            ],
           ),
-        );
-      },
+        ],
+      ),
     );
   }
 }

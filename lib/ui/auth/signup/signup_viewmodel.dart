@@ -5,6 +5,16 @@ import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:swe_mobile/core/providers/auth_provider.dart';
+import 'package:swe_mobile/data/models/auth_models.dart';
+
+// Result type for a signup attempt
+@immutable
+class SignupResult {
+  const SignupResult({required this.success, this.errorMessage});
+  final bool success;
+  final String? errorMessage;
+}
 
 
 // Immutable state that represents all signup form data
@@ -122,6 +132,75 @@ class SignupViewModel extends Notifier<SignupState> {
     setLogoPreview(
       path: pickedImage.path,
       bytes: logoBytes,
+    );
+  }
+
+  // Submit signup by mapping the current form inputs to an API request
+  Future<SignupResult> submitSignup({
+    required String firstName,
+    required String lastName,
+    required String phoneNumberFormatted,
+    required String email,
+    required String password,
+    required String companyName,
+    String? companyDescription,
+    required String? selectedCity,
+    required int selectedCompanyTypeIndex, // 0 = consumer, 1 = supplier
+    required String localeCode,
+    String? logoPath,
+  }) async {
+    // Normalize phone number to digits only
+    final String phoneDigits =
+        phoneNumberFormatted.replaceAll(RegExp(r'\D'), '');
+
+    // Map radio index to backend company type
+    final String companyType =
+        selectedCompanyTypeIndex == 0 ? 'consumer' : 'supplier';
+
+    // Build request DTOs for company and user
+    final RegisterCompanyCompany company = RegisterCompanyCompany(
+      name: companyName.trim(),
+      location: selectedCity ?? '',
+      companyType: companyType,
+      description: (companyDescription?.trim().isEmpty ?? true)
+          ? null
+          : companyDescription!.trim(),
+      // NOTE: Logo upload not implemented; send path as-is for now
+      logoUrl: logoPath,
+    );
+
+    final RegisterCompanyUser user = RegisterCompanyUser(
+      firstName: firstName.trim(),
+      lastName: lastName.trim(),
+      phoneNumber: phoneDigits,
+      email: email.trim(),
+      password: password,
+      // Register flow creates the company owner
+      role: 'owner',
+      locale: localeCode,
+    );
+
+    final RegisterCompanyRequest request =
+        RegisterCompanyRequest(company: company, user: user);
+
+    // Call the auth provider to perform signup and update global auth state
+    try {
+      await ref.read(authProvider.notifier).signUp(request: request);
+    } catch (e) {
+      // In case any unexpected throw bypassed state setting
+      return SignupResult(success: false, errorMessage: e.toString());
+    }
+
+    // Read updated auth state to determine success
+    final AuthState authState = ref.read(authProvider);
+
+    if (authState.isAuthenticated && authState.error == null) {
+      return const SignupResult(success: true);
+    }
+
+    return SignupResult(
+      success: false,
+      errorMessage: authState.error ?? 'Signup failed',
     );
   }
 }

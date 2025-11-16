@@ -6,6 +6,7 @@ import 'package:swe_mobile/core/constants/button_sizes.dart';
 import 'package:swe_mobile/l10n/app_localizations.dart';
 import 'package:swe_mobile/data/models/city.dart';
 import 'package:swe_mobile/data/repositories/city_repository.dart';
+import 'package:swe_mobile/core/providers/auth_provider.dart';
 import 'package:path/path.dart' as path;
 import 'signup_viewmodel.dart';
 
@@ -387,11 +388,66 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     ];
   }
 
+  // Handle signup form submission by delegating to the view-model
+  Future<void> _handleSignupSubmission(
+    BuildContext context,
+    SignupState signupState,
+    AppLocalizations l10n,
+  ) async {
+    // Locale code used for the backend
+    final String localeCode = Localizations.localeOf(context).languageCode;
+
+    // Delegate the domain logic to the view-model
+    final SignupResult result = await ref
+        .read(signupViewModelProvider.notifier)
+        .submitSignup(
+          firstName: _firstNameController.text,
+          lastName: _lastNameController.text,
+          phoneNumberFormatted: _phoneNumberController.text,
+          email: _emailController.text,
+          password: _passwordController.text,
+          companyName: _companyNameController.text,
+          companyDescription: _companyDescriptionController.text,
+          selectedCity: signupState.selectedCity,
+          selectedCompanyTypeIndex: signupState.selectedCompanyType,
+          localeCode: localeCode,
+          logoPath: signupState.logoFilePath,
+        );
+
+    if (!mounted) {
+      return;
+    }
+
+    if (result.success) {
+      // Go back to root so AuthWrapper can render the correct shell
+      Navigator.of(context).popUntil((route) => route.isFirst);
+      return;
+    }
+
+    // Show a simple alert dialog for errors
+    await showDialog<void>(
+      context: context,
+      builder: (BuildContext alertContext) {
+        return AlertDialog(
+          title: const Text('Signup failed'),
+          content: Text(result.errorMessage ?? 'Unknown error'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(alertContext).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final signupState = ref.watch(signupViewModelProvider);
     final signupViewModel = ref.read(signupViewModelProvider.notifier);
+    final authState = ref.watch(authProvider);
     // final cityListAsync = ref.watch(cityListProvider);
 
     AsyncValue<List<City>> cityListAsync = ref.watch(cityListProvider);
@@ -484,35 +540,41 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                           style: FilledButton.styleFrom(
                             minimumSize: ButtonSizes.mdFill,
                           ),
-                          onPressed: () {
-                            if (signupState.currentStep < steps.length - 1) {
-                              final bool isCurrentStepValid = _validateStep(
-                                signupState.currentStep,
-                              );
+                          onPressed: authState.isLoading
+                              ? null
+                              : () {
+                                  if (signupState.currentStep < steps.length - 1) {
+                                    final bool isCurrentStepValid = _validateStep(
+                                      signupState.currentStep,
+                                    );
 
-                              if (isCurrentStepValid) {
-                                signupViewModel.goToNextStep();
-                              }
-                            } else {
-                              final bool isFinalStepValid = _validateStep(
-                                signupState.currentStep,
-                              );
+                                    if (isCurrentStepValid) {
+                                      signupViewModel.goToNextStep();
+                                    }
+                                  } else {
+                                    final bool isFinalStepValid = _validateStep(
+                                      signupState.currentStep,
+                                    );
 
-                              if (isFinalStepValid) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Form submitted!'),
+                                    if (isFinalStepValid) {
+                                      _handleSignupSubmission(context, signupState, l10n);
+                                    }
+                                  }
+                                },
+                          child: authState.isLoading
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                                   ),
-                                );
-                                // TODO: Add your form submission logic here
-                              }
-                            }
-                          },
-                          child: Text(
-                            signupState.currentStep < steps.length - 1
-                                ? l10n.commonNext
-                                : l10n.commonSubmit,
-                          ),
+                                )
+                              : Text(
+                                  signupState.currentStep < steps.length - 1
+                                      ? l10n.commonNext
+                                      : l10n.commonSubmit,
+                                ),
                         ),
                       ),
                       const SizedBox(height: 12),

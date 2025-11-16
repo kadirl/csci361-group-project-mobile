@@ -107,11 +107,18 @@
   "catalogProductUnitLabel": "Unit",
   "catalogProductImagesLabel": "Product images",
   "catalogProductImagesPlaceholder": "Select product images (up to 5)",
+  "catalogProductImagesMaxExceededTitle": "Maximum images reached",
+  "catalogProductImagesMaxExceededMessage": "You can only add up to 5 images. Some images were not added.",
   "catalogCreateProductSuccess": "Product created successfully",
   "catalogCreateProductErrorGeneric": "Failed to create product: {error}",
   "catalogEditProductTitle": "Edit product",
   "catalogUpdateProductSuccess": "Product updated successfully",
   "catalogUpdateProductErrorGeneric": "Failed to update product: {error}",
+  "catalogDeleteProductTitle": "Delete product",
+  "catalogDeleteProductMessage": "Are you sure you want to delete this product? This action cannot be undone.",
+  "catalogDeleteProductSuccess": "Product deleted successfully",
+  "catalogDeleteProductErrorGeneric": "Failed to delete product: {error}",
+  "commonConfirm": "Confirm",
   "staffCreateUserSuccess": "User created successfully"
 }
 

@@ -620,6 +620,18 @@ abstract class AppLocalizations {
   /// **'Select product images (up to 5)'**
   String get catalogProductImagesPlaceholder;
 
+  /// No description provided for @catalogProductImagesMaxExceededTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Maximum images reached'**
+  String get catalogProductImagesMaxExceededTitle;
+
+  /// No description provided for @catalogProductImagesMaxExceededMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'You can only add up to 5 images. Some images were not added.'**
+  String get catalogProductImagesMaxExceededMessage;
+
   /// No description provided for @catalogCreateProductSuccess.
   ///
   /// In en, this message translates to:
@@ -649,6 +661,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Failed to update product: {error}'**
   String catalogUpdateProductErrorGeneric(Object error);
+
+  /// No description provided for @catalogDeleteProductTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete product'**
+  String get catalogDeleteProductTitle;
+
+  /// No description provided for @catalogDeleteProductMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete this product? This action cannot be undone.'**
+  String get catalogDeleteProductMessage;
+
+  /// No description provided for @catalogDeleteProductSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Product deleted successfully'**
+  String get catalogDeleteProductSuccess;
+
+  /// No description provided for @catalogDeleteProductErrorGeneric.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to delete product: {error}'**
+  String catalogDeleteProductErrorGeneric(Object error);
+
+  /// No description provided for @commonConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get commonConfirm;
 
   /// No description provided for @staffCreateUserSuccess.
   ///

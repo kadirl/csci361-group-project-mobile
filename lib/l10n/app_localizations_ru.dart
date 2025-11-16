@@ -271,6 +271,13 @@ class AppLocalizationsRu extends AppLocalizations {
       'Select product images (up to 5)';
 
   @override
+  String get catalogProductImagesMaxExceededTitle => 'Maximum images reached';
+
+  @override
+  String get catalogProductImagesMaxExceededMessage =>
+      'You can only add up to 5 images. Some images were not added.';
+
+  @override
   String get catalogCreateProductSuccess => 'Product created successfully';
 
   @override
@@ -288,6 +295,24 @@ class AppLocalizationsRu extends AppLocalizations {
   String catalogUpdateProductErrorGeneric(Object error) {
     return 'Failed to update product: $error';
   }
+
+  @override
+  String get catalogDeleteProductTitle => 'Delete product';
+
+  @override
+  String get catalogDeleteProductMessage =>
+      'Are you sure you want to delete this product? This action cannot be undone.';
+
+  @override
+  String get catalogDeleteProductSuccess => 'Product deleted successfully';
+
+  @override
+  String catalogDeleteProductErrorGeneric(Object error) {
+    return 'Failed to delete product: $error';
+  }
+
+  @override
+  String get commonConfirm => 'Confirm';
 
   @override
   String get staffCreateUserSuccess => 'User created successfully';

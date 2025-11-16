@@ -4,50 +4,64 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../core/providers/user_profile_provider.dart';
 import '../../../../../data/models/app_user.dart';
 import '../../../../../data/models/product.dart';
+import '../../../../../data/repositories/product_repository.dart';
+import '../../../../../l10n/app_localizations.dart';
+import 'edit_product_view.dart';
 import 'product_image_gallery_view.dart';
 
 // Product details page showing full information and action buttons by role.
-class ProductDetailView extends ConsumerWidget {
+class ProductDetailView extends ConsumerStatefulWidget {
   const ProductDetailView({super.key, required this.product});
 
   final Product product;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ProductDetailView> createState() => _ProductDetailViewState();
+}
+
+class _ProductDetailViewState extends ConsumerState<ProductDetailView> {
+  bool _isDeleting = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final AppLocalizations localization = AppLocalizations.of(context)!;
+
     // Determine user role to control visibility of actions.
     final AsyncValue<AppUser?> userState = ref.watch(userProfileProvider);
     final AppUser? user = userState.value;
 
     // Only owners and managers can see edit/delete actions.
     final bool canManage = user != null &&
-        (user.role == 'owner' || user.role == 'manager');
+        (user.role == UserRole.owner || user.role == UserRole.manager);
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Product Details'),
         actions: <Widget>[
-          // Edit button is a visible placeholder (logic not implemented).
+          // Edit button - opens edit view.
           if (canManage)
             IconButton(
               icon: const Icon(Icons.edit),
               onPressed: () {
-                // Edit not implemented as requested.
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Edit: not implemented yet')),
+                Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => EditProductView(product: widget.product),
+                  ),
                 );
               },
             ),
 
-          // Delete button is a visible placeholder (logic not implemented).
+          // Delete button - shows confirmation dialog.
           if (canManage)
             IconButton(
-              icon: const Icon(Icons.delete_outline),
-              onPressed: () {
-                // Delete not implemented as requested.
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Delete: not implemented yet')),
-                );
-              },
+              icon: _isDeleting
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.delete_outline),
+              onPressed: _isDeleting ? null : () => _handleDelete(context, localization),
             ),
         ],
       ),
@@ -59,88 +73,52 @@ class ProductDetailView extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             // Images section - placed first, before header and description
-            if (product.pictureUrls.isNotEmpty) ...<Widget>[
-              // Only enable horizontal scrolling when there are more than 5 images
-              product.pictureUrls.length > 5
-                  ? SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: product.pictureUrls
-                            .map(
-                              (url) => Padding(
-                                padding: const EdgeInsets.only(right: 8.0),
-                                child: GestureDetector(
-                                  onTap: () {
-                                    // Open full-screen gallery starting from the tapped image.
-                                    final int initialIndex = product.pictureUrls.indexOf(url);
-                                    Navigator.of(context).push(
-                                      MaterialPageRoute<void>(
-                                        builder: (_) => ProductImageGalleryView(
-                                          imageUrls: product.pictureUrls,
-                                          initialIndex: initialIndex < 0 ? 0 : initialIndex,
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(8),
-                                    child: SizedBox(
-                                      width: 144,
-                                      height: 144,
-                                      child: Image.network(
-                                        url,
-                                        fit: BoxFit.cover,
-                                        errorBuilder: (_, __, ___) => const Icon(Icons.image_not_supported),
-                                      ),
-                                    ),
+            if (widget.product.pictureUrls.isNotEmpty) ...<Widget>[
+              // Horizontal scrollable list of product images.
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: widget.product.pictureUrls
+                      .map(
+                        (url) => Padding(
+                          padding: const EdgeInsets.only(right: 8.0),
+                          child: GestureDetector(
+                            onTap: () {
+                              // Open full-screen gallery starting from the tapped image.
+                              final int initialIndex = widget.product.pictureUrls.indexOf(url);
+                              Navigator.of(context).push(
+                                MaterialPageRoute<void>(
+                                  builder: (_) => ProductImageGalleryView(
+                                    imageUrls: widget.product.pictureUrls,
+                                    initialIndex: initialIndex < 0 ? 0 : initialIndex,
                                   ),
                                 ),
-                              ),
-                            )
-                            .toList(),
-                      ),
-                    )
-                  : Row(
-                      children: product.pictureUrls
-                          .map(
-                            (url) => Padding(
-                              padding: const EdgeInsets.only(right: 8.0),
-                              child: GestureDetector(
-                                onTap: () {
-                                  // Open full-screen gallery starting from the tapped image.
-                                  final int initialIndex = product.pictureUrls.indexOf(url);
-                                  Navigator.of(context).push(
-                                    MaterialPageRoute<void>(
-                                      builder: (_) => ProductImageGalleryView(
-                                        imageUrls: product.pictureUrls,
-                                        initialIndex: initialIndex < 0 ? 0 : initialIndex,
-                                      ),
-                                    ),
-                                  );
-                                },
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: SizedBox(
-                                    width: 144,
-                                    height: 144,
-                                    child: Image.network(
-                                      url,
-                                      fit: BoxFit.cover,
-                                      errorBuilder: (_, __, ___) => const Icon(Icons.image_not_supported),
-                                    ),
-                                  ),
+                              );
+                            },
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: SizedBox(
+                                width: 144,
+                                height: 144,
+                                child: Image.network(
+                                  url,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) => const Icon(Icons.image_not_supported),
                                 ),
                               ),
                             ),
-                          )
-                          .toList(),
-                    ),
+                          ),
+                        ),
+                      )
+                      .toList(),
+                ),
+              ),
               const SizedBox(height: 16),
             ],
 
             // Product name - bold/semibold
             Text(
-              product.name,
+              widget.product.name,
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
@@ -149,7 +127,7 @@ class ProductDetailView extends ConsumerWidget {
 
             // Product description - larger size
             Text(
-              product.description,
+              widget.product.description,
               style: Theme.of(context).textTheme.bodyLarge,
             ),
 
@@ -161,16 +139,93 @@ class ProductDetailView extends ConsumerWidget {
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 8),
-            _kv('Unit', product.unit),
-            _kv('Stock quantity', product.stockQuantity.toString()),
-            _kv('Retail price', product.retailPrice.toString()),
-            _kv('Bulk price', product.bulkPrice.toString()),
-            _kv('Minimum order', product.minimumOrder.toString()),
-            _kv('Threshold', product.threshold.toString()),
+            _kv('Unit', widget.product.unit),
+            _kv('Stock quantity', widget.product.stockQuantity.toString()),
+            _kv('Retail price', widget.product.retailPrice.toString()),
+            _kv('Bulk price', widget.product.bulkPrice.toString()),
+            _kv('Minimum order', widget.product.minimumOrder.toString()),
+            _kv('Threshold', widget.product.threshold.toString()),
           ],
         ),
       ),
     );
+  }
+
+  // Handle product deletion with confirmation dialog.
+  Future<void> _handleDelete(BuildContext context, AppLocalizations localization) async {
+    // Show confirmation dialog.
+    final bool? confirmed = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext dialogContext) => AlertDialog(
+        title: Text(localization.catalogDeleteProductTitle),
+        content: Text(localization.catalogDeleteProductMessage),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(localization.commonCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(localization.commonConfirm),
+          ),
+        ],
+      ),
+    );
+
+    // If user cancelled, do nothing.
+    if (confirmed != true) {
+      return;
+    }
+
+    // Ensure product has an ID for deletion.
+    if (widget.product.id == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(localization.catalogDeleteProductErrorGeneric('Product ID is missing')),
+          ),
+        );
+      }
+      return;
+    }
+
+    setState(() {
+      _isDeleting = true;
+    });
+
+    try {
+      final ProductRepository repository = ref.read(productRepositoryProvider);
+
+      await repository.deleteProduct(productId: widget.product.id!);
+
+      if (mounted) {
+        // Show success message.
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(localization.catalogDeleteProductSuccess),
+          ),
+        );
+
+        // Navigate back to previous screen.
+        Navigator.of(context).pop();
+      }
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              localization.catalogDeleteProductErrorGeneric(error.toString()),
+            ),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isDeleting = false;
+        });
+      }
+    }
   }
 
   // Simple key-value row.

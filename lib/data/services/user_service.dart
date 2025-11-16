@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 
 import '../../core/config/app_config.dart';
 import '../models/app_user.dart';
+import '../models/user_create.dart';
 
 /// Service that communicates with user related endpoints.
 class UserService {
@@ -27,6 +28,7 @@ class UserService {
 
   static const String _currentUserPath = 'user/me';
   static const String _userByIdPath = 'user/get-user';
+  static const String _usersPath = 'user/';
 
   /// Load the profile of the authenticated user.
   Future<AppUser> fetchCurrentUser() async {
@@ -72,6 +74,55 @@ class UserService {
     }
 
     throw const FormatException('Unexpected user payload format.');
+  }
+
+  /// Get list of users (protected).
+  Future<List<AppUser>> listUsers() async {
+    try {
+      final Response<dynamic> response = await _dio.get<dynamic>(_usersPath);
+      final dynamic body = response.data;
+      if (body is List) {
+        return body
+            .whereType<Map<dynamic, dynamic>>()
+            .map((e) => Map<String, dynamic>.from(e))
+            .map(AppUser.fromJson)
+            .toList();
+      }
+      if (body is Map<String, dynamic>) {
+        final dynamic users = body['users'];
+        if (users is List) {
+          return users
+              .whereType<Map<dynamic, dynamic>>()
+              .map((e) => Map<String, dynamic>.from(e))
+              .map(AppUser.fromJson)
+              .toList();
+        }
+      }
+      throw const FormatException('Unexpected users list payload.');
+    } on DioException catch (error, stackTrace) {
+      _logAndRethrow(error, stackTrace);
+    }
+  }
+
+  /// Add a user (protected).
+  Future<void> addUser({required UserCreateRequest request}) async {
+    try {
+      await _dio.post<dynamic>(
+        _usersPath,
+        data: request.toJson(),
+      );
+    } on DioException catch (error, stackTrace) {
+      _logAndRethrow(error, stackTrace);
+    }
+  }
+
+  /// Delete a user by id (protected).
+  Future<void> deleteUser({required int userId}) async {
+    try {
+      await _dio.delete<dynamic>('user/$userId');
+    } on DioException catch (error, stackTrace) {
+      _logAndRethrow(error, stackTrace);
+    }
   }
 
   Never _logAndRethrow(DioException error, StackTrace stackTrace) {

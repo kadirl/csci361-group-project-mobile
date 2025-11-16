@@ -67,6 +67,31 @@
   "commonRetry": "Retry",
   "commonBackToLogin": "Back to sign in",
   "errorLoadingCitiesTitle": "Unable to load cities"
+  ,
+  "settingsUserProfile": "User profile",
+  "settingsCompanyProfile": "Company profile",
+  "settingsLanguage": "Language",
+  "userProfileTitle": "User profile",
+  "firstName": "First name",
+  "lastName": "Last name",
+  "phoneNumber": "Phone number",
+  "userRole": "Role",
+  "userLocale": "Locale",
+  "companyLabel": "Company",
+  "refreshProfile": "Refresh profile",
+  "errorLoadingProfile": "Failed to load profile",
+  "noUserProfile": "No user profile available",
+  "companyProfileTitle": "Company profile",
+  "companyName": "Name",
+  "companyLocation": "Location",
+  "companyType": "Type",
+  "companyDescription": "Description",
+  "companyId": "Company ID",
+  "refreshCompany": "Refresh company",
+  "errorLoadingCompany": "Failed to load company",
+  "noCompanyProfile": "No company profile available",
+  "companyTypeSupplier": "Supplier",
+  "companyTypeConsumer": "Consumer"
 }
 
 

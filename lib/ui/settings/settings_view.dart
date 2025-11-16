@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:swe_mobile/l10n/app_localizations.dart';
 
 import 'user_profile/user_profile_view.dart';
 import 'company_profile/company_profile_view.dart';
@@ -11,6 +12,7 @@ class SettingsView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final Locale currentLocale = ref.watch(appLocaleProvider);
 
     return ListView.separated(
@@ -21,7 +23,7 @@ class SettingsView extends ConsumerWidget {
           case 0:
             return ListTile(
               leading: const Icon(Icons.person_outline),
-              title: const Text('User profile'),
+              title: Text(l10n.settingsUserProfile),
               trailing: const Icon(Icons.chevron_right),
               onTap: () {
                 Navigator.of(context).push(
@@ -34,7 +36,7 @@ class SettingsView extends ConsumerWidget {
           case 1:
             return ListTile(
               leading: const Icon(Icons.business_outlined),
-              title: const Text('Company profile'),
+              title: Text(l10n.settingsCompanyProfile),
               trailing: const Icon(Icons.chevron_right),
               onTap: () {
                 Navigator.of(context).push(
@@ -48,7 +50,7 @@ class SettingsView extends ConsumerWidget {
           default:
             return ListTile(
               leading: const Icon(Icons.language),
-              title: const Text('Language'),
+              title: Text(l10n.settingsLanguage),
               subtitle: Text(currentLocale.languageCode.toUpperCase()),
               trailing: const Icon(Icons.expand_more),
               onTap: () async {

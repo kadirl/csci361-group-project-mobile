@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:swe_mobile/l10n/app_localizations.dart';
 
 import '../../../core/providers/user_profile_provider.dart';
 import '../../../core/providers/company_profile_provider.dart';
@@ -10,22 +11,23 @@ class UserProfileView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final userAsync = ref.watch(userProfileProvider);
     final companyAsync = ref.watch(companyProfileProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('User profile')),
+      appBar: AppBar(title: Text(l10n.userProfileTitle)),
       body: userAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) => _ErrorState(
-          message: error.toString(),
+          message: l10n.errorLoadingProfile,
           onRetry: () =>
               ref.read(userProfileProvider.notifier).refreshProfile(),
         ),
         data: (user) {
           if (user == null) {
             return _ErrorState(
-              message: 'No user profile available',
+              message: l10n.noUserProfile,
               onRetry: () =>
                   ref.read(userProfileProvider.notifier).refreshProfile(),
             );
@@ -33,12 +35,12 @@ class UserProfileView extends ConsumerWidget {
 
           return ListView(
             children: <Widget>[
-              _InfoTile(label: 'First name', value: user.firstName),
-              _InfoTile(label: 'Last name', value: user.lastName),
-              _InfoTile(label: 'Email', value: user.email),
-              _InfoTile(label: 'Phone number', value: user.phoneNumber),
-              _InfoTile(label: 'Role', value: user.role),
-              _InfoTile(label: 'Locale', value: user.locale),
+              _InfoTile(label: l10n.firstName, value: user.firstName),
+              _InfoTile(label: l10n.lastName, value: user.lastName),
+              _InfoTile(label: l10n.email, value: user.email),
+              _InfoTile(label: l10n.phoneNumber, value: user.phoneNumber),
+              _InfoTile(label: l10n.userRole, value: user.role),
+              _InfoTile(label: l10n.userLocale, value: user.locale),
               companyAsync.when(
                 loading: () => const ListTile(
                   title: Text('Company'),
@@ -49,14 +51,14 @@ class UserProfileView extends ConsumerWidget {
                   subtitle: Text('—'),
                 ),
                 data: (company) => _InfoTile(
-                  label: 'Company',
+                  label: l10n.companyLabel,
                   value: company?.name ?? '—',
                 ),
               ),
               const Divider(height: 0),
               ListTile(
                 leading: const Icon(Icons.refresh),
-                title: const Text('Refresh profile'),
+                title: Text(l10n.refreshProfile),
                 onTap: () =>
                     ref.read(userProfileProvider.notifier).refreshProfile(),
               ),
@@ -91,6 +93,7 @@ class _ErrorState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -98,7 +101,7 @@ class _ErrorState extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
             Text(
-              'Failed to load profile',
+              l10n.errorLoadingProfile,
               style: Theme.of(context).textTheme.titleMedium,
               textAlign: TextAlign.center,
             ),
@@ -111,7 +114,7 @@ class _ErrorState extends StatelessWidget {
             const SizedBox(height: 16),
             FilledButton(
               onPressed: onRetry,
-              child: const Text('Retry'),
+              child: Text(l10n.commonRetry),
             ),
           ],
         ),

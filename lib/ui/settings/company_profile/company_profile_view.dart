@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:swe_mobile/l10n/app_localizations.dart';
 
 import '../../../core/providers/company_profile_provider.dart';
 import '../../../data/models/company.dart';
@@ -10,21 +11,22 @@ class CompanyProfileView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final companyAsync = ref.watch(companyProfileProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Company profile')),
+      appBar: AppBar(title: Text(l10n.companyProfileTitle)),
       body: companyAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) => _ErrorState(
-          message: error.toString(),
+          message: l10n.errorLoadingCompany,
           onRetry: () =>
               ref.read(companyProfileProvider.notifier).refreshCompany(),
         ),
         data: (company) {
           if (company == null) {
             return _ErrorState(
-              message: 'No company profile available',
+              message: l10n.noCompanyProfile,
               onRetry: () =>
                   ref.read(companyProfileProvider.notifier).refreshCompany(),
             );
@@ -32,22 +34,22 @@ class CompanyProfileView extends ConsumerWidget {
 
           return ListView(
             children: <Widget>[
-              _InfoTile(label: 'Name', value: company.name),
-              _InfoTile(label: 'Location', value: company.location),
+              _InfoTile(label: l10n.companyName, value: company.name),
+              _InfoTile(label: l10n.companyLocation, value: company.location),
               _InfoTile(
-                label: 'Type',
-                value: _formatType(company.companyType),
+                label: l10n.companyType,
+                value: _formatType(context, company.companyType),
               ),
               _InfoTile(
-                label: 'Description',
+                label: l10n.companyDescription,
                 value: company.description ?? '—',
               ),
               if (company.id != null)
-                _InfoTile(label: 'Company ID', value: '${company.id}'),
+                _InfoTile(label: l10n.companyId, value: '${company.id}'),
               const Divider(height: 0),
               ListTile(
                 leading: const Icon(Icons.refresh),
-                title: const Text('Refresh company'),
+                title: Text(l10n.refreshCompany),
                 onTap: () =>
                     ref.read(companyProfileProvider.notifier).refreshCompany(),
               ),
@@ -58,12 +60,13 @@ class CompanyProfileView extends ConsumerWidget {
     );
   }
 
-  String _formatType(CompanyType type) {
+  String _formatType(BuildContext context, CompanyType type) {
+    final l10n = AppLocalizations.of(context)!;
     switch (type) {
       case CompanyType.supplier:
-        return 'Supplier';
+        return l10n.companyTypeSupplier;
       case CompanyType.consumer:
-        return 'Consumer';
+        return l10n.companyTypeConsumer;
     }
   }
 }
@@ -91,6 +94,7 @@ class _ErrorState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -98,7 +102,7 @@ class _ErrorState extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
             Text(
-              'Failed to load company',
+              l10n.errorLoadingCompany,
               style: Theme.of(context).textTheme.titleMedium,
               textAlign: TextAlign.center,
             ),
@@ -111,7 +115,7 @@ class _ErrorState extends StatelessWidget {
             const SizedBox(height: 16),
             FilledButton(
               onPressed: onRetry,
-              child: const Text('Retry'),
+              child: Text(l10n.commonRetry),
             ),
           ],
         ),

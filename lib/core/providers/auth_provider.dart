@@ -6,8 +6,6 @@ import '../../data/repositories/city_repository.dart';
 import '../../ui/auth/signup/signup_viewmodel.dart';
 import '../../ui/settings/staff_management/staff_management_view.dart';
 import '../storage/secure_token_storage.dart';
-import 'company_profile_provider.dart';
-import 'user_profile_provider.dart';
 
 // User model to store logged-in user data
 class User {
@@ -170,9 +168,15 @@ class AuthNotifier extends Notifier<AuthState> {
     // Clear secure token storage
     await _tokenStorage.clearTokens();
 
-    // Invalidate user-specific providers to ensure they cleanup
-    ref.invalidate(userProfileProvider);
-    ref.invalidate(companyProfileProvider);
+    // Reset auth state first
+    // This will automatically trigger rebuilds of providers that watch authProvider:
+    // - userProfileProvider watches authProvider and will return null when not authenticated
+    // - companyProfileProvider watches userProfileProvider and will return null when user is null
+    state = const AuthState();
+
+    // Invalidate providers that don't reactively depend on auth state
+    // Note: We don't invalidate userProfileProvider or companyProfileProvider because
+    // they watch authProvider/userProfileProvider and will automatically rebuild
     ref.invalidate(staffListProvider);
     ref.invalidate(userByIdProvider);
     
@@ -186,9 +190,6 @@ class AuthNotifier extends Notifier<AuthState> {
     } catch (_) {
       // Ignore if repository is not available
     }
-
-    // Reset auth state to initial empty state
-    state = const AuthState();
   }
 }
 

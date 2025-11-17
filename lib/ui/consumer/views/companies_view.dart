@@ -1,49 +1,29 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../data/models/company.dart';
+import '../../../data/repositories/company_repository.dart';
+
+// Provider to load all companies.
+final companiesListProvider = FutureProvider<List<Company>>((ref) async {
+  final repo = ref.read(companyRepositoryProvider);
+  return repo.getAllCompanies();
+});
 
 // Consumer companies page showing available supplier companies.
-class ConsumerCompaniesView extends StatefulWidget {
+class ConsumerCompaniesView extends ConsumerStatefulWidget {
   const ConsumerCompaniesView({super.key});
 
   @override
-  State<ConsumerCompaniesView> createState() => _ConsumerCompaniesViewState();
+  ConsumerState<ConsumerCompaniesView> createState() => _ConsumerCompaniesViewState();
 }
 
-class _ConsumerCompaniesViewState extends State<ConsumerCompaniesView> {
+class _ConsumerCompaniesViewState extends ConsumerState<ConsumerCompaniesView> {
   // Controller to hold the search query.
   final TextEditingController _searchController = TextEditingController();
 
   // Current search query for filtering companies.
   String _searchQuery = '';
-
-  // Placeholder companies list for now.
-  final List<Company> _placeholderCompanies = <Company>[
-    const Company(
-      id: 1,
-      name: 'ABC Supplies Co.',
-      location: 'Almaty, Kazakhstan',
-      companyType: CompanyType.supplier,
-      description: 'Leading supplier of office equipment and supplies.',
-      logoUrl: null,
-    ),
-    const Company(
-      id: 2,
-      name: 'Global Trading Ltd.',
-      location: 'Astana, Kazakhstan',
-      companyType: CompanyType.supplier,
-      description: 'Wholesale distributor of consumer goods.',
-      logoUrl: null,
-    ),
-    const Company(
-      id: 3,
-      name: 'Tech Solutions Inc.',
-      location: 'Shymkent, Kazakhstan',
-      companyType: CompanyType.supplier,
-      description: 'Technology products and electronics supplier.',
-      logoUrl: null,
-    ),
-  ];
 
   @override
   void initState() {
@@ -89,8 +69,7 @@ class _ConsumerCompaniesViewState extends State<ConsumerCompaniesView> {
 
   @override
   Widget build(BuildContext context) {
-    // Filter companies based on search query.
-    final List<Company> filteredCompanies = _filterCompanies(_placeholderCompanies, _searchQuery);
+    final companiesAsync = ref.watch(companiesListProvider);
 
     return Scaffold(
       // Companies content with a search field and the company list.
@@ -120,24 +99,62 @@ class _ConsumerCompaniesViewState extends State<ConsumerCompaniesView> {
 
           // Expand to show the list of company cards.
           Expanded(
-            child: _placeholderCompanies.isEmpty
-                ? const Center(child: Text('No companies yet'))
-                : filteredCompanies.isEmpty
-                    ? Center(
-                        child: Text(
-                          _searchQuery.isEmpty
-                              ? 'No companies yet'
-                              : 'No companies found matching "$_searchQuery"',
-                        ),
-                      )
-                    : ListView.builder(
-                        itemCount: filteredCompanies.length,
-                        itemBuilder: (context, index) {
-                          final Company company = filteredCompanies[index];
-
-                          return _CompanyCard(company: company);
-                        },
+            child: companiesAsync.when(
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (error, _) => Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      Text(
+                        'Error loading companies',
+                        style: Theme.of(context).textTheme.titleMedium,
                       ),
+                      const SizedBox(height: 8),
+                      Text(
+                        error.toString(),
+                        style: Theme.of(context).textTheme.bodySmall,
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: () {
+                          ref.invalidate(companiesListProvider);
+                        },
+                        child: const Text('Retry'),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              data: (companies) {
+                // Filter companies based on search query.
+                final List<Company> filteredCompanies = _filterCompanies(companies, _searchQuery);
+
+                if (companies.isEmpty) {
+                  return const Center(child: Text('No companies yet'));
+                }
+
+                if (filteredCompanies.isEmpty) {
+                  return Center(
+                    child: Text(
+                      _searchQuery.isEmpty
+                          ? 'No companies yet'
+                          : 'No companies found matching "$_searchQuery"',
+                    ),
+                  );
+                }
+
+                return ListView.builder(
+                  itemCount: filteredCompanies.length,
+                  itemBuilder: (context, index) {
+                    final Company company = filteredCompanies[index];
+                    return _CompanyCard(company: company);
+                  },
+                );
+              },
+            ),
           ),
         ],
       ),
@@ -162,23 +179,24 @@ class _CompanyCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              // Company logo placeholder (if available).
-              if (company.logoUrl != null)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 8.0),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: SizedBox(
-                      width: 64,
-                      height: 64,
-                      child: Image.network(
-                        company.logoUrl!,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => const Icon(Icons.business),
-                      ),
-                    ),
-                  ),
-                ),
+              // Company logo (with placeholder if not available).
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8.0),
+                child: company.logoUrl != null && company.logoUrl!.isNotEmpty
+                    ? ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: SizedBox(
+                          width: 64,
+                          height: 64,
+                          child: Image.network(
+                            company.logoUrl!,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => _buildPlaceholderLogo(),
+                          ),
+                        ),
+                      )
+                    : _buildPlaceholderLogo(),
+              ),
 
               // Company name in bold.
               Text(
@@ -215,6 +233,23 @@ class _CompanyCard extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  // Build placeholder logo with gray background and icon.
+  Widget _buildPlaceholderLogo() {
+    return Container(
+      width: 64,
+      height: 64,
+      decoration: BoxDecoration(
+        color: Colors.grey.shade300,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: const Icon(
+        Icons.business,
+        size: 32,
+        color: Colors.grey,
       ),
     );
   }

@@ -4,6 +4,7 @@ import 'package:swe_mobile/l10n/app_localizations.dart';
 
 import '../../../core/providers/user_profile_provider.dart';
 import '../../../core/providers/company_profile_provider.dart';
+import 'user_edit_form_view.dart';
 
 // Displays current user's profile information using user & company providers.
 class UserProfileView extends ConsumerWidget {
@@ -16,7 +17,30 @@ class UserProfileView extends ConsumerWidget {
     final companyAsync = ref.watch(companyProfileProvider);
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.userProfileTitle)),
+      appBar: AppBar(
+        title: Text(l10n.userProfileTitle),
+        actions: <Widget>[
+          // Edit button - only show if user is viewing their own profile
+          Builder(
+            builder: (context) {
+              final currentUser = userAsync.asData?.value;
+              if (currentUser == null) {
+                return const SizedBox.shrink();
+              }
+              return IconButton(
+                icon: const Icon(Icons.edit),
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => UserEditFormView(user: currentUser),
+                    ),
+                  );
+                },
+              );
+            },
+          ),
+        ],
+      ),
       body: userAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) => _ErrorState(

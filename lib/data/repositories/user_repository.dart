@@ -4,6 +4,7 @@ import '../../core/config/app_config.dart';
 import '../../core/network/authorized_dio_provider.dart';
 import '../models/app_user.dart';
 import '../models/user_create.dart';
+import '../models/user_update.dart';
 import '../services/user_service.dart';
 
 // Repository that exposes user profile operations.
@@ -30,6 +31,14 @@ class UserRepository {
   /// Add a new user.
   Future<void> addUser({required UserCreateRequest request}) {
     return _userService.addUser(request: request);
+  }
+
+  /// Update a user by id.
+  Future<void> updateUser({
+    required int userId,
+    required UserUpdateRequest request,
+  }) {
+    return _userService.updateUser(userId: userId, request: request);
   }
 
   /// Delete a user by id.

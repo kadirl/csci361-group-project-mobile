@@ -5,6 +5,7 @@ import 'package:dio/dio.dart';
 import '../../core/config/app_config.dart';
 import '../models/app_user.dart';
 import '../models/user_create.dart';
+import '../models/user_update.dart';
 
 /// Service that communicates with user related endpoints.
 class UserService {
@@ -109,6 +110,21 @@ class UserService {
     try {
       await _dio.post<dynamic>(
         _usersPath,
+        data: request.toJson(),
+      );
+    } on DioException catch (error, stackTrace) {
+      _logAndRethrow(error, stackTrace);
+    }
+  }
+
+  /// Update a user by id (protected).
+  Future<void> updateUser({
+    required int userId,
+    required UserUpdateRequest request,
+  }) async {
+    try {
+      await _dio.put<dynamic>(
+        'user/$userId',
         data: request.toJson(),
       );
     } on DioException catch (error, stackTrace) {

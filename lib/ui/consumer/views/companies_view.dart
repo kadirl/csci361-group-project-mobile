@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../data/models/company.dart';
 import '../../../data/repositories/company_repository.dart';
+import 'company_detail_view.dart';
 
 // Provider to load all companies.
 final companiesListProvider = FutureProvider<List<Company>>((ref) async {
@@ -150,7 +151,18 @@ class _ConsumerCompaniesViewState extends ConsumerState<ConsumerCompaniesView> {
                   itemCount: filteredCompanies.length,
                   itemBuilder: (context, index) {
                     final Company company = filteredCompanies[index];
-                    return _CompanyCard(company: company);
+                    return InkWell(
+                      onTap: company.id != null
+                          ? () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute<void>(
+                                  builder: (_) => CompanyDetailView(companyId: company.id!),
+                                ),
+                              );
+                            }
+                          : null,
+                      child: _CompanyCard(company: company),
+                    );
                   },
                 );
               },

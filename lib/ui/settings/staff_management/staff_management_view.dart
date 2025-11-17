@@ -168,10 +168,7 @@ class _UserDetailByIdViewState extends ConsumerState<_UserDetailByIdView> {
         // Minimal detail using the same info tiles style.
         final String fullName = '${user.firstName} ${user.lastName}'.trim();
 
-        // Check if current user can edit/delete this user.
-        final bool canEdit = currentUser != null &&
-            (currentUser.role == UserRole.owner || currentUser.role == UserRole.manager);
-        
+        // Check if current user can delete this user.
         final bool canDelete = currentUser != null &&
             _isRoleHigher(currentUser.role, user.role) &&
             currentUser.id != user.id; // Cannot delete yourself
@@ -180,15 +177,6 @@ class _UserDetailByIdViewState extends ConsumerState<_UserDetailByIdView> {
           appBar: AppBar(
             title: Text(fullName.isEmpty ? user.email : fullName),
             actions: <Widget>[
-              // Edit button - non-functional for now
-              if (canEdit)
-                IconButton(
-                  icon: const Icon(Icons.edit),
-                  onPressed: () {
-                    // Edit functionality not implemented yet
-                  },
-                ),
-
               // Delete button - shows confirmation dialog
               if (canDelete)
                 IconButton(

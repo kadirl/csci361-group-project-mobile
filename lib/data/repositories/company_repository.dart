@@ -33,6 +33,11 @@ class CompanyRepository {
     return company;
   }
 
+  /// Get all companies from the API (no caching).
+  Future<List<Company>> getAllCompanies() async {
+    return _companyService.getAllCompanies();
+  }
+
   void clearCache() {
     _cachedCompany = null;
     _cachedCompanyId = null;

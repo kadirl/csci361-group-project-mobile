@@ -29,7 +29,7 @@ class LinkingRepository {
   }
 
   /// Update a linking's response (accept/reject/unlink).
-  Future<Linking> updateLinkingResponse({
+  Future<Linking?> updateLinkingResponse({
     required int linkingId,
     required LinkingResponseRequest request,
   }) {
@@ -40,7 +40,7 @@ class LinkingRepository {
   }
 
   /// Accept a linking request.
-  Future<Linking> acceptLinking({required int linkingId}) {
+  Future<Linking?> acceptLinking({required int linkingId}) {
     return _service.updateLinkingResponse(
       linkingId: linkingId,
       request: const LinkingResponseRequest(status: LinkingStatus.accepted),
@@ -48,7 +48,7 @@ class LinkingRepository {
   }
 
   /// Reject a linking request.
-  Future<Linking> rejectLinking({required int linkingId}) {
+  Future<Linking?> rejectLinking({required int linkingId}) {
     return _service.updateLinkingResponse(
       linkingId: linkingId,
       request: const LinkingResponseRequest(status: LinkingStatus.rejected),
@@ -56,7 +56,7 @@ class LinkingRepository {
   }
 
   /// Unlink companies.
-  Future<Linking> unlinkLinking({required int linkingId}) {
+  Future<Linking?> unlinkLinking({required int linkingId}) {
     return _service.updateLinkingResponse(
       linkingId: linkingId,
       request: const LinkingResponseRequest(status: LinkingStatus.unlinked),

@@ -42,7 +42,11 @@ class LinkingService {
           'company_id': companyId,
         },
       );
-      return _parseLinkingResponse(response);
+      final Linking? linking = _parseLinkingResponse(response);
+      if (linking == null) {
+        throw const FormatException('Create linking returned empty response');
+      }
+      return linking;
     } on DioException catch (error, stackTrace) {
       _logAndRethrow(error, stackTrace);
     }
@@ -85,7 +89,7 @@ class LinkingService {
   }
 
   /// Update a linking's response (accept/reject/unlink).
-  Future<Linking> updateLinkingResponse({
+  Future<Linking?> updateLinkingResponse({
     required int linkingId,
     required LinkingResponseRequest request,
   }) async {
@@ -104,8 +108,19 @@ class LinkingService {
   }
 
   /// Convert backend response to a Linking instance.
-  Linking _parseLinkingResponse(Response<dynamic> response) {
+  Linking? _parseLinkingResponse(Response<dynamic> response) {
     final dynamic body = response.data;
+
+    // Log the actual response for debugging
+    log('LinkingService -> Response body type: ${body.runtimeType}');
+    log('LinkingService -> Response body: $body');
+
+    // Handle null or empty response - API might return empty object or null
+    // If the API returns empty, consider it a success (status code 200 means success)
+    if (body == null || (body is Map && body.isEmpty)) {
+      log('LinkingService -> Empty response received, treating as success');
+      return null; // Return null to indicate success but no data returned
+    }
 
     // Accept either a direct linking map or a wrapped { "linking": { ... } }.
     if (body is Map && body['linking'] is Map) {
@@ -120,7 +135,9 @@ class LinkingService {
       return Linking.fromJson(Map<String, dynamic>.from(body));
     }
 
-    throw const FormatException('Unexpected linking payload format.');
+    // If response is not a map, log it and throw
+    log('LinkingService -> Unexpected response format: ${body.runtimeType} - $body');
+    throw FormatException('Unexpected linking payload format. Got: ${body.runtimeType}');
   }
 
   Never _logAndRethrow(DioException error, StackTrace stackTrace) {

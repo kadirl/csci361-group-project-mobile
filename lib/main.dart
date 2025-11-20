@@ -14,9 +14,7 @@ import 'package:swe_mobile/core/providers/app_locale_provider.dart';
 void main() {
   runApp(
     // Wrap app with ProviderScope for Riverpod
-    const ProviderScope(
-      child: MyApp(),
-    ),
+    const ProviderScope(child: MyApp()),
   );
 }
 
@@ -31,10 +29,10 @@ class MyApp extends ConsumerWidget {
     return MaterialApp(
       title: 'SWE Mobile',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.lightBlue),
         useMaterial3: true,
       ),
-      
+
       // Localization support
       localizationsDelegates: const [
         AppLocalizations.delegate,
@@ -48,7 +46,7 @@ class MyApp extends ConsumerWidget {
       ],
       // Use app-level locale so it can be changed at runtime.
       locale: currentLocale,
-      
+
       // Use Consumer to watch auth state and navigate accordinlgy
       home: const AuthWrapper(),
       debugShowCheckedModeBanner: false,
@@ -109,8 +107,6 @@ class AuthWrapper extends ConsumerWidget {
   }
 
   Widget _buildSplashLoader() {
-    return const Scaffold(
-      body: Center(child: CircularProgressIndicator()),
-    );
+    return const Scaffold(body: Center(child: CircularProgressIndicator()));
   }
 }

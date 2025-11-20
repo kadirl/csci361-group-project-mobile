@@ -2,24 +2,32 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
-import '../../../../../core/constants/button_sizes.dart';
-import '../../../../../core/providers/user_profile_provider.dart';
-import '../../../../../data/models/app_user.dart';
-import '../../../../../data/models/company.dart';
-import '../../../../../data/models/linking.dart';
-import '../../../../../data/repositories/company_repository.dart';
-import '../../../../../data/repositories/linking_repository.dart';
-import '../../../../../data/repositories/user_repository.dart';
-import '../../../../../l10n/app_localizations.dart';
+import '../../../../core/constants/button_sizes.dart';
+import '../../../../core/providers/user_profile_provider.dart';
+import '../../../../data/models/app_user.dart';
+import '../../../../data/models/company.dart';
+import '../../../../data/models/linking.dart';
+import '../../../../data/repositories/company_repository.dart';
+import '../../../../data/repositories/linking_repository.dart';
+import '../../../../data/repositories/user_repository.dart';
+import '../../../../l10n/app_localizations.dart';
+import '../../consumer/views/company_detail_view.dart';
 
 /// Linking detail view showing full information about a linking.
+/// 
+/// [showAcceptRejectButtons] - If true, shows accept/reject buttons for pending linkings (supplier view).
+/// [companyIdToLoad] - The company ID to load and display (supplierCompanyId for consumer, consumerCompanyId for supplier).
 class LinkingDetailView extends ConsumerStatefulWidget {
   const LinkingDetailView({
     super.key,
     required this.linking,
+    this.showAcceptRejectButtons = false,
+    required this.companyIdToLoad,
   });
 
   final Linking linking;
+  final bool showAcceptRejectButtons;
+  final int companyIdToLoad;
 
   @override
   ConsumerState<LinkingDetailView> createState() => _LinkingDetailViewState();
@@ -47,7 +55,7 @@ class _LinkingDetailViewState extends ConsumerState<LinkingDetailView> {
 
     try {
       final companyRepo = ref.read(companyRepositoryProvider);
-      final company = await companyRepo.getCompany(companyId: widget.linking.consumerCompanyId);
+      final company = await companyRepo.getCompany(companyId: widget.companyIdToLoad);
       
       if (mounted) {
         setState(() {
@@ -304,70 +312,83 @@ class _LinkingDetailViewState extends ConsumerState<LinkingDetailView> {
             ),
             const SizedBox(height: 8),
             Card(
-              child: Padding(
-                padding: const EdgeInsets.all(12.0),
-                child: _isLoadingCompany
-                    ? const Center(child: CircularProgressIndicator())
-                    : _company == null
-                        ? const Text('Failed to load company')
-                        : Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: <Widget>[
-                              // Company logo at the top
-                              if (_company!.logoUrl != null && _company!.logoUrl!.isNotEmpty)
-                                Padding(
-                                  padding: const EdgeInsets.only(bottom: 8.0),
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(8),
-                                    child: SizedBox(
-                                      width: 64,
-                                      height: 64,
-                                      child: Image.network(
-                                        _company!.logoUrl!,
-                                        fit: BoxFit.cover,
-                                        errorBuilder: (_, __, ___) => _buildPlaceholderLogo(),
+              clipBehavior: Clip.antiAlias,
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => CompanyDetailView(companyId: widget.companyIdToLoad),
+                      ),
+                    );
+                  },
+                  child: Padding(
+                  padding: const EdgeInsets.all(12.0),
+                  child: _isLoadingCompany
+                      ? const Center(child: CircularProgressIndicator())
+                      : _company == null
+                          ? const Text('Failed to load company')
+                          : Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: <Widget>[
+                                // Company logo at the top
+                                if (_company!.logoUrl != null && _company!.logoUrl!.isNotEmpty)
+                                  Padding(
+                                    padding: const EdgeInsets.only(bottom: 8.0),
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: SizedBox(
+                                        width: 64,
+                                        height: 64,
+                                        child: Image.network(
+                                          _company!.logoUrl!,
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (_, __, ___) => _buildPlaceholderLogo(),
+                                        ),
                                       ),
                                     ),
+                                  )
+                                else
+                                  Padding(
+                                    padding: const EdgeInsets.only(bottom: 8.0),
+                                    child: _buildPlaceholderLogo(),
                                   ),
-                                )
-                              else
-                                Padding(
-                                  padding: const EdgeInsets.only(bottom: 8.0),
-                                  child: _buildPlaceholderLogo(),
-                                ),
 
-                              // Company name in bold.
-                              Text(
-                                _company!.name,
-                                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                              ),
-
-                              const SizedBox(height: 4),
-
-                              // Location information.
-                              Row(
-                                children: <Widget>[
-                                  const Icon(Icons.location_on, size: 16),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    _company!.location,
-                                    style: Theme.of(context).textTheme.bodySmall,
-                                  ),
-                                ],
-                              ),
-
-                              const SizedBox(height: 8),
-
-                              // Description if available.
-                              if (_company!.description != null && _company!.description!.isNotEmpty)
+                                // Company name in bold.
                                 Text(
-                                  _company!.description!,
-                                  style: Theme.of(context).textTheme.bodyMedium,
+                                  _company!.name,
+                                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                 ),
-                            ],
-                          ),
+
+                                const SizedBox(height: 4),
+
+                                // Location information.
+                                Row(
+                                  children: <Widget>[
+                                    const Icon(Icons.location_on, size: 16),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      _company!.location,
+                                      style: Theme.of(context).textTheme.bodySmall,
+                                    ),
+                                  ],
+                                ),
+
+                                const SizedBox(height: 8),
+
+                                // Description if available.
+                                if (_company!.description != null && _company!.description!.isNotEmpty)
+                                  Text(
+                                    _company!.description!,
+                                    style: Theme.of(context).textTheme.bodyMedium,
+                                  ),
+                              ],
+                            ),
+                  ),
+                ),
               ),
             ),
             const SizedBox(height: 24),
@@ -422,8 +443,8 @@ class _LinkingDetailViewState extends ConsumerState<LinkingDetailView> {
           ],
         ),
       ),
-      // Bottom buttons (only for pending status, or unlink for accepted)
-      bottomNavigationBar: widget.linking.status == LinkingStatus.pending
+      // Bottom buttons (only if showAcceptRejectButtons is true and status is pending, or unlink for accepted)
+      bottomNavigationBar: widget.showAcceptRejectButtons && widget.linking.status == LinkingStatus.pending
           ? _buildPendingButtons()
           : widget.linking.status == LinkingStatus.accepted && _canUnlink()
               ? _buildUnlinkButton()

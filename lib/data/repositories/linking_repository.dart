@@ -28,6 +28,12 @@ class LinkingRepository {
     return _service.getLinkingsByCompany(companyId: companyId);
   }
 
+  /// Get linking status between current user's company and another company.
+  /// Returns null if no linking exists.
+  Future<Linking?> getLinkingStatus({required int otherCompanyId}) {
+    return _service.getLinkingStatus(otherCompanyId: otherCompanyId);
+  }
+
   /// Update a linking's response (accept/reject/unlink).
   Future<Linking?> updateLinkingResponse({
     required int linkingId,

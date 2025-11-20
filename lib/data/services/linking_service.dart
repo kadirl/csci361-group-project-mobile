@@ -88,18 +88,39 @@ class LinkingService {
     }
   }
 
+  /// Get linking status between current user's company and another company.
+  /// Returns null if no linking exists (404).
+  Future<Linking?> getLinkingStatus({required int otherCompanyId}) async {
+    final String path = '${_linkingsPath}status/$otherCompanyId';
+    log('LinkingService -> GET $path');
+
+    try {
+      final Response<dynamic> response = await _dio.get<dynamic>(path);
+      return _parseLinkingResponse(response);
+    } on DioException catch (error, stackTrace) {
+      // Handle 404 as "no linking exists" - return null
+      if (error.response?.statusCode == 404) {
+        log('LinkingService -> No linking found (404)');
+        return null;
+      }
+      _logAndRethrow(error, stackTrace);
+    }
+  }
+
   /// Update a linking's response (accept/reject/unlink).
   Future<Linking?> updateLinkingResponse({
     required int linkingId,
     required LinkingResponseRequest request,
   }) async {
     final String path = '${_linkingsPath}supplier_response/$linkingId';
-    log('LinkingService -> PATCH $path');
+    log('LinkingService -> PATCH $path?status=${request.status.apiValue}');
 
     try {
       final Response<dynamic> response = await _dio.patch<dynamic>(
         path,
-        data: request.toJson(),
+        queryParameters: <String, dynamic>{
+          'status': request.status.apiValue,
+        },
       );
       return _parseLinkingResponse(response);
     } on DioException catch (error, stackTrace) {

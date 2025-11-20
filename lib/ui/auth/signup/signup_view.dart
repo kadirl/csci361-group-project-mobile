@@ -95,7 +95,14 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     required List<City> cities,
     required String localeCode,
   }) {
-    return cities
+    final List<City> sortedCities = List<City>.from(cities)
+      ..sort((a, b) {
+        final String nameA = a.localizedName(localeCode: localeCode);
+        final String nameB = b.localizedName(localeCode: localeCode);
+        return nameA.compareTo(nameB);
+      });
+
+    return sortedCities
         .map((City city) {
           final String displayName = city.localizedName(localeCode: localeCode);
 
@@ -357,7 +364,6 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                 //     ),
                 //   ),
                 // ],
-
                 const SizedBox(height: 16),
 
                 // Location Dropdown
@@ -547,10 +553,10 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                           onPressed: authState.isLoading
                               ? null
                               : () {
-                                  if (signupState.currentStep < steps.length - 1) {
-                                    final bool isCurrentStepValid = _validateStep(
-                                      signupState.currentStep,
-                                    );
+                                  if (signupState.currentStep <
+                                      steps.length - 1) {
+                                    final bool isCurrentStepValid =
+                                        _validateStep(signupState.currentStep);
 
                                     if (isCurrentStepValid) {
                                       signupViewModel.goToNextStep();
@@ -561,7 +567,11 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                                     );
 
                                     if (isFinalStepValid) {
-                                      _handleSignupSubmission(context, signupState, l10n);
+                                      _handleSignupSubmission(
+                                        context,
+                                        signupState,
+                                        l10n,
+                                      );
                                     }
                                   }
                                 },
@@ -571,7 +581,9 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                                   height: 20,
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2,
-                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.white,
+                                    ),
                                   ),
                                 )
                               : Text(

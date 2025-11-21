@@ -17,7 +17,10 @@
   "add": "Добавить",
   "notifications": "Уведомления",
   "profile": "Профиль",
-  "emailAndPasswordRequired": "Требуется электронная почта и пароль"
+  "emailAndPasswordRequired": "Требуется электронная почта и пароль",
+  "companyType": "Тип компании",
+  "companyTypeSupplier": "Поставщик",
+  "companyTypeConsumer": "Потребитель"
 }
 
 

@@ -207,7 +207,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get companyLocation => 'Location';
 
   @override
-  String get companyType => 'Type';
+  String get companyType => 'Тип компании';
 
   @override
   String get companyDescription => 'Description';
@@ -225,10 +225,10 @@ class AppLocalizationsRu extends AppLocalizations {
   String get noCompanyProfile => 'No company profile available';
 
   @override
-  String get companyTypeSupplier => 'Supplier';
+  String get companyTypeSupplier => 'Поставщик';
 
   @override
-  String get companyTypeConsumer => 'Consumer';
+  String get companyTypeConsumer => 'Потребитель';
 
   @override
   String get settingsStaffManagement => 'Staff Management';

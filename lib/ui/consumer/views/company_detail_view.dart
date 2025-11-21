@@ -8,12 +8,19 @@ import '../../../data/models/product.dart';
 import '../../../data/repositories/company_repository.dart';
 import '../../../data/repositories/linking_repository.dart';
 import '../../../data/repositories/product_repository.dart';
+import '../../../l10n/app_localizations.dart';
 
 // Provider to load a single company by ID.
-final companyByIdProvider = FutureProvider.family<Company, int>((ref, companyId) async {
+final companyByIdProvider = FutureProvider.autoDispose.family<Company, int>((
+  ref,
+  companyId,
+) async {
   final repo = ref.read(companyRepositoryProvider);
   try {
-    final company = await repo.getCompany(companyId: companyId, forceRefresh: true);
+    final company = await repo.getCompany(
+      companyId: companyId,
+      forceRefresh: true,
+    );
     return company;
   } catch (e) {
     rethrow;
@@ -21,7 +28,10 @@ final companyByIdProvider = FutureProvider.family<Company, int>((ref, companyId)
 });
 
 // Provider to load linking status between current user's company and target company.
-final linkingStatusProvider = FutureProvider.family<Linking?, int>((ref, otherCompanyId) async {
+final linkingStatusProvider = FutureProvider.autoDispose.family<Linking?, int>((
+  ref,
+  otherCompanyId,
+) async {
   final repo = ref.read(linkingRepositoryProvider);
   try {
     final linking = await repo.getLinkingStatus(otherCompanyId: otherCompanyId);
@@ -32,22 +42,20 @@ final linkingStatusProvider = FutureProvider.family<Linking?, int>((ref, otherCo
 });
 
 // Provider to load products for a company.
-final companyProductsProvider = FutureProvider.family<List<Product>, int>((ref, companyId) async {
-  final repo = ref.read(productRepositoryProvider);
-  try {
-    final products = await repo.listProducts(companyId: companyId);
-    return products;
-  } catch (e) {
-    rethrow;
-  }
-});
+final companyProductsProvider = FutureProvider.autoDispose
+    .family<List<Product>, int>((ref, companyId) async {
+      final repo = ref.read(productRepositoryProvider);
+      try {
+        final products = await repo.listProducts(companyId: companyId);
+        return products;
+      } catch (e) {
+        rethrow;
+      }
+    });
 
 // Company detail page showing full company information.
 class CompanyDetailView extends ConsumerStatefulWidget {
-  const CompanyDetailView({
-    super.key,
-    required this.companyId,
-  });
+  const CompanyDetailView({super.key, required this.companyId});
 
   final int companyId;
 
@@ -140,6 +148,94 @@ class _CompanyDetailViewState extends ConsumerState<CompanyDetailView> {
     }
   }
 
+  // Build products section based on linking status.
+  Widget _buildProductsSection(
+    Company company,
+    AsyncValue<Linking?> linkingStatusAsync,
+  ) {
+    if (company.companyType != CompanyType.supplier) {
+      return const SizedBox.shrink();
+    }
+
+    return linkingStatusAsync.when(
+      loading: () {
+        return const SizedBox.shrink();
+      },
+      error: (e, s) {
+        return const SizedBox.shrink();
+      },
+      data: (linking) {
+        if (linking?.status != LinkingStatus.accepted) {
+          return const SizedBox.shrink();
+        }
+
+        // Show products when linking is accepted
+        final productsAsync = ref.watch(
+          companyProductsProvider(widget.companyId),
+        );
+
+        return productsAsync.when(
+          loading: () => const Padding(
+            padding: EdgeInsets.all(16.0),
+            child: Center(child: CircularProgressIndicator()),
+          ),
+          error: (error, _) => Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                Text(
+                  'Failed to fetch',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  error.toString(),
+                  style: Theme.of(context).textTheme.bodySmall,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: () {
+                    ref.invalidate(companyProductsProvider(widget.companyId));
+                  },
+                  child: const Text('Retry'),
+                ),
+              ],
+            ),
+          ),
+          data: (products) {
+            if (products.isEmpty) {
+              return Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Center(
+                  child: Text(
+                    'No products available',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                ),
+              );
+            }
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(
+                  'Products',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 16),
+                ...products.map((product) => _ProductCard(product: product)),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
   // Build bottom navigation bar with appropriate button based on linking status.
   Widget? _buildBottomNavigationBar(Linking? linking) {
     if (linking == null) {
@@ -148,9 +244,7 @@ class _CompanyDetailViewState extends ConsumerState<CompanyDetailView> {
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: FilledButton(
-            style: FilledButton.styleFrom(
-              minimumSize: ButtonSizes.mdFill,
-            ),
+            style: FilledButton.styleFrom(minimumSize: ButtonSizes.mdFill),
             onPressed: _showSendLinkingDialog,
             child: const Text('Send Linking'),
           ),
@@ -164,9 +258,7 @@ class _CompanyDetailViewState extends ConsumerState<CompanyDetailView> {
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: FilledButton(
-              style: FilledButton.styleFrom(
-                minimumSize: ButtonSizes.mdFill,
-              ),
+              style: FilledButton.styleFrom(minimumSize: ButtonSizes.mdFill),
               onPressed: null,
               child: const Text('Linking Pending'),
             ),
@@ -177,9 +269,7 @@ class _CompanyDetailViewState extends ConsumerState<CompanyDetailView> {
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: FilledButton(
-              style: FilledButton.styleFrom(
-                minimumSize: ButtonSizes.mdFill,
-              ),
+              style: FilledButton.styleFrom(minimumSize: ButtonSizes.mdFill),
               onPressed: null,
               child: const Text('Linking Rejected'),
             ),
@@ -190,9 +280,7 @@ class _CompanyDetailViewState extends ConsumerState<CompanyDetailView> {
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: FilledButton(
-              style: FilledButton.styleFrom(
-                minimumSize: ButtonSizes.mdFill,
-              ),
+              style: FilledButton.styleFrom(minimumSize: ButtonSizes.mdFill),
               onPressed: null,
               child: const Text('Unlinked'),
             ),
@@ -207,12 +295,12 @@ class _CompanyDetailViewState extends ConsumerState<CompanyDetailView> {
   @override
   Widget build(BuildContext context) {
     final companyAsync = ref.watch(companyByIdProvider(widget.companyId));
-    final linkingStatusAsync = ref.watch(linkingStatusProvider(widget.companyId));
+    final linkingStatusAsync = ref.watch(
+      linkingStatusProvider(widget.companyId),
+    );
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Company Details'),
-      ),
+      appBar: AppBar(title: const Text('Company Details')),
       body: companyAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) => Center(
@@ -252,20 +340,54 @@ class _CompanyDetailViewState extends ConsumerState<CompanyDetailView> {
                 Center(
                   child: Padding(
                     padding: const EdgeInsets.only(bottom: 16.0),
-                    child: company.logoUrl != null && company.logoUrl!.isNotEmpty
-                        ? ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: SizedBox(
-                              width: 128,
-                              height: 128,
-                              child: Image.network(
-                                company.logoUrl!,
-                                fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) => _buildPlaceholderLogo(128),
-                              ),
-                            ),
-                          )
-                        : _buildPlaceholderLogo(128),
+                    child: Column(
+                      children: [
+                        company.logoUrl != null && company.logoUrl!.isNotEmpty
+                            ? ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: SizedBox(
+                                  width: 128,
+                                  height: 128,
+                                  child: Image.network(
+                                    company.logoUrl!,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (_, __, ___) =>
+                                        _buildPlaceholderLogo(128),
+                                  ),
+                                ),
+                              )
+                            : _buildPlaceholderLogo(128),
+                        const SizedBox(height: 12),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.surfaceContainerHighest,
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Text(
+                            company.companyType == CompanyType.supplier
+                                ? AppLocalizations.of(
+                                    context,
+                                  )!.companyTypeSupplier
+                                : AppLocalizations.of(
+                                    context,
+                                  )!.companyTypeConsumer,
+                            style: Theme.of(context).textTheme.labelLarge
+                                ?.copyWith(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
 
@@ -275,8 +397,8 @@ class _CompanyDetailViewState extends ConsumerState<CompanyDetailView> {
                 Text(
                   company.name,
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
 
                 const SizedBox(height: 16),
@@ -298,12 +420,13 @@ class _CompanyDetailViewState extends ConsumerState<CompanyDetailView> {
                 const SizedBox(height: 16),
 
                 // Description if available.
-                if (company.description != null && company.description!.isNotEmpty) ...[
+                if (company.description != null &&
+                    company.description!.isNotEmpty) ...[
                   Text(
                     'Description',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Text(
@@ -313,78 +436,9 @@ class _CompanyDetailViewState extends ConsumerState<CompanyDetailView> {
                   const SizedBox(height: 24),
                 ],
 
-                // Products section (only shown when linking is accepted).
-                linkingStatusAsync.when(
-                  loading: () => const SizedBox.shrink(),
-                  error: (_, __) => const SizedBox.shrink(),
-                  data: (linking) {
-                    if (linking?.status != LinkingStatus.accepted) {
-                      return const SizedBox.shrink();
-                    }
-
-                    // Show products when linking is accepted
-                    final productsAsync = ref.watch(companyProductsProvider(widget.companyId));
-
-                    return productsAsync.when(
-                      loading: () => const Padding(
-                        padding: EdgeInsets.all(16.0),
-                        child: Center(child: CircularProgressIndicator()),
-                      ),
-                      error: (error, _) => Padding(
-                        padding: const EdgeInsets.all(24),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: <Widget>[
-                            Text(
-                              'Failed to fetch',
-                              style: Theme.of(context).textTheme.titleMedium,
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              error.toString(),
-                              style: Theme.of(context).textTheme.bodySmall,
-                              textAlign: TextAlign.center,
-                            ),
-                            const SizedBox(height: 16),
-                            ElevatedButton(
-                              onPressed: () {
-                                ref.invalidate(companyProductsProvider(widget.companyId));
-                              },
-                              child: const Text('Retry'),
-                            ),
-                          ],
-                        ),
-                      ),
-                      data: (products) {
-                        if (products.isEmpty) {
-                          return Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: Center(
-                              child: Text(
-                                'No products available',
-                                style: Theme.of(context).textTheme.bodyMedium,
-                              ),
-                            ),
-                          );
-                        }
-
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
-                            Text(
-                              'Products',
-                              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                            ),
-                            const SizedBox(height: 16),
-                            ...products.map((product) => _ProductCard(product: product)),
-                          ],
-                        );
-                      },
-                    );
-                  },
-                ),
+                // Products section (only shown when linking is accepted AND company is a supplier).
+                // Products section (only shown when linking is accepted AND company is a supplier).
+                _buildProductsSection(company, linkingStatusAsync),
               ],
             ),
           );
@@ -408,11 +462,7 @@ Widget _buildPlaceholderLogo(double size) {
       color: Colors.grey.shade300,
       borderRadius: BorderRadius.circular(8),
     ),
-    child: Icon(
-      Icons.business,
-      size: size / 2,
-      color: Colors.grey,
-    ),
+    child: Icon(Icons.business, size: size / 2, color: Colors.grey),
   );
 }
 
@@ -426,87 +476,88 @@ class _ProductCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Build a clean, readable tile with key product attributes.
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+    return SizedBox(
+      width: double.infinity,
       child: Card(
         child: Padding(
           padding: const EdgeInsets.all(12.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              // Pictures displayed above the title and description.
-              if (product.pictureUrls.isNotEmpty)
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: product.pictureUrls
-                            .map(
-                              (url) => Padding(
-                                padding: const EdgeInsets.only(right: 8.0),
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: SizedBox(
-                                    width: 96,
-                                    height: 96,
-                                    child: Image.network(
-                                      url,
-                                      fit: BoxFit.cover,
-                                      errorBuilder: (_, __, ___) => const Icon(Icons.image_not_supported),
-                                    ),
+            // Pictures displayed above the title and description.
+            if (product.pictureUrls.isNotEmpty)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: product.pictureUrls
+                          .map(
+                            (url) => Padding(
+                              padding: const EdgeInsets.only(right: 8.0),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: SizedBox(
+                                  width: 96,
+                                  height: 96,
+                                  child: Image.network(
+                                    url,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (_, __, ___) =>
+                                        const Icon(Icons.image_not_supported),
                                   ),
                                 ),
                               ),
-                            )
-                            .toList(),
-                      ),
+                            ),
+                          )
+                          .toList(),
                     ),
-                  ],
-                ),
-
-              const SizedBox(height: 8),
-
-              // Product title in bold.
-              Text(
-                product.name,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
+                  ),
+                ],
               ),
 
-              const SizedBox(height: 4),
+            const SizedBox(height: 8),
 
-              // Description directly under the title.
-              Text(
-                product.description,
-                style: Theme.of(context).textTheme.bodyMedium,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
+            // Product title in bold.
+            Text(
+              product.name,
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+            ),
+
+            const SizedBox(height: 4),
+
+            // Description directly under the title.
+            Text(
+              product.description,
+              style: Theme.of(context).textTheme.bodyMedium,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+
+            const SizedBox(height: 8),
+
+            // Retail price in bold primary color: "price₸ / unit".
+            Text(
+              '${product.retailPrice} ₸ / ${product.unit}',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).colorScheme.primary,
               ),
+            ),
 
-              const SizedBox(height: 8),
+            const SizedBox(height: 4),
 
-              // Retail price in bold primary color: "price₸ / unit".
-              Text(
-                '${product.retailPrice} ₸ / ${product.unit}',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-              ),
-
-              const SizedBox(height: 4),
-
-              // Stock information in smaller text right under the price.
-              Text(
-                'Stock: ${product.stockQuantity}',
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-            ],
-          ),
+            // Stock information in smaller text right under the price.
+            Text(
+              'Stock: ${product.stockQuantity}',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ],
         ),
+      ),
       ),
     );
   }

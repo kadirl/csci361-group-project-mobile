@@ -285,6 +285,11 @@ class _LinkingsViewState extends ConsumerState<LinkingsView>
   // Build a card widget for a single linking.
   Widget _buildLinkingCard(Linking linking) {
     final companyId = widget.companyIdToLoad(linking);
+    debugPrint('DEBUG: LinkingsView _buildLinkingCard');
+    debugPrint(
+      'DEBUG: Linking: id=${linking.linkingId}, consumer=${linking.consumerCompanyId}, supplier=${linking.supplierCompanyId}',
+    );
+    debugPrint('DEBUG: companyIdToLoad returned: $companyId');
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -444,3 +449,4 @@ class _LinkingsViewState extends ConsumerState<LinkingsView>
     );
   }
 }
+

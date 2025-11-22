@@ -69,6 +69,15 @@ class DashboardViewModel extends AsyncNotifier<DashboardData> {
     
     print('DEBUG: Fetched ${orders.length} orders, ${products.length} products, ${linkings.length} linkings');
 
+    // Deduplicate orders by orderId to fix double-counting issue
+    final Map<int, Order> uniqueOrdersMap = {};
+    for (final order in orders) {
+      uniqueOrdersMap[order.orderId] = order;
+    }
+    final List<Order> uniqueOrders = uniqueOrdersMap.values.toList();
+    
+    print('DEBUG: After deduplication: ${uniqueOrders.length} unique orders (removed ${orders.length - uniqueOrders.length} duplicates)');
+
     // Process Orders
     int totalRevenue = 0;
     int ordersToday = 0;
@@ -78,7 +87,7 @@ class DashboardViewModel extends AsyncNotifier<DashboardData> {
     final Map<DateTime, int> revenueTrend = {};
     final Map<OrderStatus, int> statusDist = {};
 
-    for (final order in orders) {
+    for (final order in uniqueOrders) {
       // Revenue (Completed, Processing, Shipping)
       if (order.status == OrderStatus.completed || 
           order.status == OrderStatus.processing || 
@@ -133,7 +142,7 @@ class DashboardViewModel extends AsyncNotifier<DashboardData> {
     final activeClients = linkings.where((l) => l.status == LinkingStatus.accepted).length;
 
     // Recent Orders
-    final recentOrders = List<Order>.from(orders);
+    final recentOrders = List<Order>.from(uniqueOrders);
     recentOrders.sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
     return DashboardData(

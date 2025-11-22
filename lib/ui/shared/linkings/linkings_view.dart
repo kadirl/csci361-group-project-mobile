@@ -39,6 +39,10 @@ class _LinkingsViewState extends ConsumerState<LinkingsView>
   // Cache company objects by company ID to avoid repeated fetches.
   final Map<int, Company> _companiesCache = {};
 
+  // Search controller and query for filtering by company name
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+
   @override
   void initState() {
     super.initState();
@@ -46,15 +50,31 @@ class _LinkingsViewState extends ConsumerState<LinkingsView>
     // Initialize tab controller with 4 tabs for the 4 statuses.
     _tabController = TabController(length: 4, vsync: this);
 
+    // Listen to search field changes to update filter
+    _searchController.addListener(_onSearchChanged);
+
     // Load linkings once when widget initializes.
     _loadLinkings();
   }
 
   @override
   void dispose() {
+    // Dispose the controller to avoid memory leaks
+    _searchController.removeListener(_onSearchChanged);
+    _searchController.dispose();
     // Dispose the tab controller to avoid memory leaks.
     _tabController.dispose();
     super.dispose();
+  }
+
+  // Handle search field changes without triggering full rebuild
+  void _onSearchChanged() {
+    final String newQuery = _searchController.text.toLowerCase().trim();
+    if (newQuery != _searchQuery) {
+      setState(() {
+        _searchQuery = newQuery;
+      });
+    }
   }
 
   // Load linkings from the repository.
@@ -131,6 +151,20 @@ class _LinkingsViewState extends ConsumerState<LinkingsView>
         .toList();
   }
 
+  // Filter linkings by company name based on search query
+  List<Linking> _filterLinkingsByCompanyName(List<Linking> linkings) {
+    if (_searchQuery.isEmpty) {
+      return linkings;
+    }
+
+    return linkings.where((linking) {
+      final companyId = widget.companyIdToLoad(linking);
+      final company = _getCompany(companyId);
+      final companyName = company?.name.toLowerCase() ?? '';
+      return companyName.contains(_searchQuery);
+    }).toList();
+  }
+
   // Format date string to human-readable format.
   String _formatDate(String? dateString) {
     if (dateString == null || dateString.isEmpty) {
@@ -152,6 +186,27 @@ class _LinkingsViewState extends ConsumerState<LinkingsView>
   Widget build(BuildContext context) {
     return Column(
       children: [
+        // Search bar at the top
+        Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: TextField(
+            controller: _searchController,
+            decoration: InputDecoration(
+              prefixIcon: const Icon(Icons.search),
+              suffixIcon: _searchQuery.isNotEmpty
+                  ? IconButton(
+                      icon: const Icon(Icons.clear),
+                      onPressed: () {
+                        _searchController.clear();
+                      },
+                    )
+                  : null,
+              hintText: 'Search companies...',
+              border: const OutlineInputBorder(),
+            ),
+          ),
+        ),
+
         // TabBar at the top of the body
         TabBar(
           controller: _tabController,
@@ -269,14 +324,23 @@ class _LinkingsViewState extends ConsumerState<LinkingsView>
 
   // Build a list of linkings for a specific status.
   Widget _buildLinkingsList(List<Linking> linkings) {
-    if (linkings.isEmpty) {
-      return const Center(child: Text('No linkings found'));
+    // Filter linkings by company name based on search query
+    final filteredLinkings = _filterLinkingsByCompanyName(linkings);
+
+    if (filteredLinkings.isEmpty) {
+      return Center(
+        child: Text(
+          _searchQuery.isEmpty
+              ? 'No linkings found'
+              : 'No companies found matching "$_searchQuery"',
+        ),
+      );
     }
 
     return ListView.builder(
-      itemCount: linkings.length,
+      itemCount: filteredLinkings.length,
       itemBuilder: (context, index) {
-        final linking = linkings[index];
+        final linking = filteredLinkings[index];
         return _buildLinkingCard(linking);
       },
     );
@@ -285,11 +349,6 @@ class _LinkingsViewState extends ConsumerState<LinkingsView>
   // Build a card widget for a single linking.
   Widget _buildLinkingCard(Linking linking) {
     final companyId = widget.companyIdToLoad(linking);
-    debugPrint('DEBUG: LinkingsView _buildLinkingCard');
-    debugPrint(
-      'DEBUG: Linking: id=${linking.linkingId}, consumer=${linking.consumerCompanyId}, supplier=${linking.supplierCompanyId}',
-    );
-    debugPrint('DEBUG: companyIdToLoad returned: $companyId');
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),

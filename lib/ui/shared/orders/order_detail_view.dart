@@ -16,6 +16,7 @@ import '../../../data/repositories/product_repository.dart';
 import '../../../data/repositories/user_repository.dart';
 import '../../supplier/views/catalog/product/product_detail_view.dart';
 import '../../shared/linkings/linking_detail_view.dart';
+import '../../shared/chat/chat_view.dart';
 import '../../consumer/views/company_detail_view.dart';
 
 /// Order detail view showing full information about an order.
@@ -78,6 +79,8 @@ class _OrderDetailViewState extends ConsumerState<OrderDetailView> {
         (l) => l.linkingId == widget.order.linkingId,
         orElse: () => throw Exception('Linking not found'),
       );
+      
+      debugPrint('OrderDetailView -> Linking loaded: ${_linking?.linkingId}');
 
       // Load full order details (may include products)
       final orderRepo = ref.read(orderRepositoryProvider);
@@ -477,6 +480,29 @@ class _OrderDetailViewState extends ConsumerState<OrderDetailView> {
                   ),
                 ),
               ),
+            const SizedBox(height: 24),
+
+            // Chat button (available for all orders)
+            FilledButton.icon(
+              onPressed: _linking != null
+                  ? () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) => ChatView(
+                            orderId: widget.order.orderId,
+                            order: _currentOrder ?? widget.order,
+                            linking: _linking!,
+                          ),
+                        ),
+                      );
+                    }
+                  : null,
+              icon: const Icon(Icons.chat),
+              label: const Text('Open Chat'),
+              style: FilledButton.styleFrom(
+                minimumSize: const Size(double.infinity, 48),
+              ),
+            ),
             const SizedBox(height: 24),
 
             // Company information (consumer sees supplier, supplier sees consumer)

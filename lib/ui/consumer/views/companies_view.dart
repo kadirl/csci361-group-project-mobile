@@ -6,7 +6,7 @@ import '../../../data/repositories/company_repository.dart';
 import 'company_detail_view.dart';
 
 // Provider to load all companies.
-final companiesListProvider = FutureProvider<List<Company>>((ref) async {
+final companiesListProvider = FutureProvider.autoDispose<List<Company>>((ref) async {
   final repo = ref.read(companyRepositoryProvider);
   return repo.getAllCompanies();
 });

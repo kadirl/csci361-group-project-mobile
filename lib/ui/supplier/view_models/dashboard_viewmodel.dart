@@ -98,11 +98,12 @@ class DashboardViewModel extends AsyncNotifier<DashboardData> {
          print('DEBUG: Skipping order ${order.orderId} for revenue. Status: ${order.status}, Price: ${order.totalPrice}');
       }
 
-      // Orders Today
+      // Orders Today - count all orders created on or after today's date
       if (order.createdAt.isNotEmpty) {
           try {
               final date = DateTime.parse(order.createdAt);
-              if (date.isAfter(today)) {
+              // Check if order was created today (on or after 00:00:00 today)
+              if (!date.isBefore(today)) {
                   ordersToday++;
               }
           } catch (_) {}

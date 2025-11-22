@@ -12,6 +12,7 @@ import '../../../../data/repositories/linking_repository.dart';
 import '../../../../data/repositories/user_repository.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../consumer/views/company_detail_view.dart';
+import '../chat/chat_view.dart';
 
 /// Linking detail view showing full information about a linking.
 /// 
@@ -36,8 +37,10 @@ class LinkingDetailView extends ConsumerStatefulWidget {
 class _LinkingDetailViewState extends ConsumerState<LinkingDetailView> {
   Company? _company;
   AppUser? _salesperson;
+  AppUser? _requester;
   bool _isLoadingCompany = false;
   bool _isLoadingSalesperson = false;
+  bool _isLoadingRequester = false;
   bool _isProcessing = false;
 
   @override
@@ -45,6 +48,7 @@ class _LinkingDetailViewState extends ConsumerState<LinkingDetailView> {
     super.initState();
     _loadCompanyData();
     _loadSalespersonData();
+    _loadRequesterData();
   }
 
   // Load company information.
@@ -96,6 +100,35 @@ class _LinkingDetailViewState extends ConsumerState<LinkingDetailView> {
       if (mounted) {
         setState(() {
           _isLoadingSalesperson = false;
+        });
+      }
+    }
+  }
+
+  // Load requester information (consumer side contact person).
+  Future<void> _loadRequesterData() async {
+    if (widget.linking.requestedByUserId == 0) {
+      return;
+    }
+
+    setState(() {
+      _isLoadingRequester = true;
+    });
+
+    try {
+      final userRepo = ref.read(userRepositoryProvider);
+      final user = await userRepo.getUserById(userId: widget.linking.requestedByUserId);
+      
+      if (mounted) {
+        setState(() {
+          _requester = user;
+          _isLoadingRequester = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoadingRequester = false;
         });
       }
     }
@@ -393,10 +426,58 @@ class _LinkingDetailViewState extends ConsumerState<LinkingDetailView> {
             ),
             const SizedBox(height: 24),
 
-            // Assigned salesperson card (if available)
+            // Consumer side contact person (requester)
+            if (widget.linking.requestedByUserId != 0) ...[
+              Text(
+                'Consumer Contact',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              const SizedBox(height: 8),
+              Card(
+                child: InkWell(
+                  onTap: _requester != null
+                      ? () => _navigateToUserProfile(_requester!)
+                      : null,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: _isLoadingRequester
+                        ? const Center(child: CircularProgressIndicator())
+                        : _requester == null
+                            ? const Text('Failed to load contact person')
+                            : Row(
+                                children: [
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          '${_requester!.firstName} ${_requester!.lastName}',
+                                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          _requester!.role.name.toUpperCase(),
+                                          style: Theme.of(context).textTheme.bodyMedium,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  if (_requester != null)
+                                    const Icon(Icons.chevron_right),
+                                ],
+                              ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+            ],
+
+            // Supplier side assigned salesperson (if available)
             if (widget.linking.assignedSalesmanUserId != null) ...[
               Text(
-                'Assigned Salesperson',
+                'Supplier Contact (Assigned Salesperson)',
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               const SizedBox(height: 8),
@@ -436,6 +517,28 @@ class _LinkingDetailViewState extends ConsumerState<LinkingDetailView> {
                                 ],
                               ),
                   ),
+                ),
+              ),
+              const SizedBox(height: 24),
+            ],
+
+            // Chat button (only for accepted linkings)
+            if (widget.linking.status == LinkingStatus.accepted && widget.linking.linkingId != null) ...[
+              FilledButton.icon(
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => ChatView(
+                        linkingId: widget.linking.linkingId,
+                        linking: widget.linking,
+                      ),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.chat),
+                label: const Text('Open Chat'),
+                style: FilledButton.styleFrom(
+                  minimumSize: const Size(double.infinity, 48),
                 ),
               ),
               const SizedBox(height: 24),

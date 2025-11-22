@@ -9,6 +9,7 @@ import '../../../data/repositories/company_repository.dart';
 import '../../../data/repositories/linking_repository.dart';
 import '../../../data/repositories/product_repository.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../supplier/views/catalog/product/product_detail_view.dart';
 
 // Provider to load a single company by ID.
 final companyByIdProvider = FutureProvider.autoDispose.family<Company, int>((
@@ -479,11 +480,28 @@ class _ProductCard extends StatelessWidget {
     return SizedBox(
       width: double.infinity,
       child: Card(
-        child: Padding(
-          padding: const EdgeInsets.all(12.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
+        clipBehavior: Clip.antiAlias,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: InkWell(
+          onTap: () {
+            // Navigate to product detail view when tapped
+            Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => ProductDetailView(
+                  product: product,
+                  showAddToCart: true,
+                ),
+              ),
+            );
+          },
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
             // Pictures displayed above the title and description.
             if (product.pictureUrls.isNotEmpty)
               Column(
@@ -491,6 +509,7 @@ class _ProductCard extends StatelessWidget {
                 children: <Widget>[
                   SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
+                    physics: const ClampingScrollPhysics(),
                     child: Row(
                       children: product.pictureUrls
                           .map(
@@ -558,6 +577,7 @@ class _ProductCard extends StatelessWidget {
           ],
         ),
       ),
+        ),
       ),
     );
   }

@@ -83,14 +83,26 @@ class _OrderDetailViewState extends ConsumerState<OrderDetailView> {
       debugPrint('OrderDetailView -> Linking loaded: ${_linking?.linkingId}');
 
       // Load full order details (may include products)
-      final orderRepo = ref.read(orderRepositoryProvider);
-      final fullOrder = await orderRepo.getOrder(orderId: widget.order.orderId);
+      // Wrap in try-catch to handle cases where the order endpoint returns 404
+      try {
+        final orderRepo = ref.read(orderRepositoryProvider);
+        final fullOrder = await orderRepo.getOrder(orderId: widget.order.orderId);
 
-      // Update current order state
-      if (mounted) {
-        setState(() {
-          _currentOrder = fullOrder;
-        });
+        // Update current order state
+        if (mounted) {
+          setState(() {
+            _currentOrder = fullOrder;
+          });
+        }
+      } catch (e) {
+        debugPrint('OrderDetailView -> Failed to fetch full order details: $e');
+        debugPrint('OrderDetailView -> Using order data from widget instead');
+        // If fetching fails (e.g., 404), just use the order passed in
+        if (mounted) {
+          setState(() {
+            _currentOrder = widget.order;
+          });
+        }
       }
 
       // Load companies
@@ -104,11 +116,29 @@ class _OrderDetailViewState extends ConsumerState<OrderDetailView> {
 
       // Load users
       final userRepo = ref.read(userRepositoryProvider);
-      _consumerUser = await userRepo.getUserById(userId: widget.order.consumerStaffId);
-      if (_linking!.assignedSalesmanUserId != null) {
-        _salesperson = await userRepo.getUserById(
-          userId: _linking!.assignedSalesmanUserId!,
-        );
+      
+      // Only load consumer user if we have a valid ID
+      if (widget.order.consumerStaffId > 0) {
+        try {
+          _consumerUser = await userRepo.getUserById(userId: widget.order.consumerStaffId);
+        } catch (e) {
+          debugPrint('OrderDetailView -> Failed to load consumer user: $e');
+          // Continue without consumer user data
+        }
+      } else {
+        debugPrint('OrderDetailView -> Invalid consumer staff ID (${widget.order.consumerStaffId}), skipping user load');
+      }
+      
+      // Only load salesperson if we have a valid ID
+      if (_linking!.assignedSalesmanUserId != null && _linking!.assignedSalesmanUserId! > 0) {
+        try {
+          _salesperson = await userRepo.getUserById(
+            userId: _linking!.assignedSalesmanUserId!,
+          );
+        } catch (e) {
+          debugPrint('OrderDetailView -> Failed to load salesperson: $e');
+          // Continue without salesperson data
+        }
       }
 
       // Load products if not included in order
@@ -127,7 +157,7 @@ class _OrderDetailViewState extends ConsumerState<OrderDetailView> {
         }
       }
 
-      for (final orderProduct in fullOrder.products ?? []) {
+      for (final orderProduct in (_currentOrder ?? widget.order).products ?? []) {
         Product? product = orderProduct.product;
 
         // If product not loaded, find it from supplier products

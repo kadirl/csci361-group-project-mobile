@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
@@ -9,15 +10,16 @@ import '../../../core/providers/company_profile_provider.dart';
 import '../../../core/providers/user_profile_provider.dart';
 import '../../../data/models/app_user.dart';
 import '../../../data/models/chat.dart';
-import '../../../data/models/company.dart';
 import '../../../data/models/linking.dart';
+import '../../../data/models/order.dart';
 import '../../../data/repositories/user_repository.dart';
 
 /// Reusable chat view widget for linking or order chats.
 /// 
 /// [linkingId] - The linking ID for linking chats (null for order chats).
 /// [orderId] - The order ID for order chats (null for linking chats).
-/// [linking] - The linking object (required for linking chats to check permissions).
+/// [linking] - The linking object (required for linking chats and order chats to check permissions).
+/// [order] - The order object (required for order chats to check permissions).
 /// [canSendMessages] - Whether the current user can send messages (optional override).
 class ChatView extends ConsumerStatefulWidget {
   const ChatView({
@@ -25,15 +27,17 @@ class ChatView extends ConsumerStatefulWidget {
     this.linkingId,
     this.orderId,
     this.linking,
+    this.order,
     this.canSendMessages,
   }) : assert(
-          (linkingId != null && linking != null) || orderId != null,
-          'Either linkingId with linking or orderId must be provided',
+          (linkingId != null && linking != null) || (orderId != null && order != null && linking != null),
+          'Either linkingId with linking or orderId with order and linking must be provided',
         );
 
   final int? linkingId;
   final int? orderId;
   final Linking? linking;
+  final Order? order;
   final bool? canSendMessages;
 
   @override
@@ -162,30 +166,55 @@ class _ChatViewState extends ConsumerState<ChatView> {
     log('ChatView -> Company ID comparison: currentCompany.id=${currentCompany.id} == consumerCompanyId=${widget.linking!.consumerCompanyId} ? $isConsumerSide');
     log('ChatView -> Company ID comparison: currentCompany.id=${currentCompany.id} == supplierCompanyId=${widget.linking!.supplierCompanyId} ? $isSupplierSide');
 
+    // Check if this is an order chat or linking chat
+    final bool isOrderChat = widget.orderId != null && widget.order != null;
+
     if (isConsumerSide) {
       log('ChatView -> Detected as CONSUMER SIDE');
-      // Consumer side: Only the consumer contact person (requester) can send messages.
-      if (widget.linking!.requestedByUserId == 0) {
-        log('ChatView -> BLOCKED: Consumer side - requestedByUserId is 0 (no requester found)');
-        return false;
+      
+      if (isOrderChat) {
+        // Order chat: Consumer side - Only the consumer staff who created the order can send messages.
+        log('ChatView -> Order chat - Consumer side');
+        log('ChatView -> Order consumerStaffId: ${widget.order!.consumerStaffId}');
+        
+        final canSend = currentUser.id == widget.order!.consumerStaffId;
+        log('ChatView -> Order chat consumer permission check:');
+        log('ChatView ->   currentUser.id=${currentUser.id} (type: ${currentUser.id.runtimeType})');
+        log('ChatView ->   order.consumerStaffId=${widget.order!.consumerStaffId} (type: ${widget.order!.consumerStaffId.runtimeType})');
+        log('ChatView ->   IDs match? ${currentUser.id == widget.order!.consumerStaffId}');
+        log('ChatView ->   RESULT: canSend=$canSend');
+        
+        if (!canSend) {
+          log('ChatView -> BLOCKED: Order chat consumer side - User ID (${currentUser.id}) does NOT match consumerStaffId (${widget.order!.consumerStaffId})');
+        }
+        
+        log('ChatView -> ========== PERMISSION CHECK END ==========');
+        return canSend;
+      } else {
+        // Linking chat: Consumer side - Only the consumer contact person (requester) can send messages.
+        log('ChatView -> Linking chat - Consumer side');
+        if (widget.linking!.requestedByUserId == 0) {
+          log('ChatView -> BLOCKED: Consumer side - requestedByUserId is 0 (no requester found)');
+          return false;
+        }
+        
+        final canSend = currentUser.id == widget.linking!.requestedByUserId;
+        log('ChatView -> Consumer permission check:');
+        log('ChatView ->   currentUser.id=${currentUser.id} (type: ${currentUser.id.runtimeType})');
+        log('ChatView ->   requestedByUserId=${widget.linking!.requestedByUserId} (type: ${widget.linking!.requestedByUserId.runtimeType})');
+        log('ChatView ->   IDs match? ${currentUser.id == widget.linking!.requestedByUserId}');
+        log('ChatView ->   RESULT: canSend=$canSend');
+        
+        if (!canSend) {
+          log('ChatView -> BLOCKED: Consumer side - User ID (${currentUser.id}) does NOT match requestedByUserId (${widget.linking!.requestedByUserId})');
+        }
+        
+        log('ChatView -> ========== PERMISSION CHECK END ==========');
+        return canSend;
       }
-      
-      final canSend = currentUser.id == widget.linking!.requestedByUserId;
-      log('ChatView -> Consumer permission check:');
-      log('ChatView ->   currentUser.id=${currentUser.id} (type: ${currentUser.id.runtimeType})');
-      log('ChatView ->   requestedByUserId=${widget.linking!.requestedByUserId} (type: ${widget.linking!.requestedByUserId.runtimeType})');
-      log('ChatView ->   IDs match? ${currentUser.id == widget.linking!.requestedByUserId}');
-      log('ChatView ->   RESULT: canSend=$canSend');
-      
-      if (!canSend) {
-        log('ChatView -> BLOCKED: Consumer side - User ID (${currentUser.id}) does NOT match requestedByUserId (${widget.linking!.requestedByUserId})');
-      }
-      
-      log('ChatView -> ========== PERMISSION CHECK END ==========');
-      return canSend;
     } else if (isSupplierSide) {
       log('ChatView -> Detected as SUPPLIER SIDE');
-      // Supplier side: Only the assigned salesman can send messages.
+      // Supplier side: Only the assigned salesman can send messages (same for both linking and order chats).
       if (widget.linking!.assignedSalesmanUserId == null) {
         log('ChatView -> BLOCKED: Supplier side - assignedSalesmanUserId is NULL (no salesman assigned)');
         log('ChatView -> ========== PERMISSION CHECK END ==========');
@@ -383,12 +412,65 @@ class _ChatViewState extends ConsumerState<ChatView> {
     );
   }
 
+  // Format update message body into readable text.
+  String _formatUpdateMessage(ChatMessage message) {
+    try {
+      // Try to parse the message body as JSON
+      final Map<String, dynamic> data = jsonDecode(message.body) as Map<String, dynamic>;
+      
+      final String? event = data['event'] as String?;
+      final String? entity = data['entity'] as String?;
+      
+      // Handle status_change events
+      if (event == 'status_change') {
+        final String? oldStatus = data['old_status'] as String?;
+        final String? newStatus = data['new_status'] as String?;
+        final int? entityId = (data['id'] as num?)?.toInt();
+        
+        if (oldStatus != null && newStatus != null) {
+          // Capitalize first letter of status
+          String formatStatus(String status) {
+            if (status.isEmpty) return status;
+            return status[0].toUpperCase() + status.substring(1);
+          }
+          
+          final String formattedOldStatus = formatStatus(oldStatus);
+          final String formattedNewStatus = formatStatus(newStatus);
+          
+          if (entity == 'order') {
+            if (entityId != null) {
+              return 'Order #$entityId status changed from $formattedOldStatus to $formattedNewStatus';
+            } else {
+              return 'Order status changed from $formattedOldStatus to $formattedNewStatus';
+            }
+          } else if (entity == 'complaint') {
+            if (entityId != null) {
+              return 'Complaint #$entityId status changed from $formattedOldStatus to $formattedNewStatus';
+            } else {
+              return 'Complaint status changed from $formattedOldStatus to $formattedNewStatus';
+            }
+          }
+        }
+      }
+      
+      // If parsing fails or event type is unknown, return original body
+      return message.body;
+    } catch (e) {
+      // If JSON parsing fails, return original body
+      log('ChatView -> Failed to parse update message: $e');
+      return message.body;
+    }
+  }
+
   // Build update message widget (full width, no sender).
   Widget _buildUpdateMessage(ChatMessage message) {
     final sender = _senderCache[message.senderId];
     final senderName = sender != null
         ? '${sender.firstName} ${sender.lastName}'
         : _getSenderName(message);
+
+    // Format the message body
+    final String formattedBody = _formatUpdateMessage(message);
 
     return Container(
       width: double.infinity,
@@ -402,9 +484,10 @@ class _ChatViewState extends ConsumerState<ChatView> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            message.body,
+            formattedBody,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w500,
                 ),
           ),
           const SizedBox(height: 4),

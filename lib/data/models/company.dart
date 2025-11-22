@@ -23,7 +23,8 @@ class Company {
 
   factory Company.fromJson(Map<String, dynamic> json) {
     return Company(
-      id: json['id'] as int?,
+      // Some endpoints return 'company_id' instead of 'id'
+      id: (json['id'] as int?) ?? (json['company_id'] as int?),
       name: json['name'] as String? ?? '',
       location: json['location'] as String? ?? '',
       companyType: CompanyTypeX.fromJson(json['company_type'] as String?),

@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 
 import '../../core/config/app_config.dart';
 import '../models/company.dart';
+import '../models/company_update.dart';
 
 // Service responsible for retrieving company details.
 class CompanyService {
@@ -114,6 +115,31 @@ class CompanyService {
       );
       Error.throwWithStackTrace(
         Exception(error.message ?? 'Network error while loading company'),
+        stackTrace,
+      );
+    }
+  }
+
+  /// Update a company by id (protected, owner only).
+  Future<void> updateCompany({
+    required int companyId,
+    required CompanyUpdateRequest request,
+  }) async {
+    log('CompanyService -> PUT company/$companyId');
+
+    try {
+      await _dio.put<dynamic>(
+        'company/$companyId',
+        data: request.toJson(),
+      );
+    } on DioException catch (error, stackTrace) {
+      log(
+        'CompanyService DioException: ${error.type} - ${error.message}',
+        error: error,
+        stackTrace: stackTrace,
+      );
+      Error.throwWithStackTrace(
+        Exception(error.message ?? 'Network error while updating company'),
         stackTrace,
       );
     }

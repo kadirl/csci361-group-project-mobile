@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/config/app_config.dart';
 import '../../core/network/authorized_dio_provider.dart';
 import '../models/company.dart';
+import '../models/company_update.dart';
 import '../services/company_service.dart';
 
 // Repository responsible for retrieving company details with light caching.
@@ -36,6 +37,20 @@ class CompanyRepository {
   /// Get all companies from the API (no caching).
   Future<List<Company>> getAllCompanies() async {
     return _companyService.getAllCompanies();
+  }
+
+  /// Update a company by id (protected, owner only).
+  Future<void> updateCompany({
+    required int companyId,
+    required CompanyUpdateRequest request,
+  }) async {
+    await _companyService.updateCompany(
+      companyId: companyId,
+      request: request,
+    );
+    
+    // Clear cache after update to force refresh on next fetch
+    clearCache();
   }
 
   void clearCache() {

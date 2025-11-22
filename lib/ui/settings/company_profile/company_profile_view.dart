@@ -3,7 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swe_mobile/l10n/app_localizations.dart';
 
 import '../../../core/providers/company_profile_provider.dart';
+import '../../../core/providers/user_profile_provider.dart';
+import '../../../data/models/app_user.dart';
 import '../../../data/models/company.dart';
+import 'company_edit_form_view.dart';
 
 // Displays current company profile information using companyProfileProvider.
 class CompanyProfileView extends ConsumerWidget {
@@ -13,9 +16,36 @@ class CompanyProfileView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     final companyAsync = ref.watch(companyProfileProvider);
+    final userAsync = ref.watch(userProfileProvider);
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.companyProfileTitle)),
+      appBar: AppBar(
+        title: Text(l10n.companyProfileTitle),
+        actions: <Widget>[
+          // Edit button - only show if user is the owner
+          Builder(
+            builder: (context) {
+              final currentUser = userAsync.asData?.value;
+              if (currentUser == null || currentUser.role != UserRole.owner) {
+                return const SizedBox.shrink();
+              }
+              return IconButton(
+                icon: const Icon(Icons.edit),
+                onPressed: () {
+                  final company = companyAsync.asData?.value;
+                  if (company != null) {
+                    Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => CompanyEditFormView(company: company),
+                      ),
+                    );
+                  }
+                },
+              );
+            },
+          ),
+        ],
+      ),
       body: companyAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) => _ErrorState(

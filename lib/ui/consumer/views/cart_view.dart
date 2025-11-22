@@ -818,9 +818,10 @@ class _CartItemWidgetState extends State<_CartItemWidget> {
                     ),
                     isDense: true,
                   ),
+
                   items: List.generate(
-                    product.stockQuantity.clamp(0, 100),
-                    (index) => index + 1,
+                    (product.stockQuantity - product.minimumOrder + 1).clamp(0, 100),
+                    (index) => product.minimumOrder + index,
                   ).map((value) {
                     return DropdownMenuItem<int>(
                       value: value,

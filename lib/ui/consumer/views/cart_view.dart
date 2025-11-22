@@ -2,11 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/providers/cart_provider.dart';
+import '../../../core/providers/user_profile_provider.dart';
 import '../../../core/constants/button_sizes.dart';
 import '../../../data/models/cart_item.dart';
 import '../../../data/models/company.dart';
+import '../../../data/models/linking.dart';
+import '../../../data/models/order.dart';
 import '../../../data/models/product.dart';
 import '../../../data/repositories/company_repository.dart';
+import '../../../data/repositories/linking_repository.dart';
+import '../../../data/repositories/order_repository.dart';
 import '../../../data/repositories/product_repository.dart';
 import '../../supplier/views/catalog/product/product_detail_view.dart';
 import 'company_detail_view.dart';
@@ -227,12 +232,14 @@ class ConsumerCartView extends ConsumerWidget {
           onRemove: (productId) async {
             await ref.read(cartProvider.notifier).removeItem(productId);
           },
-          onCheckout: (companyId) {
-            // TODO: Implement checkout functionality
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Checkout for company $companyId (not yet implemented)'),
-              ),
+          onCheckout: (companyId, companyName, items, totalPrice) async {
+            await _handleCheckout(
+              context,
+              ref,
+              companyId,
+              companyName,
+              items,
+              totalPrice,
             );
           },
         );
@@ -250,8 +257,9 @@ class ConsumerCartView extends ConsumerWidget {
     final itemsWithProducts = <CartItemWithProduct>[];
     for (final cartItem in cartItems) {
       final product = productMap[cartItem.productId];
-      if (product == null || product.companyId == null) {
-        continue; // Skip items with invalid products
+      // Skip items with invalid products (missing product, company, or ID)
+      if (product == null || product.companyId == null || product.id == null) {
+        continue;
       }
 
       // Fetch company info (we'll need to handle this differently)
@@ -287,6 +295,213 @@ class ConsumerCartView extends ConsumerWidget {
       );
     }).toList();
   }
+
+  // Handle checkout for a specific company
+  static Future<void> _handleCheckout(
+    BuildContext context,
+    WidgetRef ref,
+    int supplierCompanyId,
+    String companyName,
+    List<CartItemWithProduct> items,
+    int totalPrice,
+  ) async {
+    print('[CHECKOUT] Starting checkout for company: $supplierCompanyId');
+    print('[CHECKOUT] Company name: $companyName');
+    print('[CHECKOUT] Items count: ${items.length}');
+    print('[CHECKOUT] Total price: $totalPrice');
+    
+    // Log each item
+    for (var item in items) {
+      print('[CHECKOUT] Item - Product ID: ${item.product.id}, Name: ${item.product.name}, Quantity: ${item.cartItem.count}');
+    }
+    
+    // Show confirmation dialog
+    print('[CHECKOUT] Showing confirmation dialog');
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext dialogContext) => AlertDialog(
+        title: const Text('Confirm Checkout'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Text(
+              'Complete order with $companyName?',
+              style: Theme.of(dialogContext).textTheme.bodyLarge,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Total: $totalPrice ₸',
+              style: Theme.of(dialogContext).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Items: ${items.length}',
+              style: Theme.of(dialogContext).textTheme.bodyMedium,
+            ),
+          ],
+        ),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('Confirm'),
+          ),
+        ],
+      ),
+    );
+
+    print('[CHECKOUT] Dialog result: $confirmed');
+    
+    if (confirmed != true) {
+      print('[CHECKOUT] User cancelled checkout');
+      return; // User cancelled
+    }
+
+    print('[CHECKOUT] User confirmed, getting user profile');
+    // Get user profile to verify company
+    final userState = ref.read(userProfileProvider);
+    final user = userState.value;
+    print('[CHECKOUT] User: ${user?.email}, Company ID: ${user?.companyId}');
+    
+    if (user?.companyId == null) {
+      print('[CHECKOUT] ERROR: User company ID is null');
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('User company not found'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+      return;
+    }
+
+    print('[CHECKOUT] Verifying linking status');
+    // Verify linking is accepted
+    final linkingRepo = ref.read(linkingRepositoryProvider);
+    Linking? linking;
+    
+    try {
+      linking = await linkingRepo.getLinkingStatus(otherCompanyId: supplierCompanyId);
+      print('[CHECKOUT] Linking status: ${linking?.status}, Linking ID: ${linking?.linkingId}');
+    } catch (e) {
+      print('[CHECKOUT] ERROR: Failed to get linking status: $e');
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to verify linking: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+      return;
+    }
+
+    if (linking == null || linking.status != LinkingStatus.accepted) {
+      print('[CHECKOUT] ERROR: Linking is null or not accepted. Status: ${linking?.status}');
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Linking with this supplier is not accepted'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+      return;
+    }
+
+    print('[CHECKOUT] Creating order request');
+    // Create order request with products from this company
+    // Filter out items with null product IDs
+    final validItems = items.where((item) => item.product.id != null).toList();
+    print('[CHECKOUT] Valid items count: ${validItems.length} (original: ${items.length})');
+    
+    if (validItems.isEmpty) {
+      print('[CHECKOUT] ERROR: No valid items after filtering');
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('No valid products to order'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+      return;
+    }
+
+    print('[CHECKOUT] Mapping items to OrderProductCreate');
+    final orderProducts = <OrderProductCreate>[];
+    for (var itemWithProduct in validItems) {
+      print('[CHECKOUT] Creating order product - ID: ${itemWithProduct.product.id}, Quantity: ${itemWithProduct.cartItem.count}');
+      if (itemWithProduct.product.id == null) {
+        print('[CHECKOUT] WARNING: Product ID is null for product: ${itemWithProduct.product.name}');
+        continue;
+      }
+      orderProducts.add(OrderProductCreate(
+        productId: itemWithProduct.product.id!,
+        quantity: itemWithProduct.cartItem.count,
+      ));
+    }
+    print('[CHECKOUT] Created ${orderProducts.length} order products');
+
+    final orderRequest = OrderCreateRequest(products: orderProducts);
+    print('[CHECKOUT] Order request created with ${orderRequest.products.length} products');
+
+    // Create the order
+    print('[CHECKOUT] Calling orderRepo.createOrder');
+    print('[CHECKOUT] Supplier Company ID: $supplierCompanyId');
+    try {
+      final orderRepo = ref.read(orderRepositoryProvider);
+      print('[CHECKOUT] Order repository obtained, creating order...');
+      await orderRepo.createOrder(
+        supplierCompanyId: supplierCompanyId,
+        request: orderRequest,
+      );
+      print('[CHECKOUT] Order created successfully!');
+
+      // Remove items for this company from cart
+      print('[CHECKOUT] Removing items from cart');
+      final cartNotifier = ref.read(cartProvider.notifier);
+      for (var i = 0; i < validItems.length; i++) {
+        final itemWithProduct = validItems[i];
+        print('[CHECKOUT] Removing item ${i + 1}/${validItems.length} - Product ID: ${itemWithProduct.product.id}');
+        if (itemWithProduct.product.id != null) {
+          await cartNotifier.removeItem(itemWithProduct.product.id!);
+          print('[CHECKOUT] Item removed successfully');
+        } else {
+          print('[CHECKOUT] WARNING: Skipping removal - product ID is null');
+        }
+      }
+      print('[CHECKOUT] All items removed from cart');
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Order created successfully'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+      print('[CHECKOUT] Checkout completed successfully');
+    } catch (e, stackTrace) {
+      print('[CHECKOUT] ERROR: Exception during order creation: $e');
+      print('[CHECKOUT] Stack trace: $stackTrace');
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to create order: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
 }
 
 // Widget to display a company's cart group
@@ -301,7 +516,12 @@ class _CompanyCartGroupWidget extends ConsumerWidget {
   final CompanyCartGroup group;
   final Future<void> Function(int productId, int newQuantity, Product product) onQuantityChanged;
   final Future<void> Function(int productId) onRemove;
-  final void Function(int companyId) onCheckout;
+  final Future<void> Function(
+    int companyId,
+    String companyName,
+    List<CartItemWithProduct> items,
+    int totalPrice,
+  ) onCheckout;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -386,7 +606,19 @@ class _CompanyCartGroupWidget extends ConsumerWidget {
                     SizedBox(
                       width: double.infinity,
                       child: OutlinedButton(
-                        onPressed: () => onCheckout(company.id!),
+                        onPressed: () {
+                          print('[CHECKOUT-BTN] Pressed. Company ID from Group: ${group.company.id}');
+                          print('[CHECKOUT-BTN] Company ID from API: ${company.id}');
+                          
+                          final idToUse = company.id ?? group.company.id!;
+                          
+                          onCheckout(
+                            idToUse,
+                            company.name,
+                            group.items,
+                            group.totalPrice,
+                          );
+                        },
                         style: OutlinedButton.styleFrom(
                           minimumSize: ButtonSizes.mdFill,
                         ),

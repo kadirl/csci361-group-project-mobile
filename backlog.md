@@ -3,6 +3,7 @@
 - [ ] Remove unlinked state
 - [ ] Autodiscard companies view on consumer shell
 - [ ] DropdownButton Error regarding with the maximum quantity of the item
+- [ ] Add a floating button to refresh the metrics in supplier's dashboard
 
 
 ## In progress

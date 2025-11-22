@@ -7,7 +7,7 @@
 
 
 ## In progress
-- [ ] Add complaints support 
+- [ ] Add complaints support
 
 
 ## Done

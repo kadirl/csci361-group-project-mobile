@@ -1,0 +1,658 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
+
+import '../../../core/providers/user_profile_provider.dart';
+import '../../../core/providers/company_profile_provider.dart';
+import '../../../data/models/app_user.dart';
+import '../../../data/models/company.dart';
+import '../../../data/models/linking.dart';
+import '../../../data/models/order.dart';
+import '../../../data/models/product.dart';
+import '../../../data/repositories/company_repository.dart';
+import '../../../data/repositories/linking_repository.dart';
+import '../../../data/repositories/order_repository.dart';
+import '../../../data/repositories/product_repository.dart';
+import '../../../data/repositories/user_repository.dart';
+import '../../supplier/views/catalog/product/product_detail_view.dart';
+import '../../shared/linkings/linking_detail_view.dart';
+import '../../consumer/views/company_detail_view.dart';
+
+/// Order detail view showing full information about an order.
+class OrderDetailView extends ConsumerStatefulWidget {
+  const OrderDetailView({
+    super.key,
+    required this.order,
+    required this.companyIdToLoad,
+  });
+
+  final Order order;
+  final int Function(Linking linking) companyIdToLoad;
+
+  @override
+  ConsumerState<OrderDetailView> createState() => _OrderDetailViewState();
+}
+
+class _OrderDetailViewState extends ConsumerState<OrderDetailView> {
+  // Loaded data
+  Linking? _linking;
+  Company? _consumerCompany;
+  Company? _supplierCompany;
+  AppUser? _consumerUser;
+  AppUser? _salesperson;
+  List<OrderProduct> _orderProducts = [];
+  bool _isLoading = false;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+  }
+
+  // Load all necessary data
+  Future<void> _loadData() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+
+    try {
+      // Load linking by getting all linkings and finding the matching one
+      final userState = ref.read(userProfileProvider);
+      final appUser = userState.value;
+      
+      if (appUser?.companyId == null) {
+        throw Exception('User company ID not found');
+      }
+
+      final linkingRepo = ref.read(linkingRepositoryProvider);
+      final linkings = await linkingRepo.getLinkingsByCompany(
+        companyId: appUser!.companyId!,
+      );
+      
+      _linking = linkings.firstWhere(
+        (l) => l.linkingId == widget.order.linkingId,
+        orElse: () => throw Exception('Linking not found'),
+      );
+
+      // Load full order details (may include products)
+      final orderRepo = ref.read(orderRepositoryProvider);
+      final fullOrder = await orderRepo.getOrder(orderId: widget.order.orderId);
+
+      // Load companies
+      final companyRepo = ref.read(companyRepositoryProvider);
+      _consumerCompany = await companyRepo.getCompany(
+        companyId: _linking!.consumerCompanyId,
+      );
+      _supplierCompany = await companyRepo.getCompany(
+        companyId: _linking!.supplierCompanyId,
+      );
+
+      // Load users
+      final userRepo = ref.read(userRepositoryProvider);
+      _consumerUser = await userRepo.getUserById(userId: widget.order.consumerStaffId);
+      if (_linking!.assignedSalesmanUserId != null) {
+        _salesperson = await userRepo.getUserById(
+          userId: _linking!.assignedSalesmanUserId!,
+        );
+      }
+
+      // Load products if not included in order
+      final productRepo = ref.read(productRepositoryProvider);
+      final List<OrderProduct> productsWithDetails = [];
+
+      // Get all supplier products to find the ones in the order
+      List<Product> supplierProducts = [];
+      if (_linking?.supplierCompanyId != null) {
+        try {
+          supplierProducts = await productRepo.listProducts(
+            companyId: _linking!.supplierCompanyId,
+          );
+        } catch (e) {
+          debugPrint('Failed to load supplier products: $e');
+        }
+      }
+
+      for (final orderProduct in fullOrder.products ?? []) {
+        Product? product = orderProduct.product;
+
+        // If product not loaded, find it from supplier products
+        if (product == null) {
+          try {
+            product = supplierProducts.firstWhere(
+              (p) => p.id == orderProduct.productId,
+              orElse: () => throw Exception('Product not found'),
+            );
+          } catch (e) {
+            debugPrint('Failed to find product ${orderProduct.productId}: $e');
+          }
+        }
+
+        // Calculate price per unit based on threshold
+        int pricePerUnit = product?.retailPrice ?? 0;
+        if (product != null && orderProduct.quantity >= product.threshold) {
+          pricePerUnit = product.bulkPrice;
+        }
+
+        // Calculate subtotal
+        final int subtotal = (pricePerUnit * orderProduct.quantity).toInt();
+
+        productsWithDetails.add(
+          OrderProduct(
+            productId: orderProduct.productId,
+            quantity: orderProduct.quantity,
+            product: product,
+            pricePerUnit: pricePerUnit,
+            subtotal: subtotal,
+          ),
+        );
+      }
+
+      if (mounted) {
+        setState(() {
+          _orderProducts = productsWithDetails;
+          _isLoading = false;
+        });
+      }
+    } catch (error) {
+      if (mounted) {
+        setState(() {
+          _error = error.toString();
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  // Format date string
+  String _formatDate(String? dateString) {
+    if (dateString == null || dateString.isEmpty) {
+      return 'N/A';
+    }
+
+    try {
+      final DateTime dateTime = DateTime.parse(dateString);
+      final DateFormat formatter = DateFormat('MMM dd, yyyy • HH:mm');
+      return formatter.format(dateTime);
+    } catch (e) {
+      return dateString;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoading) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Order Details')),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (_error != null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Order Details')),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text('Error: $_error'),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: _loadData,
+                child: const Text('Retry'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Order #${widget.order.orderId}'),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Order status and date
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Order #${widget.order.orderId}',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                ),
+                Chip(
+                  label: Text(widget.order.status.name.toUpperCase()),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Created: ${_formatDate(widget.order.createdAt)}',
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+            const SizedBox(height: 24),
+
+            // Linking information
+            Text(
+              'Linking',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+            ),
+            const SizedBox(height: 8),
+            if (_linking != null)
+              Card(
+                child: InkWell(
+                  onTap: () {
+                    final userState = ref.read(userProfileProvider);
+                    final appUser = userState.value;
+                    final isSupplier = appUser?.companyId == _linking!.supplierCompanyId;
+
+                    Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => LinkingDetailView(
+                          linking: _linking!,
+                          showAcceptRejectButtons: isSupplier,
+                          companyIdToLoad: isSupplier
+                              ? _linking!.consumerCompanyId
+                              : _linking!.supplierCompanyId,
+                        ),
+                      ),
+                    );
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.all(12.0),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            'Linking #${_linking!.linkingId ?? 'N/A'}',
+                            style: Theme.of(context).textTheme.bodyLarge,
+                          ),
+                        ),
+                        const Icon(Icons.chevron_right),
+                      ],
+                    ),
+                  ),
+                ),
+              )
+            else
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(12.0),
+                  child: Text(
+                    'Linking #${widget.order.linkingId}',
+                    style: Theme.of(context).textTheme.bodyLarge,
+                  ),
+                ),
+              ),
+            const SizedBox(height: 24),
+
+            // Company information (consumer sees supplier, supplier sees consumer)
+            // Assigned personnel (below company card)
+            _buildCompanyAndPersonnelSection(ref),
+            
+            const SizedBox(height: 24),
+
+            // Order products
+            Text(
+              'Products',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+            ),
+            const SizedBox(height: 8),
+            if (_orderProducts.isEmpty)
+              const Card(
+                child: Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: Text('No products in this order'),
+                ),
+              )
+            else
+              ..._orderProducts.map((orderProduct) => _buildProductCard(orderProduct)),
+
+            const SizedBox(height: 24),
+
+            // Total price
+            Card(
+              color: Theme.of(context).colorScheme.primaryContainer,
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Total',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                    ),
+                    Text(
+                      '${widget.order.totalPrice} ₸',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Build company and assigned personnel section
+  Widget _buildCompanyAndPersonnelSection(WidgetRef ref) {
+    // Determine if current user is consumer or supplier
+    final companyState = ref.watch(companyProfileProvider);
+    final currentCompany = companyState.value;
+
+    // Determine which company and personnel to show
+    Company? companyToShow;
+    int? companyIdToShow;
+    AppUser? personnelToShow;
+    String companyLabel;
+    String personnelLabel;
+
+    if (currentCompany?.companyType == CompanyType.consumer) {
+      // Consumer sees supplier company
+      companyToShow = _supplierCompany;
+      companyIdToShow = _linking?.supplierCompanyId;
+      companyLabel = 'Supplier';
+      // Consumer sees assigned salesperson
+      personnelToShow = _salesperson;
+      personnelLabel = 'Assigned Salesperson';
+    } else {
+      // Supplier sees consumer company
+      companyToShow = _consumerCompany;
+      companyIdToShow = _linking?.consumerCompanyId;
+      companyLabel = 'Consumer';
+      // Supplier sees consumer staff who created the order
+      personnelToShow = _consumerUser;
+      personnelLabel = 'Consumer Staff';
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Company card
+        Text(
+          companyLabel,
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+        ),
+        const SizedBox(height: 8),
+        Card(
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: companyIdToShow != null
+                ? () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => CompanyDetailView(
+                          companyId: companyIdToShow!,
+                        ),
+                      ),
+                    );
+                  }
+                : null,
+            child: Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      companyToShow?.name ?? 'Company #${companyIdToShow ?? 'N/A'}',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                    ),
+                  ),
+                  if (companyIdToShow != null)
+                    const Icon(Icons.chevron_right),
+                ],
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+
+        // Assigned personnel card
+        Text(
+          personnelLabel,
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+        ),
+        const SizedBox(height: 8),
+        Card(
+          child: InkWell(
+            onTap: personnelToShow != null
+                ? () {
+                    final personnel = personnelToShow!;
+                    Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => UserProfileDetailView(user: personnel),
+                      ),
+                    );
+                  }
+                : null,
+            child: Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (personnelToShow != null) ...[
+                          Text(
+                            '${personnelToShow.firstName} ${personnelToShow.lastName}',
+                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            personnelToShow.email,
+                            style: Theme.of(context).textTheme.bodyMedium,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            personnelToShow.role.name.toUpperCase(),
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ] else
+                          Text(
+                            'Not assigned',
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  fontStyle: FontStyle.italic,
+                                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                                ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  if (personnelToShow != null)
+                    const Icon(Icons.chevron_right),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // Build product card (reusing style from catalog)
+  Widget _buildProductCard(OrderProduct orderProduct) {
+    final product = orderProduct.product;
+
+    // Only make clickable if product details are loaded
+    if (product == null) {
+      return Card(
+        margin: const EdgeInsets.only(bottom: 8),
+        child: Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Product #${orderProduct.productId}',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+              ),
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Quantity: ${orderProduct.quantity}',
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Price per unit: ${orderProduct.pricePerUnit ?? 0} ₸',
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ],
+                  ),
+                  Text(
+                    '${orderProduct.subtotal ?? 0} ₸',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      child: InkWell(
+        onTap: () {
+          Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              builder: (_) => ProductDetailView(
+                product: product,
+                showAddToCart: true,
+              ),
+            ),
+          );
+        },
+        child: Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+            // Product images
+            if (product.pictureUrls.isNotEmpty)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: product.pictureUrls
+                          .map(
+                            (url) => Padding(
+                              padding: const EdgeInsets.only(right: 8.0),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: SizedBox(
+                                  width: 96,
+                                  height: 96,
+                                  child: Image.network(
+                                    url,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (_, __, ___) =>
+                                        const Icon(Icons.image_not_supported),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          )
+                          .toList(),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                ],
+              ),
+
+            // Product name
+            Text(
+              product.name,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+            ),
+
+            const SizedBox(height: 4),
+
+            // Product description
+            if (product.description.isNotEmpty)
+              Text(
+                product.description,
+                style: Theme.of(context).textTheme.bodyMedium,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+
+            const SizedBox(height: 8),
+
+            // Quantity and price information
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Quantity: ${orderProduct.quantity} ${product.unit}',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Price per unit: ${orderProduct.pricePerUnit ?? 0} ₸',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ],
+                ),
+                Text(
+                  '${orderProduct.subtotal ?? 0} ₸',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                ),
+              ],
+            ),
+          ],
+        ),
+        ),
+      ),
+    );
+  }
+}
+

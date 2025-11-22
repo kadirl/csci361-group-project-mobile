@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:swe_mobile/core/providers/company_profile_provider.dart';
 import 'package:swe_mobile/data/models/order.dart';
+import 'package:swe_mobile/ui/shared/orders/order_detail_view.dart';
 import 'package:swe_mobile/ui/supplier/models/dashboard_data.dart';
 import 'package:swe_mobile/ui/supplier/view_models/dashboard_viewmodel.dart';
 
@@ -342,7 +343,15 @@ class SupplierDashboardView extends ConsumerWidget {
               ],
             ),
             onTap: () {
-              // Navigate to order details
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => OrderDetailView(
+                    order: order,
+                    // Supplier views consumer company in order details
+                    companyIdToLoad: (linking) => linking.consumerCompanyId,
+                  ),
+                ),
+              );
             },
           );
         },

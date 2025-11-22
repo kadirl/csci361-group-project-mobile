@@ -6,7 +6,7 @@
 - [ ] Remove unlinked state
 - [ ] Autodiscard companies view on consumer shell
 - [ ] Validate item coutn in cart
-- [ ] When User(supplier) tries to edit own email address, app breaks
+- [x] Add Capitalization to users both suppliers and consumers 
 
 - [ ] Add a homePage for a supplier
 

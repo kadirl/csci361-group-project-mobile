@@ -1,14 +1,17 @@
 import 'package:flutter/foundation.dart';
 
+import '../../core/utils/string_utils.dart';
+
 // Request body for PUT /user/{user_id} (UpdateUserSchema in API)
 @immutable
 class UserUpdateRequest {
-  const UserUpdateRequest({
-    required this.firstName,
-    required this.lastName,
+  UserUpdateRequest({
+    required String firstName,
+    required String lastName,
     required this.phoneNumber,
     required this.email,
-  });
+  })  : firstName = capitalize(firstName),
+        lastName = capitalize(lastName);
 
   final String firstName;
   final String lastName;

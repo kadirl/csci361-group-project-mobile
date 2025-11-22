@@ -1,17 +1,20 @@
 import 'package:flutter/foundation.dart';
 
+import '../../core/utils/string_utils.dart';
+
 // Request body for POST /user/ (UserSchema in API)
 @immutable
 class UserCreateRequest {
-  const UserCreateRequest({
-    required this.firstName,
-    required this.lastName,
+  UserCreateRequest({
+    required String firstName,
+    required String lastName,
     required this.phoneNumber,
     required this.email,
     required this.password,
     required this.role,
     required this.locale,
-  });
+  })  : firstName = capitalize(firstName),
+        lastName = capitalize(lastName);
 
   final String firstName;
   final String lastName;

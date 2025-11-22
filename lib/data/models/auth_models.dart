@@ -1,5 +1,7 @@
 import 'package:flutter/foundation.dart';
 
+import '../../core/utils/string_utils.dart';
+
 @immutable
 class LoginRequest {
   const LoginRequest({required this.email, required this.password});
@@ -53,15 +55,16 @@ class RegisterCompanyCompany {
 
 @immutable
 class RegisterCompanyUser {
-  const RegisterCompanyUser({
-    required this.firstName,
-    required this.lastName,
+  RegisterCompanyUser({
+    required String firstName,
+    required String lastName,
     required this.phoneNumber,
     required this.email,
     required this.password,
     required this.role,
     required this.locale,
-  });
+  })  : firstName = capitalize(firstName),
+        lastName = capitalize(lastName);
 
   final String firstName;
   final String lastName;

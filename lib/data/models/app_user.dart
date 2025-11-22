@@ -1,5 +1,7 @@
 import 'package:flutter/foundation.dart';
 
+import '../../core/utils/string_utils.dart';
+
 /// Supported application user roles.
 enum UserRole {
   owner,
@@ -56,8 +58,8 @@ class AppUser {
       // Some endpoints return user_id instead of id
       id: (json['id'] as int?) ?? (json['user_id'] as int?),
       companyId: json['company_id'] as int?,
-      firstName: json['first_name'] as String? ?? '',
-      lastName: json['last_name'] as String? ?? '',
+      firstName: capitalize(json['first_name'] as String? ?? ''),
+      lastName: capitalize(json['last_name'] as String? ?? ''),
       phoneNumber: json['phone_number'] as String? ?? '',
       email: json['email'] as String? ?? '',
       // Enforce only supported roles from backend payload.

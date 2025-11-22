@@ -34,9 +34,12 @@ class OrderService {
     try {
       final Response<dynamic> response = await _dio.get<dynamic>(_ordersPath);
       final dynamic body = response.data;
+      
+      print('DEBUG OrderService: Raw response body = $body');
 
       // API returns array of orders
       if (body is List) {
+        print('DEBUG OrderService: Response is a List with ${body.length} items');
         return body
             .whereType<Map<dynamic, dynamic>>()
             .map((e) => Map<String, dynamic>.from(e))
@@ -46,6 +49,7 @@ class OrderService {
 
       // Handle wrapped response
       if (body is Map && body['orders'] is List) {
+        print('DEBUG OrderService: Response is wrapped, orders list has ${(body['orders'] as List).length} items');
         return (body['orders'] as List)
             .whereType<Map<dynamic, dynamic>>()
             .map((e) => Map<String, dynamic>.from(e))

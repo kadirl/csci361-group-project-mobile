@@ -7,7 +7,10 @@
 
 
 ## In progress
-- [ ] Add complaints support
+- [ ] Add complaints support 
+    - [ ] Add a button to create a complaint in an order detail view 
+    - [ ] Show in an order detail view the status of a compalaint if there is any 
+    - [ ] 
 
 
 ## Done

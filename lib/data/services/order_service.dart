@@ -40,11 +40,16 @@ class OrderService {
       // API returns array of orders
       if (body is List) {
         print('DEBUG OrderService: Response is a List with ${body.length} items');
-        return body
+        final orders = body
             .whereType<Map<dynamic, dynamic>>()
-            .map((e) => Map<String, dynamic>.from(e))
+            .map((e) {
+              final orderMap = Map<String, dynamic>.from(e);
+              print('DEBUG OrderService: Order data = $orderMap');
+              return orderMap;
+            })
             .map(Order.fromJson)
             .toList();
+        return orders;
       }
 
       // Handle wrapped response

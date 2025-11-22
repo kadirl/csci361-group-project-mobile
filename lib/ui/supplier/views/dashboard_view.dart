@@ -89,7 +89,8 @@ class SupplierDashboardView extends ConsumerWidget {
   }
 
   Widget _buildKPIGrid(BuildContext context, DashboardData data) {
-    final currencyFormat = NumberFormat.simpleCurrency(decimalDigits: 0);
+    // Format as KZT (Kazakhstani Tenge) with ₸ symbol
+    final currencyFormat = NumberFormat.currency(symbol: '₸', decimalDigits: 0);
     
     return GridView.count(
       crossAxisCount: 2,
@@ -328,7 +329,7 @@ class SupplierDashboardView extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  NumberFormat.simpleCurrency(decimalDigits: 0).format(order.totalPrice),
+                  NumberFormat.currency(symbol: '₸', decimalDigits: 0).format(order.totalPrice),
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 Text(

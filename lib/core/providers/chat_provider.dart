@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 import '../../core/providers/auth_provider.dart';
+import '../../core/providers/user_profile_provider.dart';
 import '../../data/models/chat.dart';
 import '../../data/repositories/chat_repository.dart';
 
@@ -114,6 +115,10 @@ class ChatNotifier extends Notifier<ChatState> {
         offset: 0,
       );
 
+      // The backend returns messages ordered by newest first.
+      // We need to reverse them to display oldest at the top and newest at the bottom.
+      final List<ChatMessage> sortedMessages = List.from(response.messages.reversed);
+
       // Connect WebSocket
       _wsChannel = _repository!.connectLinkingChat(
         linkingId: linkingId,
@@ -139,7 +144,7 @@ class ChatNotifier extends Notifier<ChatState> {
       );
 
       state = state.copyWith(
-        messages: response.messages,
+        messages: sortedMessages,
         chatId: response.chatId,
         isLoading: false,
         isConnected: true,
@@ -179,6 +184,10 @@ class ChatNotifier extends Notifier<ChatState> {
         offset: 0,
       );
 
+      // The backend returns messages ordered by newest first.
+      // We need to reverse them to display oldest at the top and newest at the bottom.
+      final List<ChatMessage> sortedMessages = List.from(response.messages.reversed);
+
       // Connect WebSocket
       _wsChannel = _repository!.connectOrderChat(
         orderId: orderId,
@@ -204,7 +213,7 @@ class ChatNotifier extends Notifier<ChatState> {
       );
 
       state = state.copyWith(
-        messages: response.messages,
+        messages: sortedMessages,
         chatId: response.chatId,
         isLoading: false,
         isConnected: true,
@@ -226,6 +235,39 @@ class ChatNotifier extends Notifier<ChatState> {
     }
 
     try {
+      // Get current user ID from auth provider
+      final String? accessToken = ref.read(authProvider).accessToken;
+      if (accessToken == null || accessToken.isEmpty) {
+        throw Exception('No access token available');
+      }
+
+      // Try to get current user info for optimistic update
+      int? currentUserId;
+      try {
+        final userState = ref.read(userProfileProvider);
+        if (userState.hasValue && userState.value != null) {
+          currentUserId = userState.value!.id;
+        }
+      } catch (e) {
+        log('ChatNotifier -> Could not get current user ID: $e');
+      }
+
+      // Create temporary message ID for optimistic update (use negative to avoid conflicts)
+      final int tempMessageId = DateTime.now().millisecondsSinceEpoch;
+
+      // Optimistically add message to state (will be updated when server confirms)
+      final ChatMessage optimisticMessage = ChatMessage(
+        messageId: tempMessageId,
+        chatId: state.chatId ?? 0,
+        senderId: currentUserId ?? 0,
+        body: body,
+        messageType: type,
+        sentAt: DateTime.now().toIso8601String(),
+      );
+
+      // Add optimistic message to state
+      state = state.addMessage(optimisticMessage);
+
       final ChatMessage messageToSend = ChatMessage(
         messageId: 0, // Will be set by server
         chatId: state.chatId ?? 0,
@@ -261,16 +303,43 @@ class ChatNotifier extends Notifier<ChatState> {
         if (chatMessage != null) {
           // Check if message already exists (avoid duplicates)
           final bool messageExists = state.messages.any((msg) => msg.messageId == chatMessage.messageId);
+          
           if (!messageExists) {
-            state = state.addMessage(chatMessage);
+            // Check if this matches an optimistic message (with temporary negative ID)
+            // and replace it with the real message
+            final int optimisticIndex = state.messages.indexWhere((msg) {
+              if (msg.messageId < 0 && msg.body == chatMessage.body) {
+                final msgTime = DateTime.tryParse(msg.sentAt);
+                final chatTime = DateTime.tryParse(chatMessage.sentAt);
+                if (msgTime != null && chatTime != null) {
+                  final diff = chatTime.difference(msgTime).abs();
+                  return diff.inSeconds < 5; // Same message within 5 seconds
+                }
+              }
+              return false;
+            });
+
+            if (optimisticIndex >= 0) {
+              // Replace optimistic message with real one
+              final updatedMessages = List<ChatMessage>.from(state.messages);
+              updatedMessages[optimisticIndex] = chatMessage;
+              state = state.copyWith(messages: updatedMessages);
+            } else {
+              // New message, add it
+              state = state.addMessage(chatMessage);
+            }
           }
         }
         break;
 
       case WebSocketMessageType.messageSent:
         log('ChatNotifier -> Message sent confirmation: ${wsMessage.messageId}');
-        // Server confirms message was sent, message should already be in the list
-        // from the broadcast, but we can update the sent_at timestamp if needed
+        // Server confirms message was sent.
+        // If we have an optimistic message with a temporary ID, we should update it
+        // However, since the server broadcasts exclude the sender, we might not receive
+        // the full message. For now, the optimistic message stays until we get the real one.
+        // If the backend is updated to send messages to all users including sender,
+        // we'll get the real message and can remove the optimistic one.
         break;
 
       case WebSocketMessageType.error:

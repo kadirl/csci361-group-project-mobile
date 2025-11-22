@@ -10,7 +10,7 @@
 - [ ] Add complaints support 
     - [ ] Add a button to create a complaint in an order detail view 
     - [ ] Show in an order detail view the status of a compalaint if there is any
-    - [ ] Add a floating button to refresh the metrics in supplier's dashboard 
+    
     
 
 
@@ -24,3 +24,4 @@
 - [x] Autocapitalize username on sign up and in user provider
 - [x] Validate item count in cart
 - [x] Make tiles in Recent Orders from Supplier's Dashboard view clickable
+- [x] Add a floating button to refresh the metrics in supplier's dashboard 

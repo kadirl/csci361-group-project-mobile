@@ -3,6 +3,8 @@ import 'package:flutter/foundation.dart';
 /// Message type enum matching backend message types.
 enum MessageType {
   text,
+  complaint, // Update message type
+  order, // Update message type
   // Add other message types as needed (e.g., image, file, etc.)
 }
 
@@ -11,9 +13,18 @@ MessageType parseMessageType(String? raw) {
   switch ((raw ?? '').toLowerCase()) {
     case 'text':
       return MessageType.text;
+    case 'complaint':
+      return MessageType.complaint;
+    case 'order':
+      return MessageType.order;
     default:
       return MessageType.text;
   }
+}
+
+/// Check if a message type is an update message (system message).
+bool isUpdateMessage(MessageType type) {
+  return type == MessageType.complaint || type == MessageType.order;
 }
 
 /// Extension to convert MessageType to API string value.

@@ -99,14 +99,39 @@ class CompanyService {
       );
 
       final dynamic payload = response.data;
+      
+      // Log the raw payload to debug ID field
+      if (payload is Map) {
+        log('CompanyService -> Raw payload keys: ${payload.keys.toList()}');
+        log('CompanyService -> Payload contains id: ${payload.containsKey('id')}, value: ${payload['id']}');
+        log('CompanyService -> Payload contains company_id: ${payload.containsKey('company_id')}, value: ${payload['company_id']}');
+      } else {
+        log('CompanyService -> Payload is not a map: ${payload.runtimeType}');
+      }
+      
+      Map<String, dynamic> companyMap;
       if (payload is Map<String, dynamic>) {
-        return Company.fromJson(payload);
+        companyMap = payload;
+      } else if (payload is Map<dynamic, dynamic>) {
+        companyMap = Map<String, dynamic>.from(payload);
+      } else {
+        throw const FormatException('Unexpected company payload format.');
       }
-      if (payload is Map<dynamic, dynamic>) {
-        return Company.fromJson(Map<String, dynamic>.from(payload));
+      
+      // Map company_id to id if needed (similar to getAllCompanies)
+      if (companyMap.containsKey('company_id') && !companyMap.containsKey('id')) {
+        companyMap['id'] = companyMap['company_id'];
+        log('CompanyService -> Mapped company_id (${companyMap['company_id']}) to id');
       }
-
-      throw const FormatException('Unexpected company payload format.');
+      
+      // CRITICAL FIX: The API response schema (CompanySchema) might NOT include the ID.
+      // Since we requested a specific companyId, we can inject it if missing.
+      if (!companyMap.containsKey('id') && !companyMap.containsKey('company_id')) {
+        log('CompanyService -> API response missing ID. Injecting requested companyId: $companyId');
+        companyMap['id'] = companyId;
+      }
+      
+      return Company.fromJson(companyMap);
     } on DioException catch (error, stackTrace) {
       log(
         'CompanyService DioException: ${error.type} - ${error.message}',

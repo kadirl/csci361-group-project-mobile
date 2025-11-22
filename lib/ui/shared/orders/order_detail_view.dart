@@ -41,12 +41,15 @@ class _OrderDetailViewState extends ConsumerState<OrderDetailView> {
   AppUser? _consumerUser;
   AppUser? _salesperson;
   List<OrderProduct> _orderProducts = [];
+  Order? _currentOrder; // Track current order for status updates
   bool _isLoading = false;
   String? _error;
 
   @override
   void initState() {
     super.initState();
+    // Initialize current order with the passed order
+    _currentOrder = widget.order;
     _loadData();
   }
 
@@ -79,6 +82,13 @@ class _OrderDetailViewState extends ConsumerState<OrderDetailView> {
       // Load full order details (may include products)
       final orderRepo = ref.read(orderRepositoryProvider);
       final fullOrder = await orderRepo.getOrder(orderId: widget.order.orderId);
+
+      // Update current order state
+      if (mounted) {
+        setState(() {
+          _currentOrder = fullOrder;
+        });
+      }
 
       // Load companies
       final companyRepo = ref.read(companyRepositoryProvider);
@@ -153,6 +163,9 @@ class _OrderDetailViewState extends ConsumerState<OrderDetailView> {
         setState(() {
           _orderProducts = productsWithDetails;
           _isLoading = false;
+          // Include all loaded data in setState to trigger rebuild
+          // (companies, linking, users are already set, but explicitly including
+          // them makes the state update explicit)
         });
       }
     } catch (error) {
@@ -178,6 +191,155 @@ class _OrderDetailViewState extends ConsumerState<OrderDetailView> {
     } catch (e) {
       return dateString;
     }
+  }
+
+  // Check if current user can change order status
+  bool _canChangeOrderStatus() {
+    // Wait for user profile to load
+    final userState = ref.read(userProfileProvider);
+    final appUser = userState.value;
+
+    // User must be authenticated and have a company
+    if (appUser == null || appUser.companyId == null) {
+      return false;
+    }
+
+    // Must have linking loaded
+    if (_linking == null) {
+      return false;
+    }
+
+    // Linking must be accepted (required for orders to exist)
+    if (_linking!.status != LinkingStatus.accepted) {
+      return false;
+    }
+
+    // Must be supplier company (consumers cannot change order status)
+    // Check if user's company ID matches the supplier company ID from the linking
+    if (appUser.companyId != _linking!.supplierCompanyId) {
+      return false;
+    }
+
+    // Staff can only change status if they are the assigned salesperson
+    if (appUser.role == UserRole.staff) {
+      if (_linking!.assignedSalesmanUserId == null ||
+          _linking!.assignedSalesmanUserId != appUser.id) {
+        return false;
+      }
+    }
+
+    // Manager and Owner can always change status for their company
+    if (appUser.role == UserRole.manager || appUser.role == UserRole.owner) {
+      return true;
+    }
+
+    return false;
+  }
+
+  // Handle order status change
+  Future<void> _handleStatusChange(OrderStatus newStatus) async {
+    final currentOrder = _currentOrder ?? widget.order;
+
+    // Show confirmation dialog
+    final bool? confirmed = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext dialogContext) => AlertDialog(
+        title: const Text('Change Order Status'),
+        content: Text(
+          'Change order status from "${currentOrder.status.name.toUpperCase()}" to "${newStatus.name.toUpperCase()}"?',
+        ),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('Change'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) {
+      return;
+    }
+
+    // Show loading state
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final orderRepo = ref.read(orderRepositoryProvider);
+      await orderRepo.updateOrderStatus(
+        orderId: currentOrder.orderId,
+        status: newStatus,
+      );
+
+      // Reload order data to get updated status
+      final updatedOrder = await orderRepo.getOrder(orderId: currentOrder.orderId);
+
+      if (mounted) {
+        setState(() {
+          _currentOrder = updatedOrder;
+          _isLoading = false;
+        });
+
+        // Show success message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Order status changed to ${newStatus.name.toUpperCase()}'),
+          ),
+        );
+      }
+    } catch (error) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+
+        // Show error message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error changing order status: $error'),
+          ),
+        );
+      }
+    }
+  }
+
+  // Build status change dropdown (only called if user has permission)
+  Widget _buildStatusChangeDropdown() {
+    final currentOrder = _currentOrder ?? widget.order;
+
+    return PopupMenuButton<OrderStatus>(
+      icon: const Icon(Icons.arrow_drop_down),
+      tooltip: 'Change order status',
+      onSelected: _handleStatusChange,
+      itemBuilder: (BuildContext context) {
+        return OrderStatus.values.map((OrderStatus status) {
+          return PopupMenuItem<OrderStatus>(
+            value: status,
+            enabled: status != currentOrder.status,
+            child: Row(
+              children: [
+                if (status == currentOrder.status)
+                  Icon(
+                    Icons.check,
+                    size: 20,
+                    color: Theme.of(context).colorScheme.primary,
+                  )
+                else
+                  const SizedBox(width: 20),
+                const SizedBox(width: 8),
+                Text(status.name.toUpperCase()),
+              ],
+            ),
+          );
+        }).toList();
+      },
+    );
   }
 
   @override
@@ -227,15 +389,37 @@ class _OrderDetailViewState extends ConsumerState<OrderDetailView> {
                         fontWeight: FontWeight.w600,
                       ),
                 ),
-                Chip(
-                  label: Text(widget.order.status.name.toUpperCase()),
+                Row(
+                  children: [
+                    Chip(
+                      label: Text(
+                        (_currentOrder ?? widget.order).status.name.toUpperCase(),
+                      ),
+                    ),
+                    if (_canChangeOrderStatus()) ...[
+                      const SizedBox(width: 4),
+                      _buildStatusChangeDropdown(),
+                    ],
+                  ],
                 ),
               ],
             ),
             const SizedBox(height: 8),
-            Text(
-              'Created: ${_formatDate(widget.order.createdAt)}',
-              style: Theme.of(context).textTheme.bodyMedium,
+            Row(
+              children: [
+                Text(
+                  'Created: ${_formatDate((_currentOrder ?? widget.order).createdAt)}',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+                if ((_currentOrder ?? widget.order).updatedAt !=
+                    (_currentOrder ?? widget.order).createdAt) ...[
+                  const SizedBox(width: 16),
+                  Text(
+                    'Updated: ${_formatDate((_currentOrder ?? widget.order).updatedAt)}',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                ],
+              ],
             ),
             const SizedBox(height: 24),
 
@@ -336,7 +520,7 @@ class _OrderDetailViewState extends ConsumerState<OrderDetailView> {
                           ),
                     ),
                     Text(
-                      '${widget.order.totalPrice} ₸',
+                      '${(_currentOrder ?? widget.order).totalPrice} ₸',
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
                             fontWeight: FontWeight.bold,
                             color: Theme.of(context).colorScheme.primary,

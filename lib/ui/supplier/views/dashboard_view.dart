@@ -23,6 +23,10 @@ class SupplierDashboardView extends ConsumerWidget {
     );
 
     return Scaffold(
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => ref.read(dashboardViewModelProvider.notifier).refresh(),
+        child: const Icon(Icons.refresh),
+      ),
       body: dashboardState.when(
         data: (data) => RefreshIndicator(
           onRefresh: () => ref.read(dashboardViewModelProvider.notifier).refresh(),

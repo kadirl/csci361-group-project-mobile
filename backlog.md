@@ -6,7 +6,9 @@
 - [ ] Remove unlinked state
 - [ ] Autodiscard companies view on consumer shell
 - [ ] Validate item coutn in cart
+- [ ] When User(supplier) tries to edit own email address, app breaks
 
+- [ ] Add a homePage for a supplier
 
 ## In progress
 - [ ] Add chats support

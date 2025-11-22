@@ -2,18 +2,26 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../core/providers/user_profile_provider.dart';
+import '../../../../../core/providers/cart_provider.dart';
+import '../../../../../core/constants/button_sizes.dart';
 import '../../../../../data/models/app_user.dart';
 import '../../../../../data/models/product.dart';
 import '../../../../../data/repositories/product_repository.dart';
 import '../../../../../l10n/app_localizations.dart';
+import '../../../../consumer/views/add_to_cart_dialog.dart';
 import 'edit_product_view.dart';
 import 'product_image_gallery_view.dart';
 
 // Product details page showing full information and action buttons by role.
 class ProductDetailView extends ConsumerStatefulWidget {
-  const ProductDetailView({super.key, required this.product});
+  const ProductDetailView({
+    super.key,
+    required this.product,
+    this.showAddToCart = false,
+  });
 
   final Product product;
+  final bool showAddToCart;
 
   @override
   ConsumerState<ProductDetailView> createState() => _ProductDetailViewState();
@@ -30,8 +38,9 @@ class _ProductDetailViewState extends ConsumerState<ProductDetailView> {
     final AsyncValue<AppUser?> userState = ref.watch(userProfileProvider);
     final AppUser? user = userState.value;
 
-    // Only owners and managers can see edit/delete actions.
-    final bool canManage = user != null &&
+    // Only owners and managers can see edit/delete actions, and only when not in consumer mode
+    final bool canManage = !widget.showAddToCart &&
+        user != null &&
         (user.role == UserRole.owner || user.role == UserRole.manager);
 
     return Scaffold(
@@ -148,7 +157,61 @@ class _ProductDetailViewState extends ConsumerState<ProductDetailView> {
           ],
         ),
       ),
+      // Add to Cart button for consumer view
+      bottomNavigationBar: widget.showAddToCart
+          ? SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: FilledButton(
+                  style: FilledButton.styleFrom(
+                    minimumSize: ButtonSizes.mdFill,
+                  ),
+                  onPressed: () => _showAddToCartDialog(context),
+                  child: const Text('Add to Cart'),
+                ),
+              ),
+            )
+          : null,
     );
+  }
+
+  // Show add to cart dialog with quantity input
+  Future<void> _showAddToCartDialog(BuildContext context) async {
+    final result = await showDialog<int>(
+      context: context,
+      builder: (BuildContext dialogContext) => AddToCartDialog(
+        product: widget.product,
+      ),
+    );
+
+    if (result != null && result > 0 && mounted) {
+      try {
+        await ref.read(cartProvider.notifier).addItem(
+              widget.product,
+              count: result,
+            );
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Added $result ${widget.product.unit} to cart',
+              ),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(e.toString()),
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
+          );
+        }
+      }
+    }
   }
 
   // Handle product deletion with confirmation dialog.

@@ -16,22 +16,13 @@ class SupplierDashboardView extends ConsumerWidget {
     final dashboardState = ref.watch(dashboardViewModelProvider);
     final companyState = ref.watch(companyProfileProvider);
     
-    final companyId = companyState.when(
-      data: (company) => company?.id,
-      loading: () => null,
-      error: (_, __) => null,
+    final companyName = companyState.when(
+      data: (company) => company?.name ?? 'Dashboard',
+      loading: () => 'Dashboard',
+      error: (_, __) => 'Dashboard',
     );
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Dashboard ${companyId != null ? "(Co: $companyId)" : "(No Co)"}'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () => ref.read(dashboardViewModelProvider.notifier).refresh(),
-          ),
-        ],
-      ),
       body: dashboardState.when(
         data: (data) => RefreshIndicator(
           onRefresh: () => ref.read(dashboardViewModelProvider.notifier).refresh(),

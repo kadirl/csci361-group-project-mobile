@@ -9,7 +9,7 @@
 - [ ] Add complaints support 
     - [ ] Add a button to create a complaint in an order detail view 
     - [ ] Show in an order detail view the status of a compalaint if there is any 
-    - [ ] 
+    - [ ] Make tiles in Recent Orders from Supplier's Dashboard view clickable
 
 
 ## Done

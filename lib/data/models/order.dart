@@ -25,7 +25,9 @@ OrderStatus parseOrderStatus(String? raw) {
     case 'rejected':
       return OrderStatus.rejected;
     default:
-      throw ArgumentError('Invalid order status: $raw');
+      // Default to 'created' for null or unknown statuses instead of throwing
+      print('WARNING: Unknown order status "$raw", defaulting to "created"');
+      return OrderStatus.created;
   }
 }
 

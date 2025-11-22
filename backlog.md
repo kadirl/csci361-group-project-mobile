@@ -1,7 +1,7 @@
 ## Backlog
 - [ ] Add files support into chats
 - [ ] Remove unlinked state
-- [ ] Autodiscard companies view on consumer shell
+- [x] Autodiscard companies view on consumer shell
 - [ ] DropdownButton Error regarding with the maximum quantity of the item
 
 
@@ -16,7 +16,7 @@
 
 ## Done
 - [x] Add order management support 
-- [x] Add chats support
+- [x] Add chats support 
     - [x] Linkings chat
         - [x] Check rights 
     - [x] Order chat 

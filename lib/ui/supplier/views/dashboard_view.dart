@@ -116,7 +116,7 @@ class SupplierDashboardView extends ConsumerWidget {
         ),
         _buildKPICard(
           context,
-          'Pending Actions',
+          'Created Orders',
           data.pendingOrdersCount.toString(),
           Icons.pending_actions,
           Colors.orange,

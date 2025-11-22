@@ -123,10 +123,19 @@ class Order {
       orderId: (json['order_id'] as int?) ?? (json['id'] as int?) ?? 0,
       linkingId: json['linking_id'] as int? ?? 0,
       consumerStaffId: json['consumer_staff_id'] as int? ?? 0,
-      totalPrice: (json['total_price'] as num?)?.toInt() ?? 0,
-      status: parseOrderStatus(json['status'] as String?),
-      createdAt: json['created_at'] as String? ?? '',
-      updatedAt: json['updated_at'] as String? ?? '',
+      // API returns 'order_total_price' or 'total_price'
+      totalPrice: (json['order_total_price'] as num?)?.toInt() ?? 
+                  (json['total_price'] as num?)?.toInt() ?? 0,
+      // API returns 'order_status' or 'status'
+      status: parseOrderStatus(
+        (json['order_status'] as String?) ?? (json['status'] as String?)
+      ),
+      // API returns 'order_created_at' or 'created_at'
+      createdAt: (json['order_created_at'] as String?) ?? 
+                 (json['created_at'] as String?) ?? '',
+      // API returns 'order_updated_at' or 'updated_at'
+      updatedAt: (json['order_updated_at'] as String?) ?? 
+                 (json['updated_at'] as String?) ?? '',
       products: productsList,
       additionalData: extra,
     );

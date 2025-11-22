@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'views/dashboard_view.dart';
 import 'views/catalog/catalog_view.dart';
 import 'views/linkings_view.dart';
-import 'views/chats_view.dart';
+import 'views/orders_view.dart';
 import 'package:swe_mobile/ui/settings/settings_view.dart';
 
 // Entry point for the supplier experience with a bottom tab bar.
@@ -23,7 +23,7 @@ class _SupplierShellState extends State<SupplierShell> {
     SupplierDashboardView(),
     SupplierCatalogView(),
     SupplierLinkingsView(),
-    SupplierChatsView(),
+    SupplierOrdersView(),
     SettingsView(),
   ];
 
@@ -32,7 +32,7 @@ class _SupplierShellState extends State<SupplierShell> {
     'Home',
     'Catalog',
     'Linkings',
-    'Chats',
+    'Orders',
     'Settings',
   ];
 
@@ -64,8 +64,8 @@ class _SupplierShellState extends State<SupplierShell> {
             label: 'Linkings',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.chat_bubble_outline),
-            label: 'Chats',
+            icon: Icon(Icons.shopping_cart_outlined),
+            label: 'Orders',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.settings_outlined),

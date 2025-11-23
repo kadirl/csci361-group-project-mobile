@@ -101,11 +101,13 @@ class Complaint {
           (json['updated_at'] as String?) ??
           '',
       consumerStaffId: (json['consumer_staff_id'] as num?)?.toInt(),
-      // Try multiple possible field names for assigned personnel
-      assignedSalesmanId: (json['assigned_salesman_id'] as num?)?.toInt() ??
+      // API uses 'assigned_to_salesman_id' and 'escalated_to_manager_id'
+      assignedSalesmanId: (json['assigned_to_salesman_id'] as num?)?.toInt() ??
+          (json['assigned_salesman_id'] as num?)?.toInt() ??
           (json['assignedSalesmanId'] as num?)?.toInt() ??
           (json['assigned_salesman_user_id'] as num?)?.toInt(),
-      assignedManagerId: (json['assigned_manager_id'] as num?)?.toInt() ??
+      assignedManagerId: (json['escalated_to_manager_id'] as num?)?.toInt() ??
+          (json['assigned_manager_id'] as num?)?.toInt() ??
           (json['assignedManagerId'] as num?)?.toInt() ??
           (json['assigned_manager_user_id'] as num?)?.toInt(),
       resolutionNotes: json['resolution_notes'] as String?,

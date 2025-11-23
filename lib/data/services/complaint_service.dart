@@ -133,16 +133,23 @@ class ComplaintService {
       final Response<dynamic> response = await _dio.get<dynamic>(path);
       final dynamic body = response.data;
 
-      // API returns array of complaints
-      if (body is List) {
-        return body
-            .whereType<Map<dynamic, dynamic>>()
-            .map((e) => Map<String, dynamic>.from(e))
-            .map(Complaint.fromJson)
-            .toList();
+      log('ComplaintService -> Assigned response: $body');
+
+      // API might return wrapped in object with 'complaints' key or direct array
+      List<dynamic> complaintsList;
+      if (body is Map && body['complaints'] is List) {
+        complaintsList = body['complaints'] as List;
+      } else if (body is List) {
+        complaintsList = body;
+      } else {
+        throw const FormatException('Unexpected complaints list payload format.');
       }
 
-      throw const FormatException('Unexpected complaints list payload.');
+      return complaintsList
+          .whereType<Map<dynamic, dynamic>>()
+          .map((e) => Map<String, dynamic>.from(e))
+          .map(Complaint.fromJson)
+          .toList();
     } on DioException catch (error, stackTrace) {
       _logAndRethrow(error, stackTrace);
     }
@@ -157,16 +164,23 @@ class ComplaintService {
       final Response<dynamic> response = await _dio.get<dynamic>(path);
       final dynamic body = response.data;
 
-      // API returns array of complaints
-      if (body is List) {
-        return body
-            .whereType<Map<dynamic, dynamic>>()
-            .map((e) => Map<String, dynamic>.from(e))
-            .map(Complaint.fromJson)
-            .toList();
+      log('ComplaintService -> Escalated response: $body');
+
+      // API might return wrapped in object with 'complaints' key or direct array
+      List<dynamic> complaintsList;
+      if (body is Map && body['complaints'] is List) {
+        complaintsList = body['complaints'] as List;
+      } else if (body is List) {
+        complaintsList = body;
+      } else {
+        throw const FormatException('Unexpected complaints list payload format.');
       }
 
-      throw const FormatException('Unexpected complaints list payload.');
+      return complaintsList
+          .whereType<Map<dynamic, dynamic>>()
+          .map((e) => Map<String, dynamic>.from(e))
+          .map(Complaint.fromJson)
+          .toList();
     } on DioException catch (error, stackTrace) {
       _logAndRethrow(error, stackTrace);
     }
@@ -181,16 +195,23 @@ class ComplaintService {
       final Response<dynamic> response = await _dio.get<dynamic>(path);
       final dynamic body = response.data;
 
-      // API returns array of complaints
-      if (body is List) {
-        return body
-            .whereType<Map<dynamic, dynamic>>()
-            .map((e) => Map<String, dynamic>.from(e))
-            .map(Complaint.fromJson)
-            .toList();
+      log('ComplaintService -> Managed response: $body');
+
+      // API might return wrapped in object with 'complaints' key or direct array
+      List<dynamic> complaintsList;
+      if (body is Map && body['complaints'] is List) {
+        complaintsList = body['complaints'] as List;
+      } else if (body is List) {
+        complaintsList = body;
+      } else {
+        throw const FormatException('Unexpected complaints list payload format.');
       }
 
-      throw const FormatException('Unexpected complaints list payload.');
+      return complaintsList
+          .whereType<Map<dynamic, dynamic>>()
+          .map((e) => Map<String, dynamic>.from(e))
+          .map(Complaint.fromJson)
+          .toList();
     } on DioException catch (error, stackTrace) {
       _logAndRethrow(error, stackTrace);
     }

@@ -1,17 +1,23 @@
 import 'dart:convert';
 import 'dart:developer';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/providers/chat_provider.dart';
 import '../../../core/providers/company_profile_provider.dart';
 import '../../../core/providers/user_profile_provider.dart';
+import '../../../core/utils/s3_upload_utils.dart';
 import '../../../data/models/app_user.dart';
 import '../../../data/models/chat.dart';
+import '../../../data/models/complaint.dart';
 import '../../../data/models/linking.dart';
 import '../../../data/models/order.dart';
+import '../../../data/repositories/complaint_repository.dart';
+import '../../../data/repositories/uploads_repository.dart';
 import '../../../data/repositories/user_repository.dart';
 import '../../supplier/views/catalog/product/product_image_gallery_view.dart';
 
@@ -49,13 +55,24 @@ class _ChatViewState extends ConsumerState<ChatView> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final Map<int, AppUser> _senderCache = {};
+  final ImagePicker _imagePicker = ImagePicker();
   bool _isLoadingSenders = false;
   bool _hasText = false;
+  
+  // Image upload state
+  Uint8List? _pendingImageBytes;
+  String? _pendingImageUrl;
+  bool _isUploadingImage = false;
+  String? _pendingImageFilename;
+  
+  // Cached complaint for permission checks
+  Complaint? _cachedComplaint;
 
   @override
   void initState() {
     super.initState();
     _connectChat();
+    _loadComplaintIfNeeded();
     
     // Listen to text changes to update send button state.
     _messageController.addListener(() {
@@ -66,6 +83,26 @@ class _ChatViewState extends ConsumerState<ChatView> {
         });
       }
     });
+  }
+
+  // Load complaint for order chats to check manager permissions
+  Future<void> _loadComplaintIfNeeded() async {
+    if (widget.orderId != null) {
+      try {
+        final complaintRepo = ref.read(complaintRepositoryProvider);
+        final complaint = await complaintRepo.getComplaintByOrderId(
+          orderId: widget.orderId!,
+        );
+        if (mounted) {
+          setState(() {
+            _cachedComplaint = complaint;
+          });
+        }
+      } catch (e) {
+        // No complaint exists or error - that's fine
+        log('ChatView -> No complaint found for order ${widget.orderId}: $e');
+      }
+    }
   }
 
   @override
@@ -215,26 +252,78 @@ class _ChatViewState extends ConsumerState<ChatView> {
       }
     } else if (isSupplierSide) {
       log('ChatView -> Detected as SUPPLIER SIDE');
-      // Supplier side: Only the assigned salesman can send messages (same for both linking and order chats).
-      if (widget.linking!.assignedSalesmanUserId == null) {
-        log('ChatView -> BLOCKED: Supplier side - assignedSalesmanUserId is NULL (no salesman assigned)');
+      
+      // For order chats, check if user is assigned manager for the complaint
+      if (isOrderChat) {
+        log('ChatView -> Order chat - Supplier side');
+        
+        // Check if assigned salesman can send
+        if (widget.linking!.assignedSalesmanUserId != null &&
+            currentUser.id == widget.linking!.assignedSalesmanUserId) {
+          log('ChatView -> Allowed: User is assigned salesman');
+          log('ChatView -> ========== PERMISSION CHECK END ==========');
+          return true;
+        }
+        
+        // Check if user is assigned manager for the complaint (using cached complaint)
+        if (_cachedComplaint != null && _cachedComplaint!.assignedManagerId != null) {
+          final isAssignedManager = currentUser.id == _cachedComplaint!.assignedManagerId;
+          log('ChatView -> Complaint found for order ${widget.orderId}');
+          log('ChatView ->   assignedManagerId=${_cachedComplaint!.assignedManagerId}');
+          log('ChatView ->   currentUser.id=${currentUser.id}');
+          log('ChatView ->   Is assigned manager? $isAssignedManager');
+          
+          if (isAssignedManager) {
+            log('ChatView -> Allowed: User is assigned manager for complaint');
+            log('ChatView -> ========== PERMISSION CHECK END ==========');
+            return true;
+          }
+        } else {
+          log('ChatView -> No complaint found or no assigned manager for order ${widget.orderId}');
+        }
+        
+        // If not assigned manager, check salesman assignment
+        if (widget.linking!.assignedSalesmanUserId == null) {
+          log('ChatView -> BLOCKED: Supplier side - assignedSalesmanUserId is NULL (no salesman assigned)');
+          log('ChatView -> ========== PERMISSION CHECK END ==========');
+          return false;
+        }
+        
+        final canSend = currentUser.id == widget.linking!.assignedSalesmanUserId;
+        log('ChatView -> Supplier permission check (salesman):');
+        log('ChatView ->   currentUser.id=${currentUser.id} (type: ${currentUser.id.runtimeType})');
+        log('ChatView ->   assignedSalesmanUserId=${widget.linking!.assignedSalesmanUserId} (type: ${widget.linking!.assignedSalesmanUserId.runtimeType})');
+        log('ChatView ->   IDs match? ${currentUser.id == widget.linking!.assignedSalesmanUserId}');
+        log('ChatView ->   RESULT: canSend=$canSend');
+        
+        if (!canSend) {
+          log('ChatView -> BLOCKED: Supplier side - User ID (${currentUser.id}) does NOT match assignedSalesmanUserId (${widget.linking!.assignedSalesmanUserId})');
+        }
+        
         log('ChatView -> ========== PERMISSION CHECK END ==========');
-        return false;
+        return canSend;
+      } else {
+        // Linking chat: Only the assigned salesman can send messages
+        if (widget.linking!.assignedSalesmanUserId == null) {
+          log('ChatView -> BLOCKED: Supplier side - assignedSalesmanUserId is NULL (no salesman assigned)');
+          log('ChatView -> ========== PERMISSION CHECK END ==========');
+          return false;
+        }
+        
+        final canSend = currentUser.id == widget.linking!.assignedSalesmanUserId;
+        log('ChatView -> Supplier permission check:');
+        log('ChatView ->   currentUser.id=${currentUser.id} (type: ${currentUser.id.runtimeType})');
+        log('ChatView ->   assignedSalesmanUserId=${widget.linking!.assignedSalesmanUserId} (type: ${widget.linking!.assignedSalesmanUserId.runtimeType})');
+        log('ChatView ->   IDs match? ${currentUser.id == widget.linking!.assignedSalesmanUserId}');
+        log('ChatView ->   RESULT: canSend=$canSend');
+        
+        if (!canSend) {
+          log('ChatView -> BLOCKED: Supplier side - User ID (${currentUser.id}) does NOT match assignedSalesmanUserId (${widget.linking!.assignedSalesmanUserId})');
+        }
+        
+        log('ChatView -> ========== PERMISSION CHECK END ==========');
+        return canSend;
       }
-      
-      final canSend = currentUser.id == widget.linking!.assignedSalesmanUserId;
-      log('ChatView -> Supplier permission check:');
-      log('ChatView ->   currentUser.id=${currentUser.id} (type: ${currentUser.id.runtimeType})');
-      log('ChatView ->   assignedSalesmanUserId=${widget.linking!.assignedSalesmanUserId} (type: ${widget.linking!.assignedSalesmanUserId.runtimeType})');
-      log('ChatView ->   IDs match? ${currentUser.id == widget.linking!.assignedSalesmanUserId}');
-      log('ChatView ->   RESULT: canSend=$canSend');
-      
-      if (!canSend) {
-        log('ChatView -> BLOCKED: Supplier side - User ID (${currentUser.id}) does NOT match assignedSalesmanUserId (${widget.linking!.assignedSalesmanUserId})');
-      }
-      
-      log('ChatView -> ========== PERMISSION CHECK END ==========');
-      return canSend;
     } else {
       // User's company is not part of this linking.
       log('ChatView -> BLOCKED: User company (${currentCompany.id}) is NOT part of linking');
@@ -314,10 +403,150 @@ class _ChatViewState extends ConsumerState<ChatView> {
     }
   }
 
-  // Send a message.
+  // Pick image from gallery or camera.
+  Future<void> _pickImage() async {
+    if (!_canSendMessages()) {
+      return;
+    }
+
+    // Show dialog to choose source
+    final ImageSource? source = await showDialog<ImageSource>(
+      context: context,
+      builder: (BuildContext dialogContext) => AlertDialog(
+        title: const Text('Select Image Source'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.photo_library),
+              title: const Text('Gallery'),
+              onTap: () => Navigator.of(dialogContext).pop(ImageSource.gallery),
+            ),
+            ListTile(
+              leading: const Icon(Icons.camera_alt),
+              title: const Text('Camera'),
+              onTap: () => Navigator.of(dialogContext).pop(ImageSource.camera),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (source == null) {
+      return;
+    }
+
+    try {
+      final XFile? pickedFile = await _imagePicker.pickImage(source: source);
+      if (pickedFile == null) {
+        return;
+      }
+
+      // Read image bytes
+      final Uint8List imageBytes = await pickedFile.readAsBytes();
+      
+      // Extract filename and extension
+      final String filePath = pickedFile.path;
+      final String filename = filePath.split('/').last;
+      final int dotIndex = filePath.lastIndexOf('.');
+      final String extension = dotIndex != -1 && dotIndex < filePath.length - 1
+          ? filePath.substring(dotIndex + 1).toLowerCase()
+          : 'jpg';
+
+      // Set pending image for preview
+      setState(() {
+        _pendingImageBytes = imageBytes;
+        _pendingImageUrl = null;
+        _isUploadingImage = true;
+        _pendingImageFilename = filename;
+      });
+
+      // Upload to S3
+      final UploadsRepository uploadsRepository = ref.read(uploadsRepositoryProvider);
+      final String uploadedUrl = await S3UploadUtils.uploadToS3(
+        uploadsRepository: uploadsRepository,
+        fileBytes: imageBytes,
+        fileExtension: extension,
+        filename: filename,
+      );
+
+      if (mounted) {
+        setState(() {
+          _pendingImageUrl = uploadedUrl;
+          _isUploadingImage = false;
+        });
+      }
+    } catch (e) {
+      log('ChatView -> Failed to pick/upload image: $e');
+      if (mounted) {
+        setState(() {
+          _pendingImageBytes = null;
+          _pendingImageUrl = null;
+          _isUploadingImage = false;
+          _pendingImageFilename = null;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to upload image: $e')),
+        );
+      }
+    }
+  }
+
+  // Remove pending image.
+  void _removePendingImage() {
+    setState(() {
+      _pendingImageBytes = null;
+      _pendingImageUrl = null;
+      _isUploadingImage = false;
+      _pendingImageFilename = null;
+    });
+  }
+
+  // Send a message (text or image).
   Future<void> _sendMessage() async {
+    if (!_canSendMessages()) {
+      return;
+    }
+
+    // Send image if pending
+    if (_pendingImageUrl != null) {
+      try {
+        final notifier = widget.linkingId != null
+            ? ref.read(linkingChatProvider.notifier)
+            : ref.read(orderChatProvider.notifier);
+
+        // For image messages, body is always just the URL string
+        await notifier.sendMessage(
+          body: _pendingImageUrl!,
+          type: MessageType.image,
+        );
+
+        // Clear pending image
+        _removePendingImage();
+
+        // Scroll to bottom after sending
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (_scrollController.hasClients) {
+            _scrollController.animateTo(
+              _scrollController.position.maxScrollExtent,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeOut,
+            );
+          }
+        });
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to send image: $e')),
+          );
+        }
+      }
+      return;
+    }
+
+    // Send text message
     final text = _messageController.text.trim();
-    if (text.isEmpty || !_canSendMessages()) {
+    if (text.isEmpty) {
       return;
     }
 
@@ -552,27 +781,17 @@ class _ChatViewState extends ConsumerState<ChatView> {
   }
 
   // Extract image URL from message body.
-  // Handles both direct URL strings and JSON objects with 'url' field.
+  // For image/audio/file messages, body is always a direct URL string.
   String? _extractImageUrl(ChatMessage message) {
     if (message.messageType != MessageType.image) {
       return null;
     }
 
-    try {
-      // Try to parse as JSON first
-      final Map<String, dynamic> data = jsonDecode(message.body) as Map<String, dynamic>;
-      final String? url = data['url'] as String?;
-      if (url != null && url.isNotEmpty) {
-        return url;
-      }
-    } catch (e) {
-      // If JSON parsing fails, treat body as direct URL
-      final String trimmedBody = message.body.trim();
-      if (trimmedBody.isNotEmpty) {
-        // Check if it looks like a URL (starts with http:// or https://)
-        if (trimmedBody.startsWith('http://') || trimmedBody.startsWith('https://')) {
-          return trimmedBody;
-        }
+    final String trimmedBody = message.body.trim();
+    if (trimmedBody.isNotEmpty) {
+      // Body is always a direct URL for image messages
+      if (trimmedBody.startsWith('http://') || trimmedBody.startsWith('https://')) {
+        return trimmedBody;
       }
     }
 
@@ -873,6 +1092,85 @@ class _ChatViewState extends ConsumerState<ChatView> {
                           ),
           ),
 
+          // Image preview thumbnail (if pending)
+          if (_pendingImageBytes != null)
+            Container(
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface,
+                border: Border(
+                  bottom: BorderSide(
+                    color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+                  ),
+                ),
+              ),
+              padding: const EdgeInsets.all(8.0),
+              child: Row(
+                children: [
+                  // Thumbnail preview
+                  Stack(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8.0),
+                        child: Container(
+                          width: 64,
+                          height: 64,
+                          color: Theme.of(context).colorScheme.surfaceVariant,
+                          child: _isUploadingImage
+                              ? const Center(
+                                  child: SizedBox(
+                                    width: 24,
+                                    height: 24,
+                                    child: CircularProgressIndicator(strokeWidth: 2),
+                                  ),
+                                )
+                              : Image.memory(
+                                  _pendingImageBytes!,
+                                  width: 64,
+                                  height: 64,
+                                  fit: BoxFit.cover,
+                                ),
+                        ),
+                      ),
+                      // Remove button
+                      if (!_isUploadingImage)
+                        Positioned(
+                          top: -4,
+                          right: -4,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).colorScheme.error,
+                              shape: BoxShape.circle,
+                            ),
+                            child: IconButton(
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(
+                                minWidth: 24,
+                                minHeight: 24,
+                              ),
+                              iconSize: 16,
+                              icon: const Icon(
+                                Icons.close,
+                                color: Colors.white,
+                              ),
+                              onPressed: _removePendingImage,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      _pendingImageFilename ?? 'Image',
+                      style: Theme.of(context).textTheme.bodySmall,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
           // Input field.
           Container(
             decoration: BoxDecoration(
@@ -890,6 +1188,14 @@ class _ChatViewState extends ConsumerState<ChatView> {
                 padding: const EdgeInsets.all(8.0),
                 child: Row(
                   children: [
+                    // Paperclip button for image upload
+                    IconButton(
+                      onPressed: canSend && chatState.isConnected && !_isUploadingImage
+                          ? _pickImage
+                          : null,
+                      icon: const Icon(Icons.attach_file),
+                      tooltip: 'Attach image',
+                    ),
                     Expanded(
                       child: TextField(
                         controller: _messageController,
@@ -911,7 +1217,9 @@ class _ChatViewState extends ConsumerState<ChatView> {
                     ),
                     const SizedBox(width: 8),
                     IconButton(
-                      onPressed: canSend && chatState.isConnected && _hasText
+                      onPressed: canSend && 
+                          chatState.isConnected && 
+                          (_hasText || (_pendingImageUrl != null && !_isUploadingImage))
                           ? _sendMessage
                           : null,
                       icon: const Icon(Icons.send),

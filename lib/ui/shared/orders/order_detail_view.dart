@@ -4,12 +4,15 @@ import 'package:intl/intl.dart';
 
 import '../../../core/providers/user_profile_provider.dart';
 import '../../../core/providers/company_profile_provider.dart';
+import '../../../core/providers/complaint_provider.dart';
 import '../../../data/models/app_user.dart';
 import '../../../data/models/company.dart';
+import '../../../data/models/complaint.dart';
 import '../../../data/models/linking.dart';
 import '../../../data/models/order.dart';
 import '../../../data/models/product.dart';
 import '../../../data/repositories/company_repository.dart';
+import '../../../data/repositories/complaint_repository.dart';
 import '../../../data/repositories/linking_repository.dart';
 import '../../../data/repositories/order_repository.dart';
 import '../../../data/repositories/product_repository.dart';
@@ -17,6 +20,7 @@ import '../../../data/repositories/user_repository.dart';
 import '../../supplier/views/catalog/product/product_detail_view.dart';
 import '../../shared/linkings/linking_detail_view.dart';
 import '../../shared/chat/chat_view.dart';
+import '../../shared/complaints/complaint_detail_view.dart';
 import '../../consumer/views/company_detail_view.dart';
 
 /// Order detail view showing full information about an order.
@@ -45,6 +49,8 @@ class _OrderDetailViewState extends ConsumerState<OrderDetailView> {
   Order? _currentOrder; // Track current order for status updates
   bool _isLoading = false;
   String? _error;
+  Complaint? _complaint; // Track complaint for this order
+  bool _isLoadingComplaint = false;
 
   @override
   void initState() {
@@ -52,6 +58,7 @@ class _OrderDetailViewState extends ConsumerState<OrderDetailView> {
     // Initialize current order with the passed order
     _currentOrder = widget.order;
     _loadData();
+    _loadComplaint();
   }
 
   // Load all necessary data
@@ -85,14 +92,14 @@ class _OrderDetailViewState extends ConsumerState<OrderDetailView> {
       // Load full order details (may include products)
       // Wrap in try-catch to handle cases where the order endpoint returns 404
       try {
-        final orderRepo = ref.read(orderRepositoryProvider);
-        final fullOrder = await orderRepo.getOrder(orderId: widget.order.orderId);
+      final orderRepo = ref.read(orderRepositoryProvider);
+      final fullOrder = await orderRepo.getOrder(orderId: widget.order.orderId);
 
-        // Update current order state
-        if (mounted) {
-          setState(() {
-            _currentOrder = fullOrder;
-          });
+      // Update current order state
+      if (mounted) {
+        setState(() {
+          _currentOrder = fullOrder;
+        });
         }
       } catch (e) {
         debugPrint('OrderDetailView -> Failed to fetch full order details: $e');
@@ -120,7 +127,7 @@ class _OrderDetailViewState extends ConsumerState<OrderDetailView> {
       // Only load consumer user if we have a valid ID
       if (widget.order.consumerStaffId > 0) {
         try {
-          _consumerUser = await userRepo.getUserById(userId: widget.order.consumerStaffId);
+      _consumerUser = await userRepo.getUserById(userId: widget.order.consumerStaffId);
         } catch (e) {
           debugPrint('OrderDetailView -> Failed to load consumer user: $e');
           // Continue without consumer user data
@@ -132,9 +139,9 @@ class _OrderDetailViewState extends ConsumerState<OrderDetailView> {
       // Only load salesperson if we have a valid ID
       if (_linking!.assignedSalesmanUserId != null && _linking!.assignedSalesmanUserId! > 0) {
         try {
-          _salesperson = await userRepo.getUserById(
-            userId: _linking!.assignedSalesmanUserId!,
-          );
+        _salesperson = await userRepo.getUserById(
+          userId: _linking!.assignedSalesmanUserId!,
+        );
         } catch (e) {
           debugPrint('OrderDetailView -> Failed to load salesperson: $e');
           // Continue without salesperson data
@@ -211,6 +218,40 @@ class _OrderDetailViewState extends ConsumerState<OrderDetailView> {
     }
   }
 
+  // Load complaint for this order
+  Future<void> _loadComplaint() async {
+    debugPrint('OrderDetailView -> Loading complaint for order ${widget.order.orderId}');
+    setState(() {
+      _isLoadingComplaint = true;
+    });
+
+    try {
+      // Call repository directly instead of using provider
+      final repository = ref.read(complaintRepositoryProvider);
+      final complaintAsync = await repository.getComplaintByOrderId(
+        orderId: widget.order.orderId,
+      );
+
+      debugPrint('OrderDetailView -> Complaint loaded: ${complaintAsync?.complaintId ?? 'null'}');
+
+      if (mounted) {
+        setState(() {
+          _complaint = complaintAsync;
+          _isLoadingComplaint = false;
+        });
+      }
+    } catch (e, stackTrace) {
+      debugPrint('OrderDetailView -> Error loading complaint: $e');
+      debugPrint('OrderDetailView -> Stack trace: $stackTrace');
+      if (mounted) {
+        setState(() {
+          _complaint = null;
+          _isLoadingComplaint = false;
+        });
+      }
+    }
+  }
+
   // Format date string
   String _formatDate(String? dateString) {
     if (dateString == null || dateString.isEmpty) {
@@ -223,6 +264,151 @@ class _OrderDetailViewState extends ConsumerState<OrderDetailView> {
       return formatter.format(dateTime);
     } catch (e) {
       return dateString;
+    }
+  }
+
+  // Get complaint status color
+  Color _getComplaintStatusColor(ComplaintStatus status) {
+    switch (status) {
+      case ComplaintStatus.open:
+        return Colors.orange;
+      case ComplaintStatus.escalated:
+        return Colors.red;
+      case ComplaintStatus.inProgress:
+        return Colors.blue;
+      case ComplaintStatus.resolved:
+        return Colors.green;
+      case ComplaintStatus.closed:
+        return Colors.grey;
+    }
+  }
+
+  // Get complaint status display name
+  String _getComplaintStatusDisplayName(ComplaintStatus status) {
+    switch (status) {
+      case ComplaintStatus.open:
+        return 'OPEN';
+      case ComplaintStatus.escalated:
+        return 'ESCALATED';
+      case ComplaintStatus.inProgress:
+        return 'IN PROGRESS';
+      case ComplaintStatus.resolved:
+        return 'RESOLVED';
+      case ComplaintStatus.closed:
+        return 'CLOSED';
+    }
+  }
+
+  // Check if current user is a consumer
+  bool _isConsumer() {
+    final companyState = ref.read(companyProfileProvider);
+    final currentCompany = companyState.value;
+    return currentCompany?.companyType == CompanyType.consumer;
+  }
+
+  // Show create complaint dialog
+  Future<void> _showCreateComplaintDialog() async {
+    final TextEditingController descriptionController = TextEditingController();
+
+    final bool? confirmed = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext dialogContext) => AlertDialog(
+        title: const Text('Create Complaint'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Please provide a reason for your complaint:'),
+            const SizedBox(height: 16),
+            TextField(
+              controller: descriptionController,
+              decoration: const InputDecoration(
+                labelText: 'Reason of Complaint',
+                border: OutlineInputBorder(),
+              ),
+              maxLines: 5,
+              minLines: 3,
+            ),
+          ],
+        ),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () {
+              if (descriptionController.text.trim().isEmpty) {
+                ScaffoldMessenger.of(dialogContext).showSnackBar(
+                  const SnackBar(
+                    content: Text('Please enter a reason for the complaint'),
+                  ),
+                );
+                return;
+              }
+              Navigator.of(dialogContext).pop(true);
+            },
+            child: const Text('Create'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) {
+      return;
+    }
+
+    final String description = descriptionController.text.trim();
+    if (description.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter a reason for the complaint'),
+        ),
+      );
+      return;
+    }
+
+    // Show loading state
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final complaintNotifier = ref.read(orderComplaintProvider.notifier);
+      await complaintNotifier.createComplaint(
+        orderId: widget.order.orderId,
+        description: description,
+      );
+
+      // Invalidate and reload complaint
+      ref.invalidate(complaintByOrderIdProvider(widget.order.orderId));
+      await _loadComplaint();
+
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+
+        // Show success message
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Complaint created successfully'),
+          ),
+        );
+      }
+    } catch (error) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+
+        // Show error message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error creating complaint: $error'),
+          ),
+        );
+      }
     }
   }
 
@@ -533,7 +719,85 @@ class _OrderDetailViewState extends ConsumerState<OrderDetailView> {
                 minimumSize: const Size(double.infinity, 48),
               ),
             ),
+            const SizedBox(height: 16),
+
+            // Create Complaint button (consumer only, hidden if complaint exists)
+            if (_isConsumer() && _complaint == null && !_isLoadingComplaint)
+              FilledButton.icon(
+                onPressed: _showCreateComplaintDialog,
+                icon: const Icon(Icons.report_problem),
+                label: const Text('Create Complaint'),
+                style: FilledButton.styleFrom(
+                  minimumSize: const Size(double.infinity, 48),
+                  backgroundColor: Colors.orange,
+                ),
+              ),
+            if (_isConsumer() && _complaint == null && !_isLoadingComplaint)
             const SizedBox(height: 24),
+
+            // Complaint status section (visible to both sides if complaint exists)
+            if (_complaint != null) ...[
+              Text(
+                'Complaint',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+              ),
+              const SizedBox(height: 8),
+              Card(
+                clipBehavior: Clip.antiAlias,
+                child: InkWell(
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => ComplaintDetailView(
+                          complaintId: _complaint!.complaintId,
+                        ),
+                      ),
+                    );
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Chip(
+                              label: Text(
+                                _getComplaintStatusDisplayName(_complaint!.status),
+                              ),
+                              backgroundColor: _getComplaintStatusColor(
+                                _complaint!.status,
+                              ).withOpacity(0.2),
+                              labelStyle: TextStyle(
+                                color: _getComplaintStatusColor(_complaint!.status),
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const Spacer(),
+                            const Icon(Icons.chevron_right),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          _complaint!.description,
+                          style: Theme.of(context).textTheme.bodyMedium,
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Created: ${_formatDate(_complaint!.createdAt)}',
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+            ],
 
             // Company information (consumer sees supplier, supplier sees consumer)
             // Assigned personnel (below company card)

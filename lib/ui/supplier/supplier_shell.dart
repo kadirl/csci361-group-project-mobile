@@ -4,6 +4,7 @@ import 'views/dashboard_view.dart';
 import 'views/catalog/catalog_view.dart';
 import 'views/linkings_view.dart';
 import 'views/orders_view.dart';
+import 'views/complaints_view.dart';
 import 'package:swe_mobile/ui/settings/settings_view.dart';
 
 // Entry point for the supplier experience with a bottom tab bar.
@@ -24,6 +25,7 @@ class _SupplierShellState extends State<SupplierShell> {
     SupplierCatalogView(),
     SupplierLinkingsView(),
     SupplierOrdersView(),
+    SupplierComplaintsView(),
     SettingsView(),
   ];
 
@@ -33,6 +35,7 @@ class _SupplierShellState extends State<SupplierShell> {
     'Catalog',
     'Linkings',
     'Orders',
+    'Complaints',
     'Settings',
   ];
 
@@ -46,7 +49,7 @@ class _SupplierShellState extends State<SupplierShell> {
       // Active tab content
       body: _pages[_currentIndex],
 
-      // Bottom navigation bar with 5 tabs
+      // Bottom navigation bar with 6 tabs
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         type: BottomNavigationBarType.fixed,
@@ -66,6 +69,10 @@ class _SupplierShellState extends State<SupplierShell> {
           BottomNavigationBarItem(
             icon: Icon(Icons.shopping_cart_outlined),
             label: 'Orders',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.report_problem_outlined),
+            label: 'Complaints',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.settings_outlined),

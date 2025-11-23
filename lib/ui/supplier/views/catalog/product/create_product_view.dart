@@ -1,11 +1,11 @@
-import 'dart:developer';
+import 'dart:typed_data';
 
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../../core/constants/button_sizes.dart';
+import '../../../../../../core/utils/s3_upload_utils.dart';
 import '../../../../../../data/models/product.dart';
 import '../../../../../../data/repositories/product_repository.dart';
 import '../../../../../../data/repositories/uploads_repository.dart';
@@ -36,9 +36,6 @@ class _CreateProductViewState extends ConsumerState<CreateProductView> {
 
   // Store uploaded product image URLs.
   List<String> _productImageUrls = <String>[];
-
-  // Dio client for direct PUT to S3 using the presigned URL.
-  final Dio _uploadDio = Dio();
 
   bool _isSubmitting = false;
 
@@ -263,80 +260,17 @@ class _CreateProductViewState extends ConsumerState<CreateProductView> {
     Uint8List imageBytes,
     String fileExtension,
   ) async {
-    try {
-      log(
-        'CreateProductView -> Starting image upload (ext: $fileExtension, '
-        'size: ${imageBytes.length} bytes)',
-      );
+    // Get repository from Riverpod.
+    final UploadsRepository uploadsRepository =
+        ref.read(uploadsRepositoryProvider);
 
-      // Get repository from Riverpod.
-      final UploadsRepository uploadsRepository =
-          ref.read(uploadsRepositoryProvider);
-
-      // Ask backend for presigned POST response for this extension.
-      log(
-        'CreateProductView -> Requesting presigned POST for extension: '
-        '$fileExtension',
-      );
-      final presignedResponse =
-          await uploadsRepository.getUploadUrl(ext: fileExtension);
-      log(
-        'CreateProductView -> Received presigned POST: url=${presignedResponse.uploadUrl}, '
-        'finalUrl=${presignedResponse.finalUrl}',
-      );
-
-      // Build form data with all required fields plus the file.
-      final FormData formData = FormData.fromMap(<String, dynamic>{
-        ...presignedResponse.fields,
-        'file': MultipartFile.fromBytes(
-          imageBytes,
-          filename: 'image.$fileExtension',
-        ),
-      });
-
-      // Upload to S3 using POST with form data.
-      log('CreateProductView -> Uploading image to S3 via POST...');
-      final Response<dynamic> uploadResponse = await _uploadDio.post<dynamic>(
-        presignedResponse.uploadUrl,
-        data: formData,
-        options: Options(
-          validateStatus: (int? status) {
-            // S3 returns 204 No Content or 200 OK on successful upload.
-            return status != null && status >= 200 && status < 300;
-          },
-        ),
-      );
-
-      log(
-        'CreateProductView -> S3 upload response: status=${uploadResponse.statusCode}, '
-        'headers=${uploadResponse.headers}',
-      );
-
-      if (uploadResponse.statusCode != null &&
-          uploadResponse.statusCode! >= 200 &&
-          uploadResponse.statusCode! < 300) {
-        log(
-          'CreateProductView -> Successfully uploaded image to S3: '
-          '${presignedResponse.finalUrl}',
-        );
-      } else {
-        throw Exception(
-          'S3 upload failed with status ${uploadResponse.statusCode}',
-        );
-      }
-
-      // Return the final public URL where the file is accessible.
-      return presignedResponse.finalUrl;
-    } catch (error, stackTrace) {
-      log(
-        'CreateProductView -> Failed to upload image to S3: $error',
-        error: error,
-        stackTrace: stackTrace,
-      );
-
-      // Re-throw the error so the widget can handle it.
-      Error.throwWithStackTrace(error, stackTrace);
-    }
+    // Use the shared S3 upload utility.
+    return S3UploadUtils.uploadToS3(
+      uploadsRepository: uploadsRepository,
+      fileBytes: imageBytes,
+      fileExtension: fileExtension,
+      filename: 'image.$fileExtension',
+    );
   }
 
   // Update local state when the image picker reports new URLs.

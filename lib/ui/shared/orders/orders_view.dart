@@ -10,6 +10,7 @@ import '../../../data/models/order.dart';
 import '../../../data/repositories/company_repository.dart';
 import '../../../data/repositories/linking_repository.dart';
 import '../../../data/repositories/order_repository.dart';
+import '../linkings/linking_detail_view.dart';
 import 'order_detail_view.dart';
 
 /// Shared orders view with grouping by linking and status filtering.
@@ -359,46 +360,63 @@ class _OrdersViewState extends ConsumerState<OrdersView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Linking header
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Row(
-              children: [
-                // Company logo
-                if (company?.logoUrl != null && company!.logoUrl!.isNotEmpty)
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: SizedBox(
-                      width: 48,
-                      height: 48,
-                      child: Image.network(
-                        company.logoUrl!,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => _buildPlaceholderLogo(),
+          // Linking header (tappable to open linking details)
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => LinkingDetailView(
+                      linking: group.linking,
+                      companyIdToLoad: widget.companyIdToLoad(group.linking),
+                      showAcceptRejectButtons: false,
+                    ),
+                  ),
+                );
+              },
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  children: [
+                    // Company logo
+                    if (company?.logoUrl != null && company!.logoUrl!.isNotEmpty)
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: SizedBox(
+                          width: 48,
+                          height: 48,
+                          child: Image.network(
+                            company.logoUrl!,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => _buildPlaceholderLogo(),
+                          ),
+                        ),
+                      )
+                    else
+                      _buildPlaceholderLogo(),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Linking #${group.linking.linkingId ?? 'N/A'}',
+                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                          ),
+                          Text(
+                            companyName,
+                            style: Theme.of(context).textTheme.bodyMedium,
+                          ),
+                        ],
                       ),
                     ),
-                  )
-                else
-                  _buildPlaceholderLogo(),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Linking #${group.linking.linkingId ?? 'N/A'}',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w600,
-                            ),
-                      ),
-                      Text(
-                        companyName,
-                        style: Theme.of(context).textTheme.bodyMedium,
-                      ),
-                    ],
-                  ),
+                    const Icon(Icons.chevron_right),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
 

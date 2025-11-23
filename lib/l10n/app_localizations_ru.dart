@@ -9,13 +9,13 @@ class AppLocalizationsRu extends AppLocalizations {
   AppLocalizationsRu([String locale = 'ru']) : super(locale);
 
   @override
-  String get appTitle => 'APP';
+  String get appTitle => 'SWE Mobile';
 
   @override
-  String get welcome => 'Добро пожаловать!';
+  String get welcome => 'Добро пожаловать';
 
   @override
-  String get signInToContinue => 'Войдите чтобы продолжить';
+  String get signInToContinue => 'Войдите, чтобы продолжить';
 
   @override
   String get email => 'Электронная почта';
@@ -24,16 +24,16 @@ class AppLocalizationsRu extends AppLocalizations {
   String get emailPlaceholder => 'Введите вашу электронную почту';
 
   @override
-  String get emailRequired => 'Пожалуйста, введите электронную почту';
+  String get emailRequired => 'Пожалуйста, введите вашу электронную почту';
 
   @override
   String get password => 'Пароль';
 
   @override
-  String get passwordPlaceholder => 'Введите пароль';
+  String get passwordPlaceholder => 'Введите ваш пароль';
 
   @override
-  String get passwordRequired => 'Пожалуйста, введите пароль';
+  String get passwordRequired => 'Пожалуйста, введите ваш пароль';
 
   @override
   String get signIn => 'Войти';
@@ -60,172 +60,200 @@ class AppLocalizationsRu extends AppLocalizations {
   String get profile => 'Профиль';
 
   @override
+  String get navigationOrders => 'Заказы';
+
+  @override
+  String get navigationCompanies => 'Компании';
+
+  @override
+  String get navigationLinkings => 'Связи';
+
+  @override
+  String get navigationCart => 'Корзина';
+
+  @override
+  String get navigationSettings => 'Настройки';
+
+  @override
+  String get navigationHome => 'Главная';
+
+  @override
+  String get navigationCatalog => 'Каталог';
+
+  @override
+  String get navigationDashboard => 'Панель управления';
+
+  @override
+  String get navigationComplaints => 'Жалобы';
+
+  @override
   String get emailAndPasswordRequired => 'Требуется электронная почта и пароль';
 
   @override
-  String get signupTitle => 'Create a Company';
+  String get signupTitle => 'Создать компанию';
 
   @override
-  String get signupStep1Title => 'Company Type';
+  String get signupStep1Title => 'Тип компании';
 
   @override
-  String get signupStep1Consumer => 'Consumer';
+  String get signupStep1Consumer => 'Потребитель';
 
   @override
-  String get signupStep1Supplier => 'Supplier';
+  String get signupStep1Supplier => 'Поставщик';
 
   @override
-  String get signupStep2Title => 'Owner Details';
+  String get signupStep2Title => 'Данные владельца';
 
   @override
-  String get signupStep2FirstName => 'First name';
+  String get signupStep2FirstName => 'Имя';
 
   @override
-  String get signupStep2FirstNamePlaceholder => 'Please enter your first name';
+  String get signupStep2FirstNamePlaceholder => 'Пожалуйста, введите ваше имя';
 
   @override
-  String get signupStep2LastName => 'Last name';
+  String get signupStep2LastName => 'Фамилия';
 
   @override
-  String get signupStep2LastNamePlaceholder => 'Please enter your last name';
+  String get signupStep2LastNamePlaceholder =>
+      'Пожалуйста, введите вашу фамилию';
 
   @override
-  String get signupStep2PhoneNumber => 'Phone number';
+  String get signupStep2PhoneNumber => 'Номер телефона';
 
   @override
   String get signupStep2PhoneNumberPlaceholder => '+7-000-000-00-00';
 
   @override
-  String get signupStep2Email => 'Email';
+  String get signupStep2Email => 'Электронная почта';
 
   @override
   String get signupStep2EmailPlaceholder => 'example@mail.com';
 
   @override
-  String get signupStep2Password => 'Password';
+  String get signupStep2Password => 'Пароль';
 
   @override
-  String get signupStep2passwordPlaceholder => 'Enter your password';
+  String get signupStep2passwordPlaceholder => 'Введите ваш пароль';
 
   @override
-  String get signupStep2passwordRequired => 'Please enter your password';
+  String get signupStep2passwordRequired => 'Пожалуйста, введите ваш пароль';
 
   @override
-  String get signupStep3Title => 'Company Details';
+  String get signupStep3Title => 'Данные компании';
 
   @override
-  String get signupStep3Name => 'Company name';
+  String get signupStep3Name => 'Название компании';
 
   @override
-  String get signupStep3NamePlaceholder => 'Enter company name';
+  String get signupStep3NamePlaceholder => 'Введите название компании';
 
   @override
-  String get signupStep3Description => 'Description';
+  String get signupStep3Description => 'Описание';
 
   @override
-  String get signupStep3DescriptionPlaceholder => 'Enter company description';
+  String get signupStep3DescriptionPlaceholder => 'Введите описание компании';
 
   @override
-  String get signupStep3Logo => 'Company logo';
+  String get signupStep3Logo => 'Логотип компании';
 
   @override
-  String get signupStep3LogoPlaceholder => 'Select logo file';
+  String get signupStep3LogoPlaceholder => 'Выберите файл логотипа';
 
   @override
-  String get signupStep3Location => 'Location';
+  String get signupStep3Location => 'Местоположение';
 
   @override
-  String get signupStep3LocationPlaceholder => 'Select city';
+  String get signupStep3LocationPlaceholder => 'Выберите город';
 
   @override
-  String get commonBack => 'Back';
+  String get commonBack => 'Назад';
 
   @override
-  String get commonNext => 'Next';
+  String get commonNext => 'Далее';
 
   @override
-  String get commonSubmit => 'Submit';
+  String get commonSubmit => 'Отправить';
 
   @override
-  String get commonCancel => 'Cancel';
+  String get commonCancel => 'Отмена';
 
   @override
-  String get commonConfirm => 'Confirm';
+  String get commonConfirm => 'Подтвердить';
 
   @override
-  String get commonRetry => 'Retry';
+  String get commonRetry => 'Повторить';
 
   @override
-  String get commonBackToLogin => 'Back to sign in';
+  String get commonBackToLogin => 'Вернуться к входу';
 
   @override
-  String get errorLoadingCitiesTitle => 'Unable to load cities';
+  String get errorLoadingCitiesTitle => 'Не удалось загрузить города';
 
   @override
-  String get settingsUserProfile => 'User profile';
+  String get settingsUserProfile => 'Профиль пользователя';
 
   @override
-  String get settingsCompanyProfile => 'Company profile';
+  String get settingsCompanyProfile => 'Профиль компании';
 
   @override
-  String get settingsLanguage => 'Language';
+  String get settingsLanguage => 'Язык';
 
   @override
-  String get userProfileTitle => 'User profile';
+  String get userProfileTitle => 'Профиль пользователя';
 
   @override
-  String get firstName => 'First name';
+  String get firstName => 'Имя';
 
   @override
-  String get lastName => 'Last name';
+  String get lastName => 'Фамилия';
 
   @override
-  String get phoneNumber => 'Phone number';
+  String get phoneNumber => 'Номер телефона';
 
   @override
-  String get userRole => 'Role';
+  String get userRole => 'Роль';
 
   @override
-  String get userLocale => 'Locale';
+  String get userLocale => 'Локаль';
 
   @override
-  String get companyLabel => 'Company';
+  String get companyLabel => 'Компания';
 
   @override
-  String get refreshProfile => 'Refresh profile';
+  String get refreshProfile => 'Обновить профиль';
 
   @override
-  String get errorLoadingProfile => 'Failed to load profile';
+  String get errorLoadingProfile => 'Не удалось загрузить профиль';
 
   @override
-  String get noUserProfile => 'No user profile available';
+  String get noUserProfile => 'Профиль пользователя недоступен';
 
   @override
-  String get companyProfileTitle => 'Company profile';
+  String get companyProfileTitle => 'Профиль компании';
 
   @override
-  String get companyName => 'Name';
+  String get companyName => 'Название';
 
   @override
-  String get companyLocation => 'Location';
+  String get companyLocation => 'Местоположение';
 
   @override
-  String get companyType => 'Тип компании';
+  String get companyType => 'Тип';
 
   @override
-  String get companyDescription => 'Description';
+  String get companyDescription => 'Описание';
 
   @override
-  String get companyId => 'Company ID';
+  String get companyId => 'ID компании';
 
   @override
-  String get refreshCompany => 'Refresh company';
+  String get refreshCompany => 'Обновить компанию';
 
   @override
-  String get errorLoadingCompany => 'Failed to load company';
+  String get errorLoadingCompany => 'Не удалось загрузить компанию';
 
   @override
-  String get noCompanyProfile => 'No company profile available';
+  String get noCompanyProfile => 'Профиль компании недоступен';
 
   @override
   String get companyTypeSupplier => 'Поставщик';
@@ -234,261 +262,263 @@ class AppLocalizationsRu extends AppLocalizations {
   String get companyTypeConsumer => 'Потребитель';
 
   @override
-  String get settingsStaffManagement => 'Staff Management';
+  String get settingsStaffManagement => 'Управление персоналом';
 
   @override
-  String get staffManagementTitle => 'Staff Management';
+  String get staffManagementTitle => 'Управление персоналом';
 
   @override
-  String get catalogCreateProductTitle => 'Create product';
+  String get catalogCreateProductTitle => 'Создать продукт';
 
   @override
-  String get catalogProductNameLabel => 'Name';
+  String get catalogProductNameLabel => 'Название';
 
   @override
-  String get catalogProductDescriptionLabel => 'Description';
+  String get catalogProductDescriptionLabel => 'Описание';
 
   @override
-  String get catalogProductStockQuantityLabel => 'Stock quantity';
+  String get catalogProductStockQuantityLabel => 'Количество на складе';
 
   @override
-  String get catalogProductRetailPriceLabel => 'Retail price';
+  String get catalogProductRetailPriceLabel => 'Розничная цена';
 
   @override
-  String get catalogProductThresholdLabel => 'Threshold';
+  String get catalogProductThresholdLabel => 'Порог';
 
   @override
-  String get catalogProductBulkPriceLabel => 'Bulk price';
+  String get catalogProductBulkPriceLabel => 'Оптовая цена';
 
   @override
-  String get catalogProductMinimumOrderLabel => 'Minimum order';
+  String get catalogProductMinimumOrderLabel => 'Минимальный заказ';
 
   @override
-  String get catalogProductUnitLabel => 'Unit';
+  String get catalogProductUnitLabel => 'Единица измерения';
 
   @override
-  String get catalogProductImagesLabel => 'Product images';
+  String get catalogProductImagesLabel => 'Изображения продукта';
 
   @override
   String get catalogProductImagesPlaceholder =>
-      'Select product images (up to 5)';
+      'Выберите изображения продукта (до 5)';
 
   @override
-  String get catalogProductImagesMaxExceededTitle => 'Maximum images reached';
+  String get catalogProductImagesMaxExceededTitle =>
+      'Достигнуто максимальное количество изображений';
 
   @override
   String get catalogProductImagesMaxExceededMessage =>
-      'You can only add up to 5 images. Some images were not added.';
+      'Вы можете добавить только до 5 изображений. Некоторые изображения не были добавлены.';
 
   @override
-  String get catalogCreateProductSuccess => 'Product created successfully';
+  String get catalogCreateProductSuccess => 'Продукт успешно создан';
 
   @override
   String catalogCreateProductErrorGeneric(Object error) {
-    return 'Failed to create product: $error';
+    return 'Не удалось создать продукт: $error';
   }
 
   @override
-  String get catalogEditProductTitle => 'Edit product';
+  String get catalogEditProductTitle => 'Редактировать продукт';
 
   @override
-  String get catalogUpdateProductSuccess => 'Product updated successfully';
+  String get catalogUpdateProductSuccess => 'Продукт успешно обновлен';
 
   @override
   String catalogUpdateProductErrorGeneric(Object error) {
-    return 'Failed to update product: $error';
+    return 'Не удалось обновить продукт: $error';
   }
 
   @override
-  String get catalogDeleteProductTitle => 'Delete product';
+  String get catalogDeleteProductTitle => 'Удалить продукт';
 
   @override
   String get catalogDeleteProductMessage =>
-      'Are you sure you want to delete this product? This action cannot be undone.';
+      'Вы уверены, что хотите удалить этот продукт? Это действие нельзя отменить.';
 
   @override
-  String get catalogDeleteProductSuccess => 'Product deleted successfully';
+  String get catalogDeleteProductSuccess => 'Продукт успешно удален';
 
   @override
   String catalogDeleteProductErrorGeneric(Object error) {
-    return 'Failed to delete product: $error';
+    return 'Не удалось удалить продукт: $error';
   }
 
   @override
-  String get staffCreateUserSuccess => 'User created successfully';
+  String get staffCreateUserSuccess => 'Пользователь успешно создан';
 
   @override
-  String get staffDeleteUserTitle => 'Delete user';
+  String get staffDeleteUserTitle => 'Удалить пользователя';
 
   @override
   String get staffDeleteUserMessage =>
-      'Are you sure you want to delete this user? This action cannot be undone.';
+      'Вы уверены, что хотите удалить этого пользователя? Это действие нельзя отменить.';
 
   @override
-  String get staffDeleteUserSuccess => 'User deleted successfully';
+  String get staffDeleteUserSuccess => 'Пользователь успешно удален';
 
   @override
   String staffDeleteUserErrorGeneric(Object error) {
-    return 'Failed to delete user: $error';
+    return 'Не удалось удалить пользователя: $error';
   }
 
   @override
-  String get chatTitle => 'Chat';
+  String get chatTitle => 'Чат';
 
   @override
-  String get chatTypeMessage => 'Type a message...';
+  String get chatTypeMessage => 'Введите сообщение...';
 
   @override
-  String get chatCannotSendMessages => 'Cannot send messages';
+  String get chatCannotSendMessages => 'Нельзя отправлять сообщения';
 
   @override
-  String get chatLoadingPermissions => 'Loading permissions...';
+  String get chatLoadingPermissions => 'Загрузка разрешений...';
 
   @override
-  String get chatErrorLoadingPermissions => 'Error loading permissions';
+  String get chatErrorLoadingPermissions => 'Ошибка загрузки разрешений';
 
   @override
   String get chatOnlyConsumerContact =>
-      'Only consumer contact can send messages';
+      'Только контакт потребителя может отправлять сообщения';
 
   @override
   String get chatOnlyAssignedSalesman =>
-      'Only assigned salesman can send messages';
+      'Только назначенный продавец может отправлять сообщения';
 
   @override
-  String get chatAttachmentImage => 'Image';
+  String get chatAttachmentImage => 'Изображение';
 
   @override
-  String get chatAttachmentFile => 'File';
+  String get chatAttachmentFile => 'Файл';
 
   @override
-  String get chatAttachmentAudio => 'Audio';
+  String get chatAttachmentAudio => 'Аудио';
 
   @override
-  String get chatSelectImageSource => 'Select Image Source';
+  String get chatSelectImageSource => 'Выберите источник изображения';
 
   @override
-  String get chatImageSourceGallery => 'Gallery';
+  String get chatImageSourceGallery => 'Галерея';
 
   @override
-  String get chatImageSourceCamera => 'Camera';
+  String get chatImageSourceCamera => 'Камера';
 
   @override
   String chatErrorUploadFile(Object error) {
-    return 'Failed to upload file: $error';
+    return 'Не удалось загрузить файл: $error';
   }
 
   @override
   String chatErrorUploadAudio(Object error) {
-    return 'Failed to upload audio: $error';
+    return 'Не удалось загрузить аудио: $error';
   }
 
   @override
   String chatErrorUploadImage(Object error) {
-    return 'Failed to upload image: $error';
+    return 'Не удалось загрузить изображение: $error';
   }
 
   @override
-  String get chatMicrophonePermissionDenied => 'Microphone permission denied';
+  String get chatMicrophonePermissionDenied =>
+      'Разрешение на использование микрофона отклонено';
 
   @override
   String chatErrorStartRecording(Object error) {
-    return 'Failed to start recording: $error';
+    return 'Не удалось начать запись: $error';
   }
 
   @override
-  String get chatRecordingFileNotFound => 'Recording file not found';
+  String get chatRecordingFileNotFound => 'Файл записи не найден';
 
   @override
   String chatErrorProcessRecording(Object error) {
-    return 'Failed to process recording: $error';
+    return 'Не удалось обработать запись: $error';
   }
 
   @override
   String chatErrorSendImage(Object error) {
-    return 'Failed to send image: $error';
+    return 'Не удалось отправить изображение: $error';
   }
 
   @override
   String chatErrorSendFile(Object error) {
-    return 'Failed to send file: $error';
+    return 'Не удалось отправить файл: $error';
   }
 
   @override
   String chatErrorSendAudio(Object error) {
-    return 'Failed to send audio: $error';
+    return 'Не удалось отправить аудио: $error';
   }
 
   @override
   String chatErrorSendMessage(Object error) {
-    return 'Failed to send message: $error';
+    return 'Не удалось отправить сообщение: $error';
   }
 
   @override
-  String get chatCannotOpenFileUrl => 'Cannot open file URL';
+  String get chatCannotOpenFileUrl => 'Нельзя открыть URL файла';
 
   @override
   String chatErrorDownloadFile(Object error) {
-    return 'Failed to download file: $error';
+    return 'Не удалось загрузить файл: $error';
   }
 
   @override
   String chatErrorPlayAudio(Object error) {
-    return 'Failed to play audio: $error';
+    return 'Не удалось воспроизвести аудио: $error';
   }
 
   @override
-  String get chatNoMessages => 'No messages yet';
+  String get chatNoMessages => 'Пока нет сообщений';
 
   @override
   String chatError(Object error) {
-    return 'Error: $error';
+    return 'Ошибка: $error';
   }
 
   @override
-  String get chatAttachFile => 'Attach file';
+  String get chatAttachFile => 'Прикрепить файл';
 
   @override
-  String get chatDownloadFile => 'Download file';
+  String get chatDownloadFile => 'Загрузить файл';
 
   @override
-  String get chatPause => 'Pause';
+  String get chatPause => 'Пауза';
 
   @override
-  String get chatPlay => 'Play';
+  String get chatPlay => 'Воспроизвести';
 
   @override
-  String get chatStopRecording => 'Stop recording';
+  String get chatStopRecording => 'Остановить запись';
 
   @override
-  String get chatRecordAudio => 'Record audio';
+  String get chatRecordAudio => 'Записать аудио';
 
   @override
-  String get chatFailedToLoadImage => 'Failed to load image';
+  String get chatFailedToLoadImage => 'Не удалось загрузить изображение';
 
   @override
   String chatUserUnknown(Object userId) {
-    return 'User $userId';
+    return 'Пользователь $userId';
   }
 
   @override
   String chatOrderCreated(Object orderId, Object status) {
-    return 'Order #$orderId created with status $status';
+    return 'Заказ #$orderId создан со статусом $status';
   }
 
   @override
   String chatOrderCreatedNoId(Object status) {
-    return 'Order created with status $status';
+    return 'Заказ создан со статусом $status';
   }
 
   @override
   String chatComplaintCreated(Object complaintId, Object status) {
-    return 'Complaint #$complaintId created with status $status';
+    return 'Жалоба #$complaintId создана со статусом $status';
   }
 
   @override
   String chatComplaintCreatedNoId(Object status) {
-    return 'Complaint created with status $status';
+    return 'Жалоба создана со статусом $status';
   }
 
   @override
@@ -497,12 +527,12 @@ class AppLocalizationsRu extends AppLocalizations {
     Object oldStatus,
     Object orderId,
   ) {
-    return 'Order #$orderId status changed from $oldStatus to $newStatus';
+    return 'Статус заказа #$orderId изменен с $oldStatus на $newStatus';
   }
 
   @override
   String chatOrderStatusChangedNoId(Object newStatus, Object oldStatus) {
-    return 'Order status changed from $oldStatus to $newStatus';
+    return 'Статус заказа изменен с $oldStatus на $newStatus';
   }
 
   @override
@@ -511,281 +541,283 @@ class AppLocalizationsRu extends AppLocalizations {
     Object newStatus,
     Object oldStatus,
   ) {
-    return 'Complaint #$complaintId status changed from $oldStatus to $newStatus';
+    return 'Статус жалобы #$complaintId изменен с $oldStatus на $newStatus';
   }
 
   @override
   String chatComplaintStatusChangedNoId(Object newStatus, Object oldStatus) {
-    return 'Complaint status changed from $oldStatus to $newStatus';
+    return 'Статус жалобы изменен с $oldStatus на $newStatus';
   }
 
   @override
   String chatOrderStatusRemoved(Object oldStatus, Object orderId) {
-    return 'Order #$orderId status removed (was $oldStatus)';
+    return 'Статус заказа #$orderId удален (был $oldStatus)';
   }
 
   @override
   String chatOrderStatusRemovedNoId(Object oldStatus) {
-    return 'Order status removed (was $oldStatus)';
+    return 'Статус заказа удален (был $oldStatus)';
   }
 
   @override
   String chatComplaintStatusRemoved(Object complaintId, Object oldStatus) {
-    return 'Complaint #$complaintId status removed (was $oldStatus)';
+    return 'Статус жалобы #$complaintId удален (был $oldStatus)';
   }
 
   @override
   String chatComplaintStatusRemovedNoId(Object oldStatus) {
-    return 'Complaint status removed (was $oldStatus)';
+    return 'Статус жалобы удален (был $oldStatus)';
   }
 
   @override
   String chatBySender(Object senderName) {
-    return 'By $senderName';
+    return 'От $senderName';
   }
 
   @override
-  String get complaintDetailsTitle => 'Complaint Details';
+  String get complaintDetailsTitle => 'Детали жалобы';
 
   @override
-  String get complaintNotFound => 'Complaint not found';
+  String get complaintNotFound => 'Жалоба не найдена';
 
   @override
-  String get complaintInformation => 'Complaint Information';
+  String get complaintInformation => 'Информация о жалобе';
 
   @override
-  String get complaintDescription => 'Description';
+  String get complaintDescription => 'Описание';
 
   @override
-  String get complaintCreated => 'Created';
+  String get complaintCreated => 'Создана';
 
   @override
-  String get complaintUpdated => 'Updated';
+  String get complaintUpdated => 'Обновлена';
 
   @override
-  String get complaintResolutionNotes => 'Resolution Notes';
+  String get complaintResolutionNotes => 'Заметки о решении';
 
   @override
-  String get complaintOrderCancelled => 'Order Cancelled';
+  String get complaintOrderCancelled => 'Заказ отменен';
 
   @override
-  String get complaintAssignedPersonnel => 'Assigned Personnel';
+  String get complaintAssignedPersonnel => 'Назначенный персонал';
 
   @override
-  String get complaintAssignedSalesman => 'Assigned Salesman';
+  String get complaintAssignedSalesman => 'Назначенный продавец';
 
   @override
-  String get complaintAssignedManager => 'Assigned Manager';
+  String get complaintAssignedManager => 'Назначенный менеджер';
 
   @override
-  String get complaintNoManagerAssigned => 'No manager assigned';
+  String get complaintNoManagerAssigned => 'Менеджер не назначен';
 
   @override
-  String get complaintNoPersonnelAssigned => 'No personnel assigned';
+  String get complaintNoPersonnelAssigned => 'Персонал не назначен';
 
   @override
-  String get complaintHistory => 'History';
+  String get complaintHistory => 'История';
 
   @override
-  String get complaintNoHistory => 'No history available';
+  String get complaintNoHistory => 'История недоступна';
 
   @override
-  String get complaintOpenChat => 'Open Chat';
+  String get complaintOpenChat => 'Открыть чат';
 
   @override
-  String get complaintActions => 'Actions';
+  String get complaintActions => 'Действия';
 
   @override
-  String get complaintEscalateToManager => 'Escalate to Manager';
+  String get complaintEscalateToManager => 'Эскалировать менеджеру';
 
   @override
-  String get complaintResolve => 'Resolve';
+  String get complaintResolve => 'Решить';
 
   @override
-  String get complaintClose => 'Close';
+  String get complaintClose => 'Закрыть';
 
   @override
-  String get complaintClaimComplaint => 'Claim Complaint';
+  String get complaintClaimComplaint => 'Взять жалобу';
 
   @override
-  String get complaintEscalateTitle => 'Escalate Complaint';
+  String get complaintEscalateTitle => 'Эскалировать жалобу';
 
   @override
   String get complaintEscalateNotes =>
-      'Optional: Add notes explaining why you are escalating:';
+      'Необязательно: Добавьте заметки, объясняющие, почему вы эскалируете:';
 
   @override
-  String get complaintEscalateNotesLabel => 'Notes';
+  String get complaintEscalateNotesLabel => 'Заметки';
 
   @override
-  String get complaintEscalate => 'Escalate';
+  String get complaintEscalate => 'Эскалировать';
 
   @override
-  String get complaintEscalatedSuccess => 'Complaint escalated successfully';
+  String get complaintEscalatedSuccess => 'Жалоба успешно эскалирована';
 
   @override
   String complaintEscalateError(Object error) {
-    return 'Error escalating complaint: $error';
+    return 'Ошибка эскалации жалобы: $error';
   }
 
   @override
-  String get complaintClaimTitle => 'Claim Complaint';
+  String get complaintClaimTitle => 'Взять жалобу';
 
   @override
   String get complaintClaimMessage =>
-      'Are you sure you want to claim this complaint? You will be responsible for managing it.';
+      'Вы уверены, что хотите взять эту жалобу? Вы будете нести ответственность за ее управление.';
 
   @override
-  String get complaintClaim => 'Claim';
+  String get complaintClaim => 'Взять';
 
   @override
-  String get complaintClaimedSuccess => 'Complaint claimed successfully';
+  String get complaintClaimedSuccess => 'Жалоба успешно взята';
 
   @override
   String complaintClaimError(Object error) {
-    return 'Error claiming complaint: $error';
+    return 'Ошибка при взятии жалобы: $error';
   }
 
   @override
-  String get complaintResolveTitle => 'Resolve Complaint';
+  String get complaintResolveTitle => 'Решить жалобу';
 
   @override
-  String get complaintResolveNotes => 'Please provide resolution notes:';
+  String get complaintResolveNotes =>
+      'Пожалуйста, предоставьте заметки о решении:';
 
   @override
-  String get complaintResolveNotesLabel => 'Resolution Notes';
+  String get complaintResolveNotesLabel => 'Заметки о решении';
 
   @override
-  String get complaintCancelOrder => 'Cancel Order';
+  String get complaintCancelOrder => 'Отменить заказ';
 
   @override
-  String get complaintResolveNotesRequired => 'Please enter resolution notes';
+  String get complaintResolveNotesRequired =>
+      'Пожалуйста, введите заметки о решении';
 
   @override
-  String get complaintResolvedSuccess => 'Complaint resolved successfully';
+  String get complaintResolvedSuccess => 'Жалоба успешно решена';
 
   @override
   String complaintResolveError(Object error) {
-    return 'Error resolving complaint: $error';
+    return 'Ошибка при решении жалобы: $error';
   }
 
   @override
-  String get complaintCloseTitle => 'Close Complaint';
+  String get complaintCloseTitle => 'Закрыть жалобу';
 
   @override
   String get complaintCloseNotes =>
-      'Please provide notes explaining why the complaint is being closed:';
+      'Пожалуйста, предоставьте заметки, объясняющие, почему жалоба закрывается:';
 
   @override
-  String get complaintClosedSuccess => 'Complaint closed successfully';
+  String get complaintClosedSuccess => 'Жалоба успешно закрыта';
 
   @override
   String complaintCloseError(Object error) {
-    return 'Error closing complaint: $error';
+    return 'Ошибка при закрытии жалобы: $error';
   }
 
   @override
   String complaintByUser(Object userName) {
-    return 'By: $userName';
+    return 'От: $userName';
   }
 
   @override
-  String get complaintStatusOpen => 'OPEN';
+  String get complaintStatusOpen => 'ОТКРЫТА';
 
   @override
-  String get complaintStatusEscalated => 'ESCALATED';
+  String get complaintStatusEscalated => 'ЭСКАЛИРОВАНА';
 
   @override
-  String get complaintStatusInProgress => 'IN PROGRESS';
+  String get complaintStatusInProgress => 'В РАБОТЕ';
 
   @override
-  String get complaintStatusResolved => 'RESOLVED';
+  String get complaintStatusResolved => 'РЕШЕНА';
 
   @override
-  String get complaintStatusClosed => 'CLOSED';
+  String get complaintStatusClosed => 'ЗАКРЫТА';
 
   @override
-  String get orderDetailsTitle => 'Order Details';
+  String get orderDetailsTitle => 'Детали заказа';
 
   @override
-  String get orderNotFound => 'Order not found';
+  String get orderNotFound => 'Заказ не найден';
 
   @override
-  String get orderLinking => 'Linking';
+  String get orderLinking => 'Связь';
 
   @override
-  String get orderCreateComplaint => 'Create Complaint';
+  String get orderCreateComplaint => 'Создать жалобу';
 
   @override
   String get orderCreateComplaintReason =>
-      'Please provide a reason for your complaint:';
+      'Пожалуйста, укажите причину вашей жалобы:';
 
   @override
-  String get orderComplaintReasonLabel => 'Reason of Complaint';
+  String get orderComplaintReasonLabel => 'Причина жалобы';
 
   @override
   String get orderComplaintReasonRequired =>
-      'Please enter a reason for the complaint';
+      'Пожалуйста, введите причину жалобы';
 
   @override
-  String get orderComplaintCreatedSuccess => 'Complaint created successfully';
+  String get orderComplaintCreatedSuccess => 'Жалоба успешно создана';
 
   @override
   String orderComplaintCreateError(Object error) {
-    return 'Error creating complaint: $error';
+    return 'Ошибка создания жалобы: $error';
   }
 
   @override
-  String get orderChangeStatusTitle => 'Change Order Status';
+  String get orderChangeStatusTitle => 'Изменить статус заказа';
 
   @override
   String orderChangeStatusMessage(Object newStatus, Object oldStatus) {
-    return 'Change order status from \"$oldStatus\" to \"$newStatus\"?';
+    return 'Изменить статус заказа с \"$oldStatus\" на \"$newStatus\"?';
   }
 
   @override
-  String get orderChange => 'Change';
+  String get orderChange => 'Изменить';
 
   @override
   String orderStatusChanged(Object status) {
-    return 'Order status changed to $status';
+    return 'Статус заказа изменен на $status';
   }
 
   @override
   String orderStatusChangeError(Object error) {
-    return 'Error changing order status: $error';
+    return 'Ошибка изменения статуса заказа: $error';
   }
 
   @override
   String orderCreated(Object date) {
-    return 'Created: $date';
+    return 'Создан: $date';
   }
 
   @override
   String orderUpdated(Object date) {
-    return 'Updated: $date';
+    return 'Обновлен: $date';
   }
 
   @override
-  String get orderComplaint => 'Complaint';
+  String get orderComplaint => 'Жалоба';
 
   @override
-  String get orderProducts => 'Products';
+  String get orderProducts => 'Продукты';
 
   @override
-  String get orderNoProducts => 'No products in this order';
+  String get orderNoProducts => 'Нет продуктов в этом заказе';
 
   @override
-  String get orderTotal => 'Total';
+  String get orderTotal => 'Итого';
 
   @override
   String orderQuantity(Object quantity) {
-    return 'Quantity: $quantity';
+    return 'Количество: $quantity';
   }
 
   @override
   String orderPricePerUnit(Object price) {
-    return 'Price per unit: $price ₸';
+    return 'Цена за единицу: $price ₸';
   }
 
   @override
@@ -795,273 +827,272 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String orderProductId(Object productId) {
-    return 'Product #$productId';
+    return 'Продукт #$productId';
   }
 
   @override
-  String get orderSupplier => 'Supplier';
+  String get orderSupplier => 'Поставщик';
 
   @override
-  String get orderConsumer => 'Consumer';
+  String get orderConsumer => 'Потребитель';
 
   @override
-  String get orderAssignedSalesperson => 'Assigned Salesperson';
+  String get orderAssignedSalesperson => 'Назначенный продавец';
 
   @override
-  String get orderConsumerStaff => 'Consumer Staff';
+  String get orderConsumerStaff => 'Персонал потребителя';
 
   @override
-  String get companiesCompany => 'Company';
+  String get companiesCompany => 'Компания';
 
   @override
-  String get commonCreate => 'Create';
+  String get commonCreate => 'Создать';
 
   @override
-  String get linkingsPending => 'Pending';
+  String get linkingsPending => 'В ожидании';
 
   @override
-  String get linkingsAccepted => 'Accepted';
+  String get linkingsAccepted => 'Принята';
 
   @override
-  String get linkingsRejected => 'Rejected';
+  String get linkingsRejected => 'Отклонена';
 
   @override
-  String get linkingsUnlinked => 'Unlinked';
+  String get linkingsUnlinked => 'Отвязана';
 
   @override
-  String get linkingsNoLinkings => 'No linkings found';
+  String get linkingsNoLinkings => 'Связи не найдены';
 
   @override
   String linkingsNoCompaniesMatch(Object query) {
-    return 'No companies found matching \"$query\"';
+    return 'Компании, соответствующие \"$query\", не найдены';
   }
 
   @override
-  String get linkingsSearchCompanies => 'Search companies...';
+  String get linkingsSearchCompanies => 'Поиск компаний...';
 
   @override
   String linkingsMessage(Object message) {
-    return 'Message: $message';
+    return 'Сообщение: $message';
   }
 
   @override
   String linkingsCreated(Object date) {
-    return 'Created: $date';
+    return 'Создана: $date';
   }
 
   @override
-  String get linkingsAcceptedSuccess => 'Linking accepted';
+  String get linkingsAcceptedSuccess => 'Связь принята';
 
   @override
   String linkingsAcceptError(Object error) {
-    return 'Error accepting linking: $error';
+    return 'Ошибка принятия связи: $error';
   }
 
   @override
-  String get linkingsRejectedSuccess => 'Linking rejected';
+  String get linkingsRejectedSuccess => 'Связь отклонена';
 
   @override
   String linkingsRejectError(Object error) {
-    return 'Error rejecting linking: $error';
+    return 'Ошибка отклонения связи: $error';
   }
 
   @override
-  String get linkingsDetailsTitle => 'Linking Details';
+  String get linkingsDetailsTitle => 'Детали связи';
 
   @override
-  String get linkingsFailedToLoadCompany => 'Failed to load company';
+  String get linkingsFailedToLoadCompany => 'Не удалось загрузить компанию';
 
   @override
   String get linkingsFailedToLoadContactPerson =>
-      'Failed to load contact person';
+      'Не удалось загрузить контактное лицо';
 
   @override
-  String get linkingsFailedToLoadSalesperson => 'Failed to load salesperson';
+  String get linkingsFailedToLoadSalesperson => 'Не удалось загрузить продавца';
 
   @override
-  String get linkingsCompany => 'Company';
+  String get linkingsCompany => 'Компания';
 
   @override
-  String get linkingsConsumerContact => 'Consumer Contact';
+  String get linkingsConsumerContact => 'Контакт потребителя';
 
   @override
   String get linkingsSupplierContact =>
-      'Supplier Contact (Assigned Salesperson)';
+      'Контакт поставщика (Назначенный продавец)';
 
   @override
-  String get linkingsOpenChat => 'Open Chat';
+  String get linkingsOpenChat => 'Открыть чат';
 
   @override
-  String get linkingsUnlinkTitle => 'Unlink Companies';
+  String get linkingsUnlinkTitle => 'Отвязать компании';
 
   @override
   String get linkingsUnlinkMessage =>
-      'Are you sure you want to unlink these companies? This action cannot be undone.';
+      'Вы уверены, что хотите отвязать эти компании? Это действие нельзя отменить.';
 
   @override
-  String get linkingsUnlink => 'Unlink';
+  String get linkingsUnlink => 'Отвязать';
 
   @override
-  String get linkingsUnlinkedSuccess => 'Companies unlinked';
+  String get linkingsUnlinkedSuccess => 'Компании отвязаны';
 
   @override
   String linkingsUnlinkError(Object error) {
-    return 'Error unlinking: $error';
+    return 'Ошибка отвязки: $error';
   }
 
   @override
-  String get linkingsReject => 'Reject';
+  String get linkingsReject => 'Отклонить';
 
   @override
-  String get linkingsAccept => 'Accept';
+  String get linkingsAccept => 'Принять';
 
   @override
-  String get supplierComplaintsNoAssigned => 'No assigned complaints';
+  String get supplierComplaintsNoAssigned => 'Нет назначенных жалоб';
 
   @override
-  String get supplierComplaintsNoEscalated => 'No escalated complaints';
+  String get supplierComplaintsNoEscalated => 'Нет эскалированных жалоб';
 
   @override
-  String get supplierComplaintsNoManaged => 'No managed complaints';
+  String get supplierComplaintsNoManaged => 'Нет управляемых жалоб';
 
   @override
-  String get supplierComplaintsNoComplaints => 'No complaints';
+  String get supplierComplaintsNoComplaints => 'Нет жалоб';
 
   @override
   String get supplierComplaintsNoLinkingsComplaints =>
-      'No complaints for your linkings';
+      'Нет жалоб для ваших связей';
 
   @override
-  String get supplierComplaintsEscalated => 'Escalated';
+  String get supplierComplaintsEscalated => 'Эскалированные';
 
   @override
-  String get supplierComplaintsMyManaged => 'My Managed';
+  String get supplierComplaintsMyManaged => 'Мои управляемые';
 
   @override
-  String get supplierComplaintsAllComplaints => 'All Complaints';
+  String get supplierComplaintsAllComplaints => 'Все жалобы';
 
   @override
-  String get supplierComplaintsMyLinkings => 'My Linkings';
+  String get supplierComplaintsMyLinkings => 'Мои связи';
 
   @override
-  String get supplierComplaintsClaim => 'Claim';
+  String get supplierComplaintsClaim => 'Взять';
 
   @override
-  String get supplierComplaintsUserNotFound => 'User not found';
+  String get supplierComplaintsUserNotFound => 'Пользователь не найден';
 
   @override
-  String get supplierComplaintsUnknownRole => 'Unknown user role';
+  String get supplierComplaintsUnknownRole => 'Неизвестная роль пользователя';
 
   @override
-  String get dashboardTitle => 'Dashboard';
+  String get dashboardTitle => 'Панель управления';
 
   @override
-  String get dashboardRevenueTrend => 'Revenue Trend';
+  String get dashboardRevenueTrend => 'Тренд выручки';
 
   @override
-  String get dashboardOrderStatus => 'Order Status';
+  String get dashboardOrderStatus => 'Статус заказа';
 
   @override
-  String get dashboardRecentOrders => 'Recent Orders';
+  String get dashboardRecentOrders => 'Недавние заказы';
 
   @override
-  String get dashboardLowStockAlert => 'Low Stock Alert';
+  String get dashboardLowStockAlert => 'Предупреждение о низком запасе';
 
   @override
-  String get dashboardTotalRevenue => 'Total Revenue';
+  String get dashboardTotalRevenue => 'Общая выручка';
 
   @override
-  String get dashboardOrdersToday => 'Orders Today';
+  String get dashboardOrdersToday => 'Заказы сегодня';
 
   @override
-  String get dashboardCreatedOrders => 'Created Orders';
+  String get dashboardCreatedOrders => 'Созданные заказы';
 
   @override
-  String get dashboardLowStock => 'Low Stock';
+  String get dashboardLowStock => 'Низкий запас';
 
   @override
-  String get dashboardNoRevenueData => 'No revenue data available';
+  String get dashboardNoRevenueData => 'Данные о выручке недоступны';
 
   @override
-  String get dashboardNoOrderData => 'No order data available';
+  String get dashboardNoOrderData => 'Данные о заказах недоступны';
 
   @override
-  String get dashboardNoRecentOrders => 'No recent orders';
+  String get dashboardNoRecentOrders => 'Нет недавних заказов';
 
   @override
-  String get dashboardNoLowStockAlerts => 'No low stock alerts';
+  String get dashboardNoLowStockAlerts => 'Нет предупреждений о низком запасе';
 
   @override
   String dashboardErrorLoading(Object error) {
-    return 'Error loading dashboard: $error';
+    return 'Ошибка загрузки панели управления: $error';
   }
 
   @override
   String dashboardStock(Object current, Object threshold) {
-    return 'Stock: $current / $threshold';
+    return 'Запас: $current / $threshold';
   }
 
   @override
-  String get cartEmpty => 'Your cart is empty';
+  String get cartEmpty => 'Ваша корзина пуста';
 
   @override
-  String get cartEmptyMessage => 'Add products from companies to get started';
+  String get cartEmptyMessage => 'Добавьте продукты из компаний, чтобы начать';
 
   @override
-  String get cartFailedToLoadProducts => 'Failed to load products';
+  String get cartFailedToLoadProducts => 'Не удалось загрузить продукты';
 
   @override
-  String get cartCheckout => 'Checkout';
+  String get cartCheckout => 'Оформить заказ';
 
   @override
-  String get cartConfirmCheckout => 'Confirm Checkout';
+  String get cartConfirmCheckout => 'Подтвердить оформление заказа';
 
   @override
   String cartCheckoutMessage(Object companyName) {
-    return 'Complete order with $companyName?';
+    return 'Завершить заказ с $companyName?';
   }
 
   @override
   String cartTotal(Object total) {
-    return 'Total: $total ₸';
+    return 'Итого: $total ₸';
   }
 
   @override
   String cartItems(Object count) {
-    return 'Items: $count';
+    return 'Товары: $count';
   }
 
   @override
-  String get cartUserCompanyNotFound => 'User company not found';
+  String get cartUserCompanyNotFound => 'Компания пользователя не найдена';
 
   @override
   String cartVerifyLinkingError(Object error) {
-    return 'Failed to verify linking: $error';
+    return 'Не удалось проверить связь: $error';
   }
 
   @override
-  String get cartLinkingNotAccepted =>
-      'Linking with this supplier is not accepted';
+  String get cartLinkingNotAccepted => 'Связь с этим поставщиком не принята';
 
   @override
-  String get cartNoValidProducts => 'No valid products to order';
+  String get cartNoValidProducts => 'Нет действительных продуктов для заказа';
 
   @override
-  String get cartOrderCreatedSuccess => 'Order created successfully';
+  String get cartOrderCreatedSuccess => 'Заказ успешно создан';
 
   @override
   String cartOrderCreateError(Object error) {
-    return 'Failed to create order: $error';
+    return 'Не удалось создать заказ: $error';
   }
 
   @override
   String cartErrorLoadingCompany(Object error) {
-    return 'Error loading company: $error';
+    return 'Ошибка загрузки компании: $error';
   }
 
   @override
   String cartTotalLabel(Object total) {
-    return 'Total: $total ₸';
+    return 'Итого: $total ₸';
   }
 
   @override
@@ -1071,171 +1102,173 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String cartItemTotal(Object total) {
-    return 'Total: $total ₸';
+    return 'Итого: $total ₸';
   }
 
   @override
-  String get cartRemove => 'Remove';
+  String get cartRemove => 'Удалить';
 
   @override
   String cartQuantity(Object unit) {
-    return 'Quantity ($unit)';
+    return 'Количество ($unit)';
   }
 
   @override
-  String get companiesSearchCompanies => 'Search companies...';
+  String get companiesSearchCompanies => 'Поиск компаний...';
 
   @override
-  String get companiesErrorLoading => 'Error loading companies';
+  String get companiesErrorLoading => 'Ошибка загрузки компаний';
 
   @override
-  String get companiesNoCompanies => 'No companies yet';
+  String get companiesNoCompanies => 'Пока нет компаний';
 
   @override
   String companiesNoMatch(Object query) {
-    return 'No companies found matching \"$query\"';
+    return 'Компании, соответствующие \"$query\", не найдены';
   }
 
   @override
-  String get companiesDetailsTitle => 'Company Details';
+  String get companiesDetailsTitle => 'Детали компании';
 
   @override
-  String get companiesFailedToFetch => 'Failed to fetch';
+  String get companiesFailedToFetch => 'Не удалось получить';
 
   @override
-  String get companiesDescription => 'Description';
+  String get companiesDescription => 'Описание';
 
   @override
-  String get companiesProducts => 'Products';
+  String get companiesProducts => 'Продукты';
 
   @override
-  String get companiesNoProducts => 'No products available';
+  String get companiesNoProducts => 'Нет доступных продуктов';
 
   @override
-  String get companiesSendLinking => 'Send Linking';
+  String get companiesSendLinking => 'Отправить связь';
 
   @override
-  String get companiesLinkingPending => 'Linking Pending';
+  String get companiesLinkingPending => 'Связь в ожидании';
 
   @override
-  String get companiesLinkingRejected => 'Linking Rejected';
+  String get companiesLinkingRejected => 'Связь отклонена';
 
   @override
-  String get companiesUnlinked => 'Unlinked';
+  String get companiesUnlinked => 'Отвязана';
 
   @override
-  String get companiesSendLinkingRequest => 'Send Linking Request';
+  String get companiesSendLinkingRequest => 'Отправить запрос на связь';
 
   @override
-  String get companiesLinkingMessage => 'Message';
+  String get companiesLinkingMessage => 'Сообщение';
 
   @override
-  String get companiesLinkingMessagePlaceholder => 'Enter your message...';
+  String get companiesLinkingMessagePlaceholder => 'Введите ваше сообщение...';
 
   @override
-  String get companiesLinkingMessageRequired => 'Message cannot be empty';
+  String get companiesLinkingMessageRequired =>
+      'Сообщение не может быть пустым';
 
   @override
-  String get companiesLinkingRequestSent => 'Linking request sent successfully';
+  String get companiesLinkingRequestSent => 'Запрос на связь успешно отправлен';
 
   @override
   String companiesLinkingRequestError(Object error) {
-    return 'Error sending linking request: $error';
+    return 'Ошибка отправки запроса на связь: $error';
   }
 
   @override
-  String get ordersNoLinkings => 'No linkings found';
+  String get ordersNoLinkings => 'Связи не найдены';
 
   @override
-  String get ordersNoOrders => 'No orders';
+  String get ordersNoOrders => 'Нет заказов';
 
   @override
   String ordersNoOrdersStatus(Object status) {
-    return 'No orders with status: $status';
+    return 'Нет заказов со статусом: $status';
   }
 
   @override
   String ordersNoCompaniesMatch(Object query) {
-    return 'No companies found matching \"$query\"';
+    return 'Компании, соответствующие \"$query\", не найдены';
   }
 
   @override
-  String get ordersSearchCompanies => 'Search companies...';
+  String get ordersSearchCompanies => 'Поиск компаний...';
 
   @override
-  String get ordersAll => 'All';
+  String get ordersAll => 'Все';
 
   @override
   String ordersLinkingNumber(Object linkingId) {
-    return 'Linking #$linkingId';
+    return 'Связь #$linkingId';
   }
 
   @override
   String ordersOrderNumber(Object orderId) {
-    return 'Order #$orderId';
+    return 'Заказ #$orderId';
   }
 
   @override
   String ordersCreated(Object date) {
-    return 'Created: $date';
+    return 'Создан: $date';
   }
 
   @override
-  String get productDetailsTitle => 'Product Details';
+  String get productDetailsTitle => 'Детали продукта';
 
   @override
-  String get productAddToCart => 'Add to Cart';
+  String get productAddToCart => 'Добавить в корзину';
 
   @override
-  String get productDetails => 'Details';
+  String get productDetails => 'Детали';
 
   @override
-  String get productUnit => 'Unit';
+  String get productUnit => 'Единица измерения';
 
   @override
-  String get productStockQuantity => 'Stock quantity';
+  String get productStockQuantity => 'Количество на складе';
 
   @override
-  String get productRetailPrice => 'Retail price';
+  String get productRetailPrice => 'Розничная цена';
 
   @override
-  String get productBulkPrice => 'Bulk price';
+  String get productBulkPrice => 'Оптовая цена';
 
   @override
-  String get productMinimumOrder => 'Minimum order';
+  String get productMinimumOrder => 'Минимальный заказ';
 
   @override
-  String get productThreshold => 'Threshold';
+  String get productThreshold => 'Порог';
 
   @override
   String productAddedToCart(Object quantity, Object unit) {
-    return 'Added $quantity $unit to cart';
+    return 'Добавлено $quantity $unit в корзину';
   }
 
   @override
-  String get catalogNoProducts => 'No products yet';
+  String get catalogNoProducts => 'Пока нет продуктов';
 
   @override
   String catalogNoProductsMatch(Object query) {
-    return 'No products found matching \"$query\"';
+    return 'Продукты, соответствующие \"$query\", не найдены';
   }
 
   @override
-  String get catalogSearchProducts => 'Search products...';
+  String get catalogSearchProducts => 'Поиск продуктов...';
 
   @override
   String catalogStock(Object quantity) {
-    return 'Stock: $quantity';
+    return 'Запас: $quantity';
   }
 
   @override
-  String get catalogUserNotFound => 'User profile or company ID not found.';
+  String get catalogUserNotFound =>
+      'Профиль пользователя или ID компании не найдены.';
 
   @override
-  String get catalogCompanyNotFound => 'Company not found.';
+  String get catalogCompanyNotFound => 'Компания не найдена.';
 
   @override
-  String get catalogSupplierOnly => 'Catalog is available for suppliers only.';
+  String get catalogSupplierOnly => 'Каталог доступен только для поставщиков.';
 
   @override
   String addToCartTitle(Object productName) {
@@ -1244,49 +1277,50 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String addToCartPricePerUnit(Object unit) {
-    return 'Price per $unit:';
+    return 'Цена за $unit:';
   }
 
   @override
   String addToCartQuantity(Object unit) {
-    return 'Quantity ($unit)';
+    return 'Количество ($unit)';
   }
 
   @override
-  String get addToCartEnterQuantity => 'Enter quantity';
+  String get addToCartEnterQuantity => 'Введите количество';
 
   @override
-  String get addToCartQuantityRequired => 'Please enter a quantity';
+  String get addToCartQuantityRequired => 'Пожалуйста, введите количество';
 
   @override
-  String get addToCartInvalidNumber => 'Please enter a valid number';
+  String get addToCartInvalidNumber =>
+      'Пожалуйста, введите действительное число';
 
   @override
   String get addToCartQuantityGreaterThanZero =>
-      'Quantity must be greater than 0';
+      'Количество должно быть больше 0';
 
   @override
   String addToCartMinimumOrder(Object minimum, Object unit) {
-    return 'Minimum order is $minimum $unit';
+    return 'Минимальный заказ составляет $minimum $unit';
   }
 
   @override
   String addToCartOnlyAvailable(Object stock, Object unit) {
-    return 'Only $stock $unit available';
+    return 'Доступно только $stock $unit';
   }
 
   @override
   String addToCartAvailable(Object stock, Object unit) {
-    return 'Available: $stock $unit';
+    return 'Доступно: $stock $unit';
   }
 
   @override
   String addToCartMinimum(Object minimum, Object unit) {
-    return 'Minimum: $minimum $unit';
+    return 'Минимум: $minimum $unit';
   }
 
   @override
-  String get addToCartButton => 'Add to Cart';
+  String get addToCartButton => 'Добавить в корзину';
 
   @override
   String get settingsEnglish => 'English';
@@ -1295,74 +1329,74 @@ class AppLocalizationsRu extends AppLocalizations {
   String get settingsRussian => 'Русский';
 
   @override
-  String get settingsSignupFailed => 'Signup failed';
+  String get settingsSignupFailed => 'Регистрация не удалась';
 
   @override
-  String get userProfileCompany => 'Company';
+  String get userProfileCompany => 'Компания';
 
   @override
-  String get userProfileLoading => 'Loading...';
+  String get userProfileLoading => 'Загрузка...';
 
   @override
-  String get userProfileUpdatedSuccess => 'Profile updated successfully';
+  String get userProfileUpdatedSuccess => 'Профиль успешно обновлен';
 
   @override
-  String get userProfileUserIdMissing => 'User ID is missing';
+  String get userProfileUserIdMissing => 'ID пользователя отсутствует';
 
   @override
   String userProfileFieldRequired(Object fieldLabel) {
-    return '$fieldLabel is required.';
+    return '$fieldLabel обязательно.';
   }
 
   @override
   String userProfileFieldInvalidInteger(Object fieldLabel) {
-    return '$fieldLabel must be a valid integer.';
+    return '$fieldLabel должно быть действительным целым числом.';
   }
 
   @override
-  String get userEditUserIdMissing => 'User ID is missing';
+  String get userEditUserIdMissing => 'ID пользователя отсутствует';
 
   @override
-  String get userEditProfileUpdatedSuccess => 'Profile updated successfully';
+  String get userEditProfileUpdatedSuccess => 'Профиль успешно обновлен';
 
   @override
-  String get companyProfileCompanyLogo => 'Company Logo';
+  String get companyProfileCompanyLogo => 'Логотип компании';
 
   @override
-  String get companyProfileSelectLogo => 'Select company logo';
+  String get companyProfileSelectLogo => 'Выберите логотип компании';
 
   @override
   String get companyProfileUpdatedSuccess =>
-      'Company profile updated successfully';
+      'Профиль компании успешно обновлен';
 
   @override
-  String get companyProfileCompanyIdMissing => 'Company ID is missing';
+  String get companyProfileCompanyIdMissing => 'ID компании отсутствует';
 
   @override
-  String get companyProfileNameRequired => 'Name is required';
+  String get companyProfileNameRequired => 'Название обязательно';
 
   @override
-  String get companyProfileLocationRequired => 'Location is required';
+  String get companyProfileLocationRequired => 'Местоположение обязательно';
 
   @override
-  String get companyEditLogo => 'Company Logo';
+  String get companyEditLogo => 'Логотип компании';
 
   @override
-  String get companyEditLogoPlaceholder => 'Select company logo';
+  String get companyEditLogoPlaceholder => 'Выберите логотип компании';
 
   @override
-  String get companyEditCompanyIdMissing => 'Company ID is missing';
+  String get companyEditCompanyIdMissing => 'ID компании отсутствует';
 
   @override
   String get companyEditProfileUpdatedSuccess =>
-      'Company profile updated successfully';
+      'Профиль компании успешно обновлен';
 
   @override
-  String get staffManagementUserNotFound => 'User not found';
+  String get staffManagementUserNotFound => 'Пользователь не найден';
 
   @override
   String staffManagementFieldRequired(Object fieldLabel) {
-    return '$fieldLabel is required.';
+    return '$fieldLabel обязательно.';
   }
 
   @override
@@ -1371,22 +1405,22 @@ class AppLocalizationsRu extends AppLocalizations {
   }
 
   @override
-  String get commonNA => 'N/A';
+  String get commonNA => 'Н/Д';
 
   @override
-  String get commonBy => 'By';
+  String get commonBy => 'От';
 
   @override
-  String get commonNotAssigned => 'Not assigned';
+  String get commonNotAssigned => 'Не назначен';
 
   @override
-  String get commonLoading => 'Loading...';
+  String get commonLoading => 'Загрузка...';
 
   @override
-  String get commonError => 'Error';
+  String get commonError => 'Ошибка';
 
   @override
-  String get commonOK => 'OK';
+  String get commonOK => 'ОК';
 
   @override
   String get commonEnglish => 'English';

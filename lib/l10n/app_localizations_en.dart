@@ -60,6 +60,33 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profile => 'Profile';
 
   @override
+  String get navigationOrders => 'Orders';
+
+  @override
+  String get navigationCompanies => 'Companies';
+
+  @override
+  String get navigationLinkings => 'Linkings';
+
+  @override
+  String get navigationCart => 'Cart';
+
+  @override
+  String get navigationSettings => 'Settings';
+
+  @override
+  String get navigationHome => 'Home';
+
+  @override
+  String get navigationCatalog => 'Catalog';
+
+  @override
+  String get navigationDashboard => 'Dashboard';
+
+  @override
+  String get navigationComplaints => 'Complaints';
+
+  @override
   String get emailAndPasswordRequired => 'Email and password are required';
 
   @override

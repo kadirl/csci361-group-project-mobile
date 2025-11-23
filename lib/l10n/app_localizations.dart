@@ -200,6 +200,60 @@ abstract class AppLocalizations {
   /// **'Profile'**
   String get profile;
 
+  /// No description provided for @navigationOrders.
+  ///
+  /// In en, this message translates to:
+  /// **'Orders'**
+  String get navigationOrders;
+
+  /// No description provided for @navigationCompanies.
+  ///
+  /// In en, this message translates to:
+  /// **'Companies'**
+  String get navigationCompanies;
+
+  /// No description provided for @navigationLinkings.
+  ///
+  /// In en, this message translates to:
+  /// **'Linkings'**
+  String get navigationLinkings;
+
+  /// No description provided for @navigationCart.
+  ///
+  /// In en, this message translates to:
+  /// **'Cart'**
+  String get navigationCart;
+
+  /// No description provided for @navigationSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get navigationSettings;
+
+  /// No description provided for @navigationHome.
+  ///
+  /// In en, this message translates to:
+  /// **'Home'**
+  String get navigationHome;
+
+  /// No description provided for @navigationCatalog.
+  ///
+  /// In en, this message translates to:
+  /// **'Catalog'**
+  String get navigationCatalog;
+
+  /// No description provided for @navigationDashboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Dashboard'**
+  String get navigationDashboard;
+
+  /// No description provided for @navigationComplaints.
+  ///
+  /// In en, this message translates to:
+  /// **'Complaints'**
+  String get navigationComplaints;
+
   /// No description provided for @emailAndPasswordRequired.
   ///
   /// In en, this message translates to:

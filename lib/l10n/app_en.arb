@@ -27,6 +27,15 @@
   "add": "Add",
   "notifications": "Notifications",
   "profile": "Profile",
+  "navigationOrders": "Orders",
+  "navigationCompanies": "Companies",
+  "navigationLinkings": "Linkings",
+  "navigationCart": "Cart",
+  "navigationSettings": "Settings",
+  "navigationHome": "Home",
+  "navigationCatalog": "Catalog",
+  "navigationDashboard": "Dashboard",
+  "navigationComplaints": "Complaints",
   "emailAndPasswordRequired": "Email and password are required",
 
 

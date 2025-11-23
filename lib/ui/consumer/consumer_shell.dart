@@ -5,6 +5,7 @@ import 'views/linkings_view.dart';
 import 'views/orders_view.dart';
 import 'views/cart_view.dart';
 import 'package:swe_mobile/ui/settings/settings_view.dart';
+import 'package:swe_mobile/l10n/app_localizations.dart';
 
 // Entry point for the consumer experience with a bottom tab bar.
 class ConsumerShell extends StatefulWidget {
@@ -27,17 +28,18 @@ class _ConsumerShellState extends State<ConsumerShell> {
     SettingsView(),
   ];
 
-  // Titles for the AppBar corresponding to the selected tab
-  final List<String> _titles = const <String>[
-    'Orders',
-    'Companies',
-    'Linkings',
-    'Cart',
-    'Settings',
-  ];
-
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    // Titles for the AppBar corresponding to the selected tab
+    final List<String> _titles = <String>[
+      l10n.navigationOrders,
+      l10n.navigationCompanies,
+      l10n.navigationLinkings,
+      l10n.navigationCart,
+      l10n.navigationSettings,
+    ];
+
     return Scaffold(
       appBar: AppBar(
         title: Text(_titles[_currentIndex]),
@@ -50,26 +52,26 @@ class _ConsumerShellState extends State<ConsumerShell> {
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         type: BottomNavigationBarType.fixed,
-        items: const <BottomNavigationBarItem>[
+        items: <BottomNavigationBarItem>[
           BottomNavigationBarItem(
-            icon: Icon(Icons.shopping_cart_outlined),
-            label: 'Orders',
+            icon: const Icon(Icons.shopping_cart_outlined),
+            label: l10n.navigationOrders,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.business_outlined),
-            label: 'Companies',
+            icon: const Icon(Icons.business_outlined),
+            label: l10n.navigationCompanies,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.link_outlined),
-            label: 'Linkings',
+            icon: const Icon(Icons.link_outlined),
+            label: l10n.navigationLinkings,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.shopping_bag_outlined),
-            label: 'Cart',
+            icon: const Icon(Icons.shopping_bag_outlined),
+            label: l10n.navigationCart,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.settings_outlined),
-            label: 'Settings',
+            icon: const Icon(Icons.settings_outlined),
+            label: l10n.navigationSettings,
           ),
         ],
         onTap: (int newIndex) {

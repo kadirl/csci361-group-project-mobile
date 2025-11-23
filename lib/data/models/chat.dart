@@ -3,9 +3,10 @@ import 'package:flutter/foundation.dart';
 /// Message type enum matching backend message types.
 enum MessageType {
   text,
+  image,
   complaint, // Update message type
   order, // Update message type
-  // Add other message types as needed (e.g., image, file, etc.)
+  // Add other message types as needed (e.g., audio, file, etc.)
 }
 
 /// Parse a raw message type string from backend into a MessageType enum.
@@ -13,6 +14,8 @@ MessageType parseMessageType(String? raw) {
   switch ((raw ?? '').toLowerCase()) {
     case 'text':
       return MessageType.text;
+    case 'image':
+      return MessageType.image;
     case 'complaint':
       return MessageType.complaint;
     case 'order':

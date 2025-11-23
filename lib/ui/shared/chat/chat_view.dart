@@ -13,6 +13,7 @@ import '../../../data/models/chat.dart';
 import '../../../data/models/linking.dart';
 import '../../../data/models/order.dart';
 import '../../../data/repositories/user_repository.dart';
+import '../../supplier/views/catalog/product/product_image_gallery_view.dart';
 
 /// Reusable chat view widget for linking or order chats.
 /// 
@@ -550,6 +551,169 @@ class _ChatViewState extends ConsumerState<ChatView> {
     );
   }
 
+  // Extract image URL from message body.
+  // Handles both direct URL strings and JSON objects with 'url' field.
+  String? _extractImageUrl(ChatMessage message) {
+    if (message.messageType != MessageType.image) {
+      return null;
+    }
+
+    try {
+      // Try to parse as JSON first
+      final Map<String, dynamic> data = jsonDecode(message.body) as Map<String, dynamic>;
+      final String? url = data['url'] as String?;
+      if (url != null && url.isNotEmpty) {
+        return url;
+      }
+    } catch (e) {
+      // If JSON parsing fails, treat body as direct URL
+      final String trimmedBody = message.body.trim();
+      if (trimmedBody.isNotEmpty) {
+        // Check if it looks like a URL (starts with http:// or https://)
+        if (trimmedBody.startsWith('http://') || trimmedBody.startsWith('https://')) {
+          return trimmedBody;
+        }
+      }
+    }
+
+    return null;
+  }
+
+  // Build image message widget (thumbnail in bubble, clickable to full screen).
+  Widget _buildImageMessage(ChatMessage message, bool isCurrentUser) {
+    final userState = ref.watch(userProfileProvider);
+    final currentUser = userState.value;
+    final isOwnMessage = currentUser?.id == message.senderId;
+    final String? imageUrl = _extractImageUrl(message);
+
+    if (imageUrl == null) {
+      // Fallback to text message if URL extraction fails
+      return _buildTextMessage(message, isCurrentUser);
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+      child: Row(
+        mainAxisAlignment:
+            isOwnMessage ? MainAxisAlignment.end : MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          if (!isOwnMessage) ...[
+            _buildAvatar(message),
+            const SizedBox(width: 8),
+          ],
+          Flexible(
+            child: Column(
+              crossAxisAlignment:
+                  isOwnMessage ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+              children: [
+                if (!isOwnMessage)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 4.0, right: 4.0),
+                    child: Text(
+                      _getSenderName(message),
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                          ),
+                    ),
+                  ),
+                GestureDetector(
+                  onTap: () {
+                    // Open full-screen image gallery
+                    Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => ProductImageGalleryView(
+                          imageUrls: [imageUrl],
+                          initialIndex: 0,
+                        ),
+                      ),
+                    );
+                  },
+                  child: Container(
+                    constraints: const BoxConstraints(
+                      maxWidth: 250,
+                      maxHeight: 250,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isOwnMessage
+                          ? Theme.of(context).colorScheme.primary
+                          : Theme.of(context).colorScheme.surfaceVariant,
+                      borderRadius: BorderRadius.circular(16.0),
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(16.0),
+                      child: Image.network(
+                        imageUrl,
+                        fit: BoxFit.cover,
+                        width: 250,
+                        height: 250,
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) {
+                            return child;
+                          }
+                          return Container(
+                            width: 250,
+                            height: 250,
+                            color: Theme.of(context).colorScheme.surfaceVariant,
+                            child: Center(
+                              child: CircularProgressIndicator(
+                                value: loadingProgress.expectedTotalBytes != null
+                                    ? loadingProgress.cumulativeBytesLoaded /
+                                        loadingProgress.expectedTotalBytes!
+                                    : null,
+                              ),
+                            ),
+                          );
+                        },
+                        errorBuilder: (_, __, ___) => Container(
+                          width: 250,
+                          height: 250,
+                          color: Theme.of(context).colorScheme.surfaceVariant,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.image_not_supported,
+                                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                size: 48,
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Failed to load image',
+                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                    ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                  child: Text(
+                    _formatTime(message.sentAt),
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+                          fontSize: 11,
+                        ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (isOwnMessage) ...[
+            const SizedBox(width: 8),
+            _buildAvatar(message),
+          ],
+        ],
+      ),
+    );
+  }
+
   // Build regular text message widget (bubble style).
   Widget _buildTextMessage(ChatMessage message, bool isCurrentUser) {
     final userState = ref.watch(userProfileProvider);
@@ -696,6 +860,11 @@ class _ChatViewState extends ConsumerState<ChatView> {
                               // Check if this is an update message.
                               if (isUpdateMessage(message.messageType)) {
                                 return _buildUpdateMessage(message);
+                              }
+                              
+                              // Check if this is an image message.
+                              if (message.messageType == MessageType.image) {
+                                return _buildImageMessage(message, false);
                               }
                               
                               // Regular text message.

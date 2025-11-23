@@ -1,7 +1,7 @@
 ## Backlog
 - [ ] Add files support into chats
 - [ ] Remove unlinked state
-- [x] Autodiscard companies view on consumer shell
+
 - [ ] DropdownButton Error regarding with the maximum quantity of the item
 
 
@@ -25,3 +25,4 @@
 - [x] Validate item count in cart
 - [x] Make tiles in Recent Orders from Supplier's Dashboard view clickable
 - [x] Add a floating button to refresh the metrics in supplier's dashboard 
+- [x] Autodiscard companies view on consumer shell

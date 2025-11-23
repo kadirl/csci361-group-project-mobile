@@ -212,7 +212,7 @@ class _LinkingsViewState extends ConsumerState<LinkingsView>
         // TabBar at the top of the body
         TabBar(
           controller: _tabController,
-          isScrollable: false,
+          isScrollable: true,
           tabs: [
             Tab(
               child: Badge(

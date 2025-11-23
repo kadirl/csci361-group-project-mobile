@@ -9,9 +9,6 @@ import 'package:intl/intl.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:record/record.dart';
-import 'package:path_provider/path_provider.dart';
-import 'dart:io';
 
 import '../../../core/providers/chat_provider.dart';
 import '../../../core/providers/company_profile_provider.dart';
@@ -86,11 +83,6 @@ class _ChatViewState extends ConsumerState<ChatView> {
   String? _pendingAudioFilename;
   String? _pendingAudioExtension;
   
-  // Audio recording state
-  final AudioRecorder _audioRecorder = AudioRecorder();
-  bool _isRecording = false;
-  Duration _recordingDuration = Duration.zero;
-  
   // Cached complaint for permission checks
   Complaint? _cachedComplaint;
   
@@ -150,12 +142,6 @@ class _ChatViewState extends ConsumerState<ChatView> {
     _audioPlayingStates.clear();
     _audioDurations.clear();
     _audioPositions.clear();
-    
-    // Stop recording if active and dispose recorder
-    if (_isRecording) {
-      _audioRecorder.stop();
-    }
-    _audioRecorder.dispose();
     
     super.dispose();
   }
@@ -752,161 +738,6 @@ class _ChatViewState extends ConsumerState<ChatView> {
       _pendingAudioFilename = null;
       _pendingAudioExtension = null;
     });
-  }
-
-  // Toggle audio recording (start or stop).
-  Future<void> _toggleRecording() async {
-    if (!_canSendMessages()) {
-      return;
-    }
-
-    if (_isRecording) {
-      await _stopRecording();
-    } else {
-      await _startRecording();
-    }
-  }
-
-  // Start audio recording.
-  Future<void> _startRecording() async {
-    try {
-      // Check permission
-      if (!await _audioRecorder.hasPermission()) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(AppLocalizations.of(context)!.chatMicrophonePermissionDenied)),
-          );
-        }
-        return;
-      }
-
-      // Get temporary directory for recording
-      final Directory tempDir = await getTemporaryDirectory();
-      final String timestamp = DateTime.now().millisecondsSinceEpoch.toString();
-      final String filePath = '${tempDir.path}/audio_$timestamp.m4a';
-
-      await _audioRecorder.start(
-        const RecordConfig(
-          encoder: AudioEncoder.aacLc,
-          bitRate: 128000,
-          sampleRate: 44100,
-        ),
-        path: filePath,
-      );
-
-      setState(() {
-        _isRecording = true;
-        _recordingDuration = Duration.zero;
-      });
-
-      // Update duration every second
-      _updateRecordingDuration();
-    } catch (e) {
-      log('ChatView -> Failed to start recording: $e');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context)!.chatErrorStartRecording(e.toString()))),
-        );
-      }
-    }
-  }
-
-  // Update recording duration.
-  void _updateRecordingDuration() {
-    if (!_isRecording || !mounted) return;
-
-    Future.delayed(const Duration(seconds: 1), () {
-      if (mounted && _isRecording) {
-        setState(() {
-          _recordingDuration = _recordingDuration + const Duration(seconds: 1);
-        });
-        _updateRecordingDuration();
-      }
-    });
-  }
-
-  // Stop audio recording and upload.
-  Future<void> _stopRecording() async {
-    try {
-      final String? path = await _audioRecorder.stop();
-      
-      if (path == null || !File(path).existsSync()) {
-        if (mounted) {
-          setState(() {
-            _isRecording = false;
-            _recordingDuration = Duration.zero;
-          });
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(AppLocalizations.of(context)!.chatRecordingFileNotFound)),
-          );
-        }
-        return;
-      }
-
-      // Read the recorded file
-      final File audioFile = File(path);
-      final Uint8List audioBytes = await audioFile.readAsBytes();
-      
-      // Generate filename
-      final String timestamp = DateTime.now().millisecondsSinceEpoch.toString();
-      final String filename = 'recording_$timestamp.m4a';
-
-      setState(() {
-        _isRecording = false;
-        _recordingDuration = Duration.zero;
-        _pendingAudioBytes = audioBytes;
-        _pendingAudioUrl = null;
-        _isUploadingAudio = true;
-        _pendingAudioFilename = filename;
-        _pendingAudioExtension = 'm4a';
-      });
-
-      // Upload to S3
-      final UploadsRepository uploadsRepository = ref.read(uploadsRepositoryProvider);
-      final String uploadedUrl = await S3UploadUtils.uploadToS3(
-        uploadsRepository: uploadsRepository,
-        fileBytes: audioBytes,
-        fileExtension: 'm4a',
-        filename: filename,
-      );
-
-      if (mounted) {
-        setState(() {
-          _pendingAudioUrl = uploadedUrl;
-          _isUploadingAudio = false;
-        });
-      }
-
-      // Clean up temporary file
-      try {
-        await audioFile.delete();
-      } catch (e) {
-        log('ChatView -> Failed to delete temp recording file: $e');
-      }
-    } catch (e) {
-      log('ChatView -> Failed to stop/upload recording: $e');
-      if (mounted) {
-        setState(() {
-          _isRecording = false;
-          _recordingDuration = Duration.zero;
-          _pendingAudioBytes = null;
-          _pendingAudioUrl = null;
-          _isUploadingAudio = false;
-          _pendingAudioFilename = null;
-          _pendingAudioExtension = null;
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context)!.chatErrorProcessRecording(e.toString()))),
-        );
-      }
-    }
-  }
-
-  // Format recording duration for display.
-  String _formatRecordingDuration(Duration duration) {
-    final minutes = duration.inMinutes;
-    final seconds = duration.inSeconds % 60;
-    return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
   }
 
   // Send a message (text, image, file, or audio).
@@ -2353,60 +2184,21 @@ class _ChatViewState extends ConsumerState<ChatView> {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    // Show record button when no text, send button when text exists
-                    _hasText || 
-                        (_pendingImageUrl != null && !_isUploadingImage) ||
-                        (_pendingFileUrl != null && !_isUploadingFile) ||
-                        (_pendingAudioUrl != null && !_isUploadingAudio)
-                        ? IconButton(
-                            onPressed: canSend && chatState.isConnected ? _sendMessage : null,
-                            icon: const Icon(Icons.send),
-                            style: IconButton.styleFrom(
-                              backgroundColor: Theme.of(context).colorScheme.primary,
-                              foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                            ),
-                          )
-                        : Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              IconButton(
-                                onPressed: canSend && 
-                                    chatState.isConnected && 
-                                    !_isUploadingImage && 
-                                    !_isUploadingFile && 
-                                    !_isUploadingAudio
-                                    ? _toggleRecording
-                                    : null,
-                                icon: Icon(
-                                  _isRecording ? Icons.stop : Icons.mic,
-                                  color: _isRecording 
-                                      ? Theme.of(context).colorScheme.error
-                                      : Theme.of(context).colorScheme.primary,
-                                ),
-                                style: IconButton.styleFrom(
-                                  backgroundColor: _isRecording
-                                      ? Theme.of(context).colorScheme.errorContainer
-                                      : Theme.of(context).colorScheme.primaryContainer,
-                                  foregroundColor: _isRecording
-                                      ? Theme.of(context).colorScheme.onErrorContainer
-                                      : Theme.of(context).colorScheme.onPrimaryContainer,
-                                ),
-                                tooltip: _isRecording ? AppLocalizations.of(context)!.chatStopRecording : AppLocalizations.of(context)!.chatRecordAudio,
-                              ),
-                              if (_isRecording)
-                                Positioned(
-                                  bottom: 4,
-                                  child: Text(
-                                    _formatRecordingDuration(_recordingDuration),
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      color: Theme.of(context).colorScheme.onErrorContainer,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                            ],
-                          ),
+                    IconButton(
+                      onPressed: canSend && 
+                          chatState.isConnected && 
+                          (_hasText || 
+                           (_pendingImageUrl != null && !_isUploadingImage) ||
+                           (_pendingFileUrl != null && !_isUploadingFile) ||
+                           (_pendingAudioUrl != null && !_isUploadingAudio))
+                          ? _sendMessage
+                          : null,
+                      icon: const Icon(Icons.send),
+                      style: IconButton.styleFrom(
+                        backgroundColor: Theme.of(context).colorScheme.primary,
+                        foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                      ),
+                    ),
                   ],
                 ),
               ),

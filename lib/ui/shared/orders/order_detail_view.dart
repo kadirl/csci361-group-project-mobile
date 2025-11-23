@@ -17,6 +17,7 @@ import '../../../data/repositories/linking_repository.dart';
 import '../../../data/repositories/order_repository.dart';
 import '../../../data/repositories/product_repository.dart';
 import '../../../data/repositories/user_repository.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../supplier/views/catalog/product/product_detail_view.dart';
 import '../../shared/linkings/linking_detail_view.dart';
 import '../../shared/chat/chat_view.dart';
@@ -253,9 +254,10 @@ class _OrderDetailViewState extends ConsumerState<OrderDetailView> {
   }
 
   // Format date string
-  String _formatDate(String? dateString) {
+  String _formatDate(String? dateString, BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     if (dateString == null || dateString.isEmpty) {
-      return 'N/A';
+      return l10n.commonNA;
     }
 
     try {
@@ -284,18 +286,19 @@ class _OrderDetailViewState extends ConsumerState<OrderDetailView> {
   }
 
   // Get complaint status display name
-  String _getComplaintStatusDisplayName(ComplaintStatus status) {
+  String _getComplaintStatusDisplayName(ComplaintStatus status, BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     switch (status) {
       case ComplaintStatus.open:
-        return 'OPEN';
+        return l10n.complaintStatusOpen;
       case ComplaintStatus.escalated:
-        return 'ESCALATED';
+        return l10n.complaintStatusEscalated;
       case ComplaintStatus.inProgress:
-        return 'IN PROGRESS';
+        return l10n.complaintStatusInProgress;
       case ComplaintStatus.resolved:
-        return 'RESOLVED';
+        return l10n.complaintStatusResolved;
       case ComplaintStatus.closed:
-        return 'CLOSED';
+        return l10n.complaintStatusClosed;
     }
   }
 
@@ -310,21 +313,22 @@ class _OrderDetailViewState extends ConsumerState<OrderDetailView> {
   Future<void> _showCreateComplaintDialog() async {
     final TextEditingController descriptionController = TextEditingController();
 
+    final l10n = AppLocalizations.of(context)!;
     final bool? confirmed = await showDialog<bool>(
       context: context,
       builder: (BuildContext dialogContext) => AlertDialog(
-        title: const Text('Create Complaint'),
+        title: Text(l10n.orderCreateComplaint),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Please provide a reason for your complaint:'),
+            Text(l10n.orderCreateComplaintReason),
             const SizedBox(height: 16),
             TextField(
               controller: descriptionController,
-              decoration: const InputDecoration(
-                labelText: 'Reason of Complaint',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: l10n.orderComplaintReasonLabel,
+                border: const OutlineInputBorder(),
               ),
               maxLines: 5,
               minLines: 3,
@@ -334,21 +338,21 @@ class _OrderDetailViewState extends ConsumerState<OrderDetailView> {
         actions: <Widget>[
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Cancel'),
+            child: Text(l10n.commonCancel),
           ),
           FilledButton(
             onPressed: () {
               if (descriptionController.text.trim().isEmpty) {
                 ScaffoldMessenger.of(dialogContext).showSnackBar(
-                  const SnackBar(
-                    content: Text('Please enter a reason for the complaint'),
+                  SnackBar(
+                    content: Text(l10n.orderComplaintReasonRequired),
                   ),
                 );
                 return;
               }
               Navigator.of(dialogContext).pop(true);
             },
-            child: const Text('Create'),
+            child: Text(l10n.commonCreate),
           ),
         ],
       ),
@@ -361,8 +365,8 @@ class _OrderDetailViewState extends ConsumerState<OrderDetailView> {
     final String description = descriptionController.text.trim();
     if (description.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please enter a reason for the complaint'),
+        SnackBar(
+          content: Text(l10n.orderComplaintReasonRequired),
         ),
       );
       return;
@@ -391,8 +395,8 @@ class _OrderDetailViewState extends ConsumerState<OrderDetailView> {
 
         // Show success message
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Complaint created successfully'),
+          SnackBar(
+            content: Text(l10n.orderComplaintCreatedSuccess),
           ),
         );
       }
@@ -405,7 +409,7 @@ class _OrderDetailViewState extends ConsumerState<OrderDetailView> {
         // Show error message
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error creating complaint: $error'),
+            content: Text(l10n.orderComplaintCreateError(error.toString())),
           ),
         );
       }
@@ -459,22 +463,23 @@ class _OrderDetailViewState extends ConsumerState<OrderDetailView> {
   Future<void> _handleStatusChange(OrderStatus newStatus) async {
     final currentOrder = _currentOrder ?? widget.order;
 
+    final l10n = AppLocalizations.of(context)!;
     // Show confirmation dialog
     final bool? confirmed = await showDialog<bool>(
       context: context,
       builder: (BuildContext dialogContext) => AlertDialog(
-        title: const Text('Change Order Status'),
+        title: Text(l10n.orderChangeStatusTitle),
         content: Text(
-          'Change order status from "${currentOrder.status.name.toUpperCase()}" to "${newStatus.name.toUpperCase()}"?',
+          l10n.orderChangeStatusMessage(currentOrder.status.name.toUpperCase(), newStatus.name.toUpperCase()),
         ),
         actions: <Widget>[
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Cancel'),
+            child: Text(l10n.commonCancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('Change'),
+            child: Text(l10n.orderChange),
           ),
         ],
       ),
@@ -508,7 +513,7 @@ class _OrderDetailViewState extends ConsumerState<OrderDetailView> {
         // Show success message
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Order status changed to ${newStatus.name.toUpperCase()}'),
+            content: Text(l10n.orderStatusChanged(newStatus.name.toUpperCase())),
           ),
         );
       }
@@ -521,7 +526,7 @@ class _OrderDetailViewState extends ConsumerState<OrderDetailView> {
         // Show error message
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error changing order status: $error'),
+            content: Text(l10n.orderStatusChangeError(error.toString())),
           ),
         );
       }
@@ -534,7 +539,7 @@ class _OrderDetailViewState extends ConsumerState<OrderDetailView> {
 
     return PopupMenuButton<OrderStatus>(
       icon: const Icon(Icons.arrow_drop_down),
-      tooltip: 'Change order status',
+      tooltip: AppLocalizations.of(context)!.orderChangeStatusTitle,
       onSelected: _handleStatusChange,
       itemBuilder: (BuildContext context) {
         return OrderStatus.values.map((OrderStatus status) {
@@ -563,25 +568,26 @@ class _OrderDetailViewState extends ConsumerState<OrderDetailView> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     if (_isLoading) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Order Details')),
+        appBar: AppBar(title: Text(l10n.orderDetailsTitle)),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
 
     if (_error != null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Order Details')),
+        appBar: AppBar(title: Text(l10n.orderDetailsTitle)),
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text('Error: $_error'),
+              Text('${l10n.commonError}: $_error'),
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: _loadData,
-                child: const Text('Retry'),
+                child: Text(l10n.commonRetry),
               ),
             ],
           ),
@@ -627,14 +633,14 @@ class _OrderDetailViewState extends ConsumerState<OrderDetailView> {
             Row(
               children: [
                 Text(
-                  'Created: ${_formatDate((_currentOrder ?? widget.order).createdAt)}',
+                  l10n.orderCreated(_formatDate((_currentOrder ?? widget.order).createdAt, context)),
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
                 if ((_currentOrder ?? widget.order).updatedAt !=
                     (_currentOrder ?? widget.order).createdAt) ...[
                   const SizedBox(width: 16),
                   Text(
-                    'Updated: ${_formatDate((_currentOrder ?? widget.order).updatedAt)}',
+                    l10n.orderUpdated(_formatDate((_currentOrder ?? widget.order).updatedAt, context)),
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                 ],
@@ -644,7 +650,7 @@ class _OrderDetailViewState extends ConsumerState<OrderDetailView> {
 
             // Linking information
             Text(
-              'Linking',
+              l10n.orderLinking,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
@@ -676,7 +682,7 @@ class _OrderDetailViewState extends ConsumerState<OrderDetailView> {
                       children: [
                         Expanded(
                           child: Text(
-                            'Linking #${_linking!.linkingId ?? 'N/A'}',
+                            '${l10n.orderLinking} #${_linking!.linkingId ?? l10n.commonNA}',
                             style: Theme.of(context).textTheme.bodyLarge,
                           ),
                         ),
@@ -691,7 +697,7 @@ class _OrderDetailViewState extends ConsumerState<OrderDetailView> {
                 child: Padding(
                   padding: const EdgeInsets.all(12.0),
                   child: Text(
-                    'Linking #${widget.order.linkingId}',
+                    '${l10n.orderLinking} #${widget.order.linkingId}',
                     style: Theme.of(context).textTheme.bodyLarge,
                   ),
                 ),
@@ -714,7 +720,7 @@ class _OrderDetailViewState extends ConsumerState<OrderDetailView> {
                     }
                   : null,
               icon: const Icon(Icons.chat),
-              label: const Text('Open Chat'),
+              label: Text(l10n.complaintOpenChat),
               style: FilledButton.styleFrom(
                 minimumSize: const Size(double.infinity, 48),
               ),
@@ -726,7 +732,7 @@ class _OrderDetailViewState extends ConsumerState<OrderDetailView> {
               FilledButton.icon(
                 onPressed: _showCreateComplaintDialog,
                 icon: const Icon(Icons.report_problem),
-                label: const Text('Create Complaint'),
+                label: Text(l10n.orderCreateComplaint),
                 style: FilledButton.styleFrom(
                   minimumSize: const Size(double.infinity, 48),
                   backgroundColor: Colors.orange,
@@ -738,7 +744,7 @@ class _OrderDetailViewState extends ConsumerState<OrderDetailView> {
             // Complaint status section (visible to both sides if complaint exists)
             if (_complaint != null) ...[
               Text(
-                'Complaint',
+                l10n.orderComplaint,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
@@ -765,7 +771,7 @@ class _OrderDetailViewState extends ConsumerState<OrderDetailView> {
                           children: [
                             Chip(
                               label: Text(
-                                _getComplaintStatusDisplayName(_complaint!.status),
+                                _getComplaintStatusDisplayName(_complaint!.status, context),
                               ),
                               backgroundColor: _getComplaintStatusColor(
                                 _complaint!.status,
@@ -788,7 +794,7 @@ class _OrderDetailViewState extends ConsumerState<OrderDetailView> {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Created: ${_formatDate(_complaint!.createdAt)}',
+                          l10n.complaintCreated.replaceAll('{date}', _formatDate(_complaint!.createdAt, context)),
                           style: Theme.of(context).textTheme.bodySmall,
                         ),
                       ],
@@ -807,17 +813,17 @@ class _OrderDetailViewState extends ConsumerState<OrderDetailView> {
 
             // Order products
             Text(
-              'Products',
+              l10n.orderProducts,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
             ),
             const SizedBox(height: 8),
             if (_orderProducts.isEmpty)
-              const Card(
+              Card(
                 child: Padding(
-                  padding: EdgeInsets.all(16.0),
-                  child: Text('No products in this order'),
+                  padding: const EdgeInsets.all(16.0),
+                  child: Text(l10n.orderNoProducts),
                 ),
               )
             else
@@ -834,7 +840,7 @@ class _OrderDetailViewState extends ConsumerState<OrderDetailView> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Total',
+                      l10n.orderTotal,
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
@@ -869,22 +875,23 @@ class _OrderDetailViewState extends ConsumerState<OrderDetailView> {
     String companyLabel;
     String personnelLabel;
 
+    final l10n = AppLocalizations.of(context)!;
     if (currentCompany?.companyType == CompanyType.consumer) {
       // Consumer sees supplier company
       companyToShow = _supplierCompany;
       companyIdToShow = _linking?.supplierCompanyId;
-      companyLabel = 'Supplier';
+      companyLabel = l10n.orderSupplier;
       // Consumer sees assigned salesperson
       personnelToShow = _salesperson;
-      personnelLabel = 'Assigned Salesperson';
+      personnelLabel = l10n.orderAssignedSalesperson;
     } else {
       // Supplier sees consumer company
       companyToShow = _consumerCompany;
       companyIdToShow = _linking?.consumerCompanyId;
-      companyLabel = 'Consumer';
+      companyLabel = l10n.orderConsumer;
       // Supplier sees consumer staff who created the order
       personnelToShow = _consumerUser;
-      personnelLabel = 'Consumer Staff';
+      personnelLabel = l10n.orderConsumerStaff;
     }
 
     return Column(
@@ -918,7 +925,7 @@ class _OrderDetailViewState extends ConsumerState<OrderDetailView> {
                 children: [
                   Expanded(
                     child: Text(
-                      companyToShow?.name ?? 'Company #${companyIdToShow ?? 'N/A'}',
+                      companyToShow?.name ?? '${l10n.companiesCompany} #${companyIdToShow ?? l10n.commonNA}',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.w600,
                           ),
@@ -980,7 +987,7 @@ class _OrderDetailViewState extends ConsumerState<OrderDetailView> {
                           ),
                         ] else
                           Text(
-                            'Not assigned',
+                            l10n.commonNotAssigned,
                             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                   fontStyle: FontStyle.italic,
                                   color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
@@ -1014,7 +1021,7 @@ class _OrderDetailViewState extends ConsumerState<OrderDetailView> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Product #${orderProduct.productId}',
+                AppLocalizations.of(context)!.orderProductId(orderProduct.productId),
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
@@ -1027,18 +1034,18 @@ class _OrderDetailViewState extends ConsumerState<OrderDetailView> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Quantity: ${orderProduct.quantity}',
+                        AppLocalizations.of(context)!.orderQuantity(orderProduct.quantity),
                         style: Theme.of(context).textTheme.bodyMedium,
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Price per unit: ${orderProduct.pricePerUnit ?? 0} ₸',
+                        AppLocalizations.of(context)!.orderPricePerUnit(orderProduct.pricePerUnit ?? 0),
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
                     ],
                   ),
                   Text(
-                    '${orderProduct.subtotal ?? 0} ₸',
+                    AppLocalizations.of(context)!.orderSubtotal(orderProduct.subtotal ?? 0),
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                           color: Theme.of(context).colorScheme.primary,
@@ -1133,12 +1140,12 @@ class _OrderDetailViewState extends ConsumerState<OrderDetailView> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Quantity: ${orderProduct.quantity} ${product.unit}',
+                      '${AppLocalizations.of(context)!.orderQuantity(orderProduct.quantity)} ${product.unit}',
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Price per unit: ${orderProduct.pricePerUnit ?? 0} ₸',
+                      AppLocalizations.of(context)!.orderPricePerUnit(orderProduct.pricePerUnit ?? 0),
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
                   ],

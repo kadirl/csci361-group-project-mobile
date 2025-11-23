@@ -131,7 +131,7 @@ Future<void> _showLocalePicker(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
             RadioListTile<Locale>(
-              title: const Text('English'),
+              title: Text(AppLocalizations.of(context)!.settingsEnglish),
               value: const Locale('en'),
               groupValue: currentLocale,
               onChanged: (value) {
@@ -142,7 +142,7 @@ Future<void> _showLocalePicker(
               },
             ),
             RadioListTile<Locale>(
-              title: const Text('Русский'),
+              title: Text(AppLocalizations.of(context)!.settingsRussian),
               value: const Locale('ru'),
               groupValue: currentLocale,
               onChanged: (value) {

@@ -6,6 +6,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:just_audio/just_audio.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:record/record.dart';
+import 'package:path_provider/path_provider.dart';
+import 'dart:io';
 
 import '../../../core/providers/chat_provider.dart';
 import '../../../core/providers/company_profile_provider.dart';
@@ -19,6 +25,7 @@ import '../../../data/models/order.dart';
 import '../../../data/repositories/complaint_repository.dart';
 import '../../../data/repositories/uploads_repository.dart';
 import '../../../data/repositories/user_repository.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../supplier/views/catalog/product/product_image_gallery_view.dart';
 
 /// Reusable chat view widget for linking or order chats.
@@ -65,8 +72,33 @@ class _ChatViewState extends ConsumerState<ChatView> {
   bool _isUploadingImage = false;
   String? _pendingImageFilename;
   
+  // File upload state
+  Uint8List? _pendingFileBytes;
+  String? _pendingFileUrl;
+  bool _isUploadingFile = false;
+  String? _pendingFileFilename;
+  String? _pendingFileExtension;
+  
+  // Audio upload state
+  Uint8List? _pendingAudioBytes;
+  String? _pendingAudioUrl;
+  bool _isUploadingAudio = false;
+  String? _pendingAudioFilename;
+  String? _pendingAudioExtension;
+  
+  // Audio recording state
+  final AudioRecorder _audioRecorder = AudioRecorder();
+  bool _isRecording = false;
+  Duration _recordingDuration = Duration.zero;
+  
   // Cached complaint for permission checks
   Complaint? _cachedComplaint;
+  
+  // Audio player state - one player per message
+  final Map<int, AudioPlayer> _audioPlayers = {};
+  final Map<int, bool> _audioPlayingStates = {};
+  final Map<int, Duration?> _audioDurations = {};
+  final Map<int, Duration?> _audioPositions = {};
 
   @override
   void initState() {
@@ -109,6 +141,22 @@ class _ChatViewState extends ConsumerState<ChatView> {
   void dispose() {
     _messageController.dispose();
     _scrollController.dispose();
+    
+    // Dispose all audio players
+    for (final player in _audioPlayers.values) {
+      player.dispose();
+    }
+    _audioPlayers.clear();
+    _audioPlayingStates.clear();
+    _audioDurations.clear();
+    _audioPositions.clear();
+    
+    // Stop recording if active and dispose recorder
+    if (_isRecording) {
+      _audioRecorder.stop();
+    }
+    _audioRecorder.dispose();
+    
     super.dispose();
   }
 
@@ -335,42 +383,43 @@ class _ChatViewState extends ConsumerState<ChatView> {
   }
 
   // Get appropriate hint text based on permission state.
-  String _getHintText(bool canSend) {
+  String _getHintText(bool canSend, BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     if (canSend) {
-      return 'Type a message...';
+      return l10n.chatTypeMessage;
     }
 
     if (widget.linking == null) {
-      return 'Cannot send messages';
+      return l10n.chatCannotSendMessages;
     }
 
     final userState = ref.read(userProfileProvider);
     final companyState = ref.read(companyProfileProvider);
 
     if (userState.isLoading || companyState.isLoading) {
-      return 'Loading permissions...';
+      return l10n.chatLoadingPermissions;
     }
 
     if (userState.hasError || companyState.hasError) {
-      return 'Error loading permissions';
+      return l10n.chatErrorLoadingPermissions;
     }
 
     final currentUser = userState.value;
     final currentCompany = companyState.value;
 
     if (currentUser == null || currentCompany == null) {
-      return 'Cannot send messages';
+      return l10n.chatCannotSendMessages;
     }
 
     final bool isConsumerSide = currentCompany.id == widget.linking!.consumerCompanyId;
     final bool isSupplierSide = currentCompany.id == widget.linking!.supplierCompanyId;
 
     if (isConsumerSide) {
-      return 'Only consumer contact can send messages';
+      return l10n.chatOnlyConsumerContact;
     } else if (isSupplierSide) {
-      return 'Only assigned salesman can send messages';
+      return l10n.chatOnlyAssignedSalesman;
     } else {
-      return 'Cannot send messages';
+      return l10n.chatCannotSendMessages;
     }
   }
 
@@ -403,6 +452,184 @@ class _ChatViewState extends ConsumerState<ChatView> {
     }
   }
 
+  // Show attachment type selection menu.
+  void _showAttachmentMenu() {
+    if (!_canSendMessages()) {
+      return;
+    }
+
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.image),
+                title: Text(AppLocalizations.of(context)!.chatAttachmentImage),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickImage();
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.insert_drive_file),
+                title: Text(AppLocalizations.of(context)!.chatAttachmentFile),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickFile();
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.audiotrack),
+                title: Text(AppLocalizations.of(context)!.chatAttachmentAudio),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickAudio();
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  // Pick file from system file picker.
+  Future<void> _pickFile() async {
+    if (!_canSendMessages()) {
+      return;
+    }
+
+    try {
+      final FilePickerResult? result = await FilePicker.platform.pickFiles(
+        type: FileType.any,
+        allowMultiple: false,
+      );
+
+      if (result == null || result.files.single.bytes == null) {
+        return;
+      }
+
+      final PlatformFile file = result.files.single;
+      final Uint8List fileBytes = file.bytes!;
+      
+      // Extract filename and extension
+      final String filename = file.name;
+      final int dotIndex = filename.lastIndexOf('.');
+      final String extension = dotIndex != -1 && dotIndex < filename.length - 1
+          ? filename.substring(dotIndex + 1).toLowerCase()
+          : 'bin';
+
+      // Set pending file for preview
+      setState(() {
+        _pendingFileBytes = fileBytes;
+        _pendingFileUrl = null;
+        _isUploadingFile = true;
+        _pendingFileFilename = filename;
+        _pendingFileExtension = extension;
+      });
+
+      // Upload to S3
+      final UploadsRepository uploadsRepository = ref.read(uploadsRepositoryProvider);
+      final String uploadedUrl = await S3UploadUtils.uploadToS3(
+        uploadsRepository: uploadsRepository,
+        fileBytes: fileBytes,
+        fileExtension: extension,
+        filename: filename,
+      );
+
+      if (mounted) {
+        setState(() {
+          _pendingFileUrl = uploadedUrl;
+          _isUploadingFile = false;
+        });
+      }
+    } catch (e) {
+      log('ChatView -> Failed to pick/upload file: $e');
+      if (mounted) {
+        setState(() {
+          _pendingFileBytes = null;
+          _pendingFileUrl = null;
+          _isUploadingFile = false;
+          _pendingFileFilename = null;
+          _pendingFileExtension = null;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(AppLocalizations.of(context)!.chatErrorUploadFile(e.toString()))),
+        );
+      }
+    }
+  }
+
+  // Pick audio file from system file picker.
+  Future<void> _pickAudio() async {
+    if (!_canSendMessages()) {
+      return;
+    }
+
+    try {
+      final FilePickerResult? result = await FilePicker.platform.pickFiles(
+        type: FileType.audio,
+        allowMultiple: false,
+      );
+
+      if (result == null || result.files.single.bytes == null) {
+        return;
+      }
+
+      final PlatformFile file = result.files.single;
+      final Uint8List audioBytes = file.bytes!;
+      
+      // Extract filename and extension
+      final String filename = file.name;
+      final int dotIndex = filename.lastIndexOf('.');
+      final String extension = dotIndex != -1 && dotIndex < filename.length - 1
+          ? filename.substring(dotIndex + 1).toLowerCase()
+          : 'mp3';
+
+      // Set pending audio for preview
+      setState(() {
+        _pendingAudioBytes = audioBytes;
+        _pendingAudioUrl = null;
+        _isUploadingAudio = true;
+        _pendingAudioFilename = filename;
+        _pendingAudioExtension = extension;
+      });
+
+      // Upload to S3
+      final UploadsRepository uploadsRepository = ref.read(uploadsRepositoryProvider);
+      final String uploadedUrl = await S3UploadUtils.uploadToS3(
+        uploadsRepository: uploadsRepository,
+        fileBytes: audioBytes,
+        fileExtension: extension,
+        filename: filename,
+      );
+
+      if (mounted) {
+        setState(() {
+          _pendingAudioUrl = uploadedUrl;
+          _isUploadingAudio = false;
+        });
+      }
+    } catch (e) {
+      log('ChatView -> Failed to pick/upload audio: $e');
+      if (mounted) {
+        setState(() {
+          _pendingAudioBytes = null;
+          _pendingAudioUrl = null;
+          _isUploadingAudio = false;
+          _pendingAudioFilename = null;
+          _pendingAudioExtension = null;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(AppLocalizations.of(context)!.chatErrorUploadAudio(e.toString()))),
+        );
+      }
+    }
+  }
+
   // Pick image from gallery or camera.
   Future<void> _pickImage() async {
     if (!_canSendMessages()) {
@@ -412,24 +639,27 @@ class _ChatViewState extends ConsumerState<ChatView> {
     // Show dialog to choose source
     final ImageSource? source = await showDialog<ImageSource>(
       context: context,
-      builder: (BuildContext dialogContext) => AlertDialog(
-        title: const Text('Select Image Source'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.photo_library),
-              title: const Text('Gallery'),
-              onTap: () => Navigator.of(dialogContext).pop(ImageSource.gallery),
-            ),
-            ListTile(
-              leading: const Icon(Icons.camera_alt),
-              title: const Text('Camera'),
-              onTap: () => Navigator.of(dialogContext).pop(ImageSource.camera),
-            ),
-          ],
-        ),
-      ),
+      builder: (BuildContext dialogContext) {
+        final l10n = AppLocalizations.of(context)!;
+        return AlertDialog(
+          title: Text(l10n.chatSelectImageSource),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.photo_library),
+                title: Text(l10n.chatImageSourceGallery),
+                onTap: () => Navigator.of(dialogContext).pop(ImageSource.gallery),
+              ),
+              ListTile(
+                leading: const Icon(Icons.camera_alt),
+                title: Text(l10n.chatImageSourceCamera),
+                onTap: () => Navigator.of(dialogContext).pop(ImageSource.camera),
+              ),
+            ],
+          ),
+        );
+      },
     );
 
     if (source == null) {
@@ -486,7 +716,7 @@ class _ChatViewState extends ConsumerState<ChatView> {
           _pendingImageFilename = null;
         });
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to upload image: $e')),
+          SnackBar(content: Text(AppLocalizations.of(context)!.chatErrorUploadImage(e.toString()))),
         );
       }
     }
@@ -502,7 +732,184 @@ class _ChatViewState extends ConsumerState<ChatView> {
     });
   }
 
-  // Send a message (text or image).
+  // Remove pending file.
+  void _removePendingFile() {
+    setState(() {
+      _pendingFileBytes = null;
+      _pendingFileUrl = null;
+      _isUploadingFile = false;
+      _pendingFileFilename = null;
+      _pendingFileExtension = null;
+    });
+  }
+
+  // Remove pending audio.
+  void _removePendingAudio() {
+    setState(() {
+      _pendingAudioBytes = null;
+      _pendingAudioUrl = null;
+      _isUploadingAudio = false;
+      _pendingAudioFilename = null;
+      _pendingAudioExtension = null;
+    });
+  }
+
+  // Toggle audio recording (start or stop).
+  Future<void> _toggleRecording() async {
+    if (!_canSendMessages()) {
+      return;
+    }
+
+    if (_isRecording) {
+      await _stopRecording();
+    } else {
+      await _startRecording();
+    }
+  }
+
+  // Start audio recording.
+  Future<void> _startRecording() async {
+    try {
+      // Check permission
+      if (!await _audioRecorder.hasPermission()) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(AppLocalizations.of(context)!.chatMicrophonePermissionDenied)),
+          );
+        }
+        return;
+      }
+
+      // Get temporary directory for recording
+      final Directory tempDir = await getTemporaryDirectory();
+      final String timestamp = DateTime.now().millisecondsSinceEpoch.toString();
+      final String filePath = '${tempDir.path}/audio_$timestamp.m4a';
+
+      await _audioRecorder.start(
+        const RecordConfig(
+          encoder: AudioEncoder.aacLc,
+          bitRate: 128000,
+          sampleRate: 44100,
+        ),
+        path: filePath,
+      );
+
+      setState(() {
+        _isRecording = true;
+        _recordingDuration = Duration.zero;
+      });
+
+      // Update duration every second
+      _updateRecordingDuration();
+    } catch (e) {
+      log('ChatView -> Failed to start recording: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(AppLocalizations.of(context)!.chatErrorStartRecording(e.toString()))),
+        );
+      }
+    }
+  }
+
+  // Update recording duration.
+  void _updateRecordingDuration() {
+    if (!_isRecording || !mounted) return;
+
+    Future.delayed(const Duration(seconds: 1), () {
+      if (mounted && _isRecording) {
+        setState(() {
+          _recordingDuration = _recordingDuration + const Duration(seconds: 1);
+        });
+        _updateRecordingDuration();
+      }
+    });
+  }
+
+  // Stop audio recording and upload.
+  Future<void> _stopRecording() async {
+    try {
+      final String? path = await _audioRecorder.stop();
+      
+      if (path == null || !File(path).existsSync()) {
+        if (mounted) {
+          setState(() {
+            _isRecording = false;
+            _recordingDuration = Duration.zero;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(AppLocalizations.of(context)!.chatRecordingFileNotFound)),
+          );
+        }
+        return;
+      }
+
+      // Read the recorded file
+      final File audioFile = File(path);
+      final Uint8List audioBytes = await audioFile.readAsBytes();
+      
+      // Generate filename
+      final String timestamp = DateTime.now().millisecondsSinceEpoch.toString();
+      final String filename = 'recording_$timestamp.m4a';
+
+      setState(() {
+        _isRecording = false;
+        _recordingDuration = Duration.zero;
+        _pendingAudioBytes = audioBytes;
+        _pendingAudioUrl = null;
+        _isUploadingAudio = true;
+        _pendingAudioFilename = filename;
+        _pendingAudioExtension = 'm4a';
+      });
+
+      // Upload to S3
+      final UploadsRepository uploadsRepository = ref.read(uploadsRepositoryProvider);
+      final String uploadedUrl = await S3UploadUtils.uploadToS3(
+        uploadsRepository: uploadsRepository,
+        fileBytes: audioBytes,
+        fileExtension: 'm4a',
+        filename: filename,
+      );
+
+      if (mounted) {
+        setState(() {
+          _pendingAudioUrl = uploadedUrl;
+          _isUploadingAudio = false;
+        });
+      }
+
+      // Clean up temporary file
+      try {
+        await audioFile.delete();
+      } catch (e) {
+        log('ChatView -> Failed to delete temp recording file: $e');
+      }
+    } catch (e) {
+      log('ChatView -> Failed to stop/upload recording: $e');
+      if (mounted) {
+        setState(() {
+          _isRecording = false;
+          _recordingDuration = Duration.zero;
+          _pendingAudioBytes = null;
+          _pendingAudioUrl = null;
+          _isUploadingAudio = false;
+          _pendingAudioFilename = null;
+          _pendingAudioExtension = null;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(AppLocalizations.of(context)!.chatErrorProcessRecording(e.toString()))),
+        );
+      }
+    }
+  }
+
+  // Format recording duration for display.
+  String _formatRecordingDuration(Duration duration) {
+    final minutes = duration.inMinutes;
+    final seconds = duration.inSeconds % 60;
+    return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+  }
+
+  // Send a message (text, image, file, or audio).
   Future<void> _sendMessage() async {
     if (!_canSendMessages()) {
       return;
@@ -537,7 +944,83 @@ class _ChatViewState extends ConsumerState<ChatView> {
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to send image: $e')),
+            SnackBar(content: Text(AppLocalizations.of(context)!.chatErrorSendImage(e.toString()))),
+          );
+        }
+      }
+      return;
+    }
+
+    // Send file if pending
+    if (_pendingFileUrl != null) {
+      try {
+        final notifier = widget.linkingId != null
+            ? ref.read(linkingChatProvider.notifier)
+            : ref.read(orderChatProvider.notifier);
+
+        // For file messages, body is JSON with url and filename
+        final String fileBody = jsonEncode({
+          'url': _pendingFileUrl!,
+          'filename': _pendingFileFilename ?? 'file',
+        });
+        await notifier.sendMessage(
+          body: fileBody,
+          type: MessageType.file,
+        );
+
+        // Clear pending file
+        _removePendingFile();
+
+        // Scroll to bottom after sending
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (_scrollController.hasClients) {
+            _scrollController.animateTo(
+              _scrollController.position.maxScrollExtent,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeOut,
+            );
+          }
+        });
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(AppLocalizations.of(context)!.chatErrorSendFile(e.toString()))),
+          );
+        }
+      }
+      return;
+    }
+
+    // Send audio if pending
+    if (_pendingAudioUrl != null) {
+      try {
+        final notifier = widget.linkingId != null
+            ? ref.read(linkingChatProvider.notifier)
+            : ref.read(orderChatProvider.notifier);
+
+        // For audio messages, body is always just the URL string
+        await notifier.sendMessage(
+          body: _pendingAudioUrl!,
+          type: MessageType.audio,
+        );
+
+        // Clear pending audio
+        _removePendingAudio();
+
+        // Scroll to bottom after sending
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (_scrollController.hasClients) {
+            _scrollController.animateTo(
+              _scrollController.position.maxScrollExtent,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeOut,
+            );
+          }
+        });
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(AppLocalizations.of(context)!.chatErrorSendAudio(e.toString()))),
           );
         }
       }
@@ -571,7 +1054,7 @@ class _ChatViewState extends ConsumerState<ChatView> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to send message: $e')),
+          SnackBar(content: Text(AppLocalizations.of(context)!.chatErrorSendMessage(e.toString()))),
         );
       }
     }
@@ -593,7 +1076,7 @@ class _ChatViewState extends ConsumerState<ChatView> {
   }
 
   // Get sender name for a message.
-  String _getSenderName(ChatMessage message) {
+  String _getSenderName(ChatMessage message, BuildContext context) {
     if (message.senderName != null && message.senderName!.isNotEmpty) {
       return message.senderName!;
     }
@@ -603,7 +1086,8 @@ class _ChatViewState extends ConsumerState<ChatView> {
       return '${sender.firstName} ${sender.lastName}';
     }
 
-    return 'User ${message.senderId}';
+    final l10n = AppLocalizations.of(context)!;
+    return l10n.chatUserUnknown(message.senderId);
   }
 
   // Get sender initials for avatar.
@@ -616,7 +1100,7 @@ class _ChatViewState extends ConsumerState<ChatView> {
     }
 
     // Fallback to first letter of sender name.
-    final name = _getSenderName(message);
+    final name = _getSenderName(message, context);
     if (name.isNotEmpty) {
       return name[0].toUpperCase();
     }
@@ -643,7 +1127,8 @@ class _ChatViewState extends ConsumerState<ChatView> {
   }
 
   // Format update message body into readable text.
-  String _formatUpdateMessage(ChatMessage message) {
+  String _formatUpdateMessage(ChatMessage message, BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     try {
       // Try to parse the message body as JSON
       final Map<String, dynamic> data = jsonDecode(message.body) as Map<String, dynamic>;
@@ -669,15 +1154,15 @@ class _ChatViewState extends ConsumerState<ChatView> {
           
           if (entity == 'order') {
             if (entityId != null) {
-              return 'Order #$entityId created with status $formattedNewStatus';
+              return l10n.chatOrderCreated(entityId, formattedNewStatus);
             } else {
-              return 'Order created with status $formattedNewStatus';
+              return l10n.chatOrderCreatedNoId(formattedNewStatus);
             }
           } else if (entity == 'complaint') {
             if (entityId != null) {
-              return 'Complaint #$entityId created with status $formattedNewStatus';
+              return l10n.chatComplaintCreated(entityId, formattedNewStatus);
             } else {
-              return 'Complaint created with status $formattedNewStatus';
+              return l10n.chatComplaintCreatedNoId(formattedNewStatus);
             }
           }
         }
@@ -688,15 +1173,15 @@ class _ChatViewState extends ConsumerState<ChatView> {
           
           if (entity == 'order') {
             if (entityId != null) {
-              return 'Order #$entityId status changed from $formattedOldStatus to $formattedNewStatus';
+              return l10n.chatOrderStatusChanged(formattedNewStatus, formattedOldStatus, entityId);
             } else {
-              return 'Order status changed from $formattedOldStatus to $formattedNewStatus';
+              return l10n.chatOrderStatusChangedNoId(formattedNewStatus, formattedOldStatus);
             }
           } else if (entity == 'complaint') {
             if (entityId != null) {
-              return 'Complaint #$entityId status changed from $formattedOldStatus to $formattedNewStatus';
+              return l10n.chatComplaintStatusChanged(entityId, formattedNewStatus, formattedOldStatus);
             } else {
-              return 'Complaint status changed from $formattedOldStatus to $formattedNewStatus';
+              return l10n.chatComplaintStatusChangedNoId(formattedNewStatus, formattedOldStatus);
             }
           }
         }
@@ -706,15 +1191,15 @@ class _ChatViewState extends ConsumerState<ChatView> {
           
           if (entity == 'order') {
             if (entityId != null) {
-              return 'Order #$entityId status removed (was $formattedOldStatus)';
+              return l10n.chatOrderStatusRemoved(formattedOldStatus, entityId);
             } else {
-              return 'Order status removed (was $formattedOldStatus)';
+              return l10n.chatOrderStatusRemovedNoId(formattedOldStatus);
             }
           } else if (entity == 'complaint') {
             if (entityId != null) {
-              return 'Complaint #$entityId status removed (was $formattedOldStatus)';
+              return l10n.chatComplaintStatusRemoved(entityId, formattedOldStatus);
             } else {
-              return 'Complaint status removed (was $formattedOldStatus)';
+              return l10n.chatComplaintStatusRemovedNoId(formattedOldStatus);
             }
           }
         }
@@ -730,14 +1215,14 @@ class _ChatViewState extends ConsumerState<ChatView> {
   }
 
   // Build update message widget (full width, no sender).
-  Widget _buildUpdateMessage(ChatMessage message) {
+  Widget _buildUpdateMessage(ChatMessage message, BuildContext context) {
     final sender = _senderCache[message.senderId];
     final senderName = sender != null
         ? '${sender.firstName} ${sender.lastName}'
-        : _getSenderName(message);
+        : _getSenderName(message, context);
 
     // Format the message body
-    final String formattedBody = _formatUpdateMessage(message);
+    final String formattedBody = _formatUpdateMessage(message, context);
 
     return Container(
       width: double.infinity,
@@ -762,7 +1247,7 @@ class _ChatViewState extends ConsumerState<ChatView> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'By $senderName',
+                '${AppLocalizations.of(context)!.commonBy} $senderName',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.7),
                     ),
@@ -799,7 +1284,7 @@ class _ChatViewState extends ConsumerState<ChatView> {
   }
 
   // Build image message widget (thumbnail in bubble, clickable to full screen).
-  Widget _buildImageMessage(ChatMessage message, bool isCurrentUser) {
+  Widget _buildImageMessage(ChatMessage message, bool isCurrentUser, BuildContext context) {
     final userState = ref.watch(userProfileProvider);
     final currentUser = userState.value;
     final isOwnMessage = currentUser?.id == message.senderId;
@@ -807,7 +1292,7 @@ class _ChatViewState extends ConsumerState<ChatView> {
 
     if (imageUrl == null) {
       // Fallback to text message if URL extraction fails
-      return _buildTextMessage(message, isCurrentUser);
+      return _buildTextMessage(message, isCurrentUser, context);
     }
 
     return Padding(
@@ -830,7 +1315,7 @@ class _ChatViewState extends ConsumerState<ChatView> {
                   Padding(
                     padding: const EdgeInsets.only(bottom: 4.0, right: 4.0),
                     child: Text(
-                      _getSenderName(message),
+                      _getSenderName(message, context),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
                           ),
@@ -898,7 +1383,7 @@ class _ChatViewState extends ConsumerState<ChatView> {
                               ),
                               const SizedBox(height: 8),
                               Text(
-                                'Failed to load image',
+                                AppLocalizations.of(context)!.chatFailedToLoadImage,
                                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                                     ),
@@ -933,8 +1418,488 @@ class _ChatViewState extends ConsumerState<ChatView> {
     );
   }
 
+  // Extract file URL from message body.
+  // For file messages, body is JSON with url and filename.
+  String? _extractFileUrl(ChatMessage message, BuildContext context) {
+    if (message.messageType != MessageType.file) {
+      return null;
+    }
+
+    try {
+      final String trimmedBody = message.body.trim();
+      if (trimmedBody.isEmpty) {
+        return null;
+      }
+
+      // Try to parse as JSON first (for file messages)
+      final Map<String, dynamic> data = jsonDecode(trimmedBody) as Map<String, dynamic>;
+      final String? url = data['url'] as String?;
+      if (url != null && (url.startsWith('http://') || url.startsWith('https://'))) {
+        return url;
+      }
+    } catch (e) {
+      // If JSON parsing fails, try as direct URL (backward compatibility)
+      final String trimmedBody = message.body.trim();
+      if (trimmedBody.startsWith('http://') || trimmedBody.startsWith('https://')) {
+        return trimmedBody;
+      }
+      log('ChatView -> Failed to extract file URL: $e');
+    }
+
+    return null;
+  }
+
+  // Extract filename from file message body.
+  // For file messages, body is JSON with url and filename.
+  String _extractFileFilename(ChatMessage message, BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    if (message.messageType != MessageType.file) {
+      return l10n.chatAttachmentFile;
+    }
+
+    try {
+      final String trimmedBody = message.body.trim();
+      if (trimmedBody.isEmpty) {
+        return l10n.chatAttachmentFile;
+      }
+
+      // Try to parse as JSON first (for file messages)
+      final Map<String, dynamic> data = jsonDecode(trimmedBody) as Map<String, dynamic>;
+      final String? filename = data['filename'] as String?;
+      if (filename != null && filename.isNotEmpty) {
+        return filename;
+      }
+    } catch (e) {
+      // If JSON parsing fails, try to extract from URL (backward compatibility)
+      final String? url = _extractFileUrl(message, context);
+      if (url != null) {
+        try {
+          final uri = Uri.parse(url);
+          final pathSegments = uri.pathSegments;
+          if (pathSegments.isNotEmpty) {
+            final filename = pathSegments.last;
+            // Remove query parameters if present in filename
+            final cleanFilename = filename.split('?').first;
+            if (cleanFilename.isNotEmpty) {
+              return cleanFilename;
+            }
+          }
+        } catch (e2) {
+          log('ChatView -> Failed to extract filename from URL: $e2');
+        }
+      }
+      log('ChatView -> Failed to extract filename from JSON: $e');
+    }
+
+    return AppLocalizations.of(context)!.chatAttachmentFile;
+  }
+
+  // Download file by opening URL.
+  Future<void> _downloadFile(String url, BuildContext context) async {
+    try {
+      final uri = Uri.parse(url);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(AppLocalizations.of(context)!.chatCannotOpenFileUrl)),
+          );
+        }
+      }
+    } catch (e) {
+      log('ChatView -> Failed to download file: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(AppLocalizations.of(context)!.chatErrorDownloadFile(e.toString()))),
+        );
+      }
+    }
+  }
+
+  // Build file message widget with filename and download button.
+  Widget _buildFileMessage(ChatMessage message, bool isCurrentUser, BuildContext context) {
+    final userState = ref.watch(userProfileProvider);
+    final currentUser = userState.value;
+    final isOwnMessage = currentUser?.id == message.senderId;
+    final String? fileUrl = _extractFileUrl(message, context);
+
+    if (fileUrl == null) {
+      // Fallback to text message if URL extraction fails
+      return _buildTextMessage(message, isCurrentUser, context);
+    }
+
+    final String filename = _extractFileFilename(message, context);
+    final String displayFilename = filename.length > 30 
+        ? '${filename.substring(0, 27)}...' 
+        : filename;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+      child: Row(
+        mainAxisAlignment:
+            isOwnMessage ? MainAxisAlignment.end : MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          if (!isOwnMessage) ...[
+            _buildAvatar(message),
+            const SizedBox(width: 8),
+          ],
+          Flexible(
+            child: Column(
+              crossAxisAlignment:
+                  isOwnMessage ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+              children: [
+                if (!isOwnMessage)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 4.0, left: 4.0),
+                    child: Text(
+                      _getSenderName(message, context),
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                          ),
+                    ),
+                  ),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16.0,
+                    vertical: 12.0,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isOwnMessage
+                        ? Theme.of(context).colorScheme.primary
+                        : Theme.of(context).colorScheme.surfaceVariant,
+                    borderRadius: BorderRadius.circular(16.0),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.insert_drive_file,
+                        color: isOwnMessage
+                            ? Theme.of(context).colorScheme.onPrimary
+                            : Theme.of(context).colorScheme.onSurfaceVariant,
+                        size: 24,
+                      ),
+                      const SizedBox(width: 12),
+                      Flexible(
+                        child: Text(
+                          displayFilename,
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                color: isOwnMessage
+                                    ? Theme.of(context).colorScheme.onPrimary
+                                    : Theme.of(context).colorScheme.onSurfaceVariant,
+                                fontWeight: FontWeight.w500,
+                              ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      IconButton(
+                        onPressed: () => _downloadFile(fileUrl, context),
+                        icon: Icon(
+                          Icons.download,
+                          color: isOwnMessage
+                              ? Theme.of(context).colorScheme.onPrimary
+                              : Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                        iconSize: 20,
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(
+                          minWidth: 32,
+                          minHeight: 32,
+                        ),
+                        tooltip: AppLocalizations.of(context)!.chatDownloadFile,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                  child: Text(
+                    _formatTime(message.sentAt),
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+                          fontSize: 11,
+                        ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (isOwnMessage) ...[
+            const SizedBox(width: 8),
+            _buildAvatar(message),
+          ],
+        ],
+      ),
+    );
+  }
+
+  // Extract audio URL from message body.
+  // For audio messages, body is always a direct URL string.
+  String? _extractAudioUrl(ChatMessage message) {
+    if (message.messageType != MessageType.audio) {
+      return null;
+    }
+
+    final String trimmedBody = message.body.trim();
+    if (trimmedBody.isNotEmpty) {
+      if (trimmedBody.startsWith('http://') || trimmedBody.startsWith('https://')) {
+        return trimmedBody;
+      }
+    }
+
+    return null;
+  }
+
+  // Initialize audio player for a message if not already initialized.
+  Future<void> _initializeAudioPlayer(ChatMessage message) async {
+    if (_audioPlayers.containsKey(message.messageId)) {
+      return;
+    }
+
+    final String? audioUrl = _extractAudioUrl(message);
+    if (audioUrl == null) {
+      return;
+    }
+
+    try {
+      final player = AudioPlayer();
+      await player.setUrl(audioUrl);
+      
+      // Listen to player state changes
+      player.playerStateStream.listen((state) {
+        if (mounted) {
+          setState(() {
+            _audioPlayingStates[message.messageId] = state.playing;
+          });
+        }
+      });
+
+      // Listen to duration changes
+      player.durationStream.listen((duration) {
+        if (mounted) {
+          setState(() {
+            _audioDurations[message.messageId] = duration;
+          });
+        }
+      });
+
+      // Listen to position changes
+      player.positionStream.listen((position) {
+        if (mounted) {
+          setState(() {
+            _audioPositions[message.messageId] = position;
+          });
+        }
+      });
+
+      if (mounted) {
+        setState(() {
+          _audioPlayers[message.messageId] = player;
+          _audioPlayingStates[message.messageId] = false;
+        });
+      }
+    } catch (e) {
+      log('ChatView -> Failed to initialize audio player: $e');
+    }
+  }
+
+  // Toggle play/pause for audio message.
+  Future<void> _toggleAudioPlayback(ChatMessage message) async {
+    await _initializeAudioPlayer(message);
+    
+    final player = _audioPlayers[message.messageId];
+    if (player == null) {
+      return;
+    }
+
+    try {
+      final isPlaying = _audioPlayingStates[message.messageId] ?? false;
+      if (isPlaying) {
+        await player.pause();
+      } else {
+        await player.play();
+      }
+    } catch (e) {
+      log('ChatView -> Failed to toggle audio playback: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(AppLocalizations.of(context)!.chatErrorPlayAudio(e.toString()))),
+        );
+      }
+    }
+  }
+
+  // Format duration for display.
+  String _formatDuration(Duration? duration) {
+    if (duration == null) {
+      return '0:00';
+    }
+    final minutes = duration.inMinutes;
+    final seconds = duration.inSeconds % 60;
+    return '$minutes:${seconds.toString().padLeft(2, '0')}';
+  }
+
+  // Build audio message widget with play/pause button.
+  Widget _buildAudioMessage(ChatMessage message, bool isCurrentUser, BuildContext context) {
+    final userState = ref.watch(userProfileProvider);
+    final currentUser = userState.value;
+    final isOwnMessage = currentUser?.id == message.senderId;
+    final String? audioUrl = _extractAudioUrl(message);
+
+    if (audioUrl == null) {
+      // Fallback to text message if URL extraction fails
+      return _buildTextMessage(message, isCurrentUser, context);
+    }
+
+    // Initialize player if not already done
+    _initializeAudioPlayer(message);
+
+    final isPlaying = _audioPlayingStates[message.messageId] ?? false;
+    final duration = _audioDurations[message.messageId];
+    final position = _audioPositions[message.messageId];
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+      child: Row(
+        mainAxisAlignment:
+            isOwnMessage ? MainAxisAlignment.end : MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          if (!isOwnMessage) ...[
+            _buildAvatar(message),
+            const SizedBox(width: 8),
+          ],
+          Flexible(
+            child: Column(
+              crossAxisAlignment:
+                  isOwnMessage ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+              children: [
+                if (!isOwnMessage)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 4.0, left: 4.0),
+                    child: Text(
+                      _getSenderName(message, context),
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                          ),
+                    ),
+                  ),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16.0,
+                    vertical: 12.0,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isOwnMessage
+                        ? Theme.of(context).colorScheme.primary
+                        : Theme.of(context).colorScheme.surfaceVariant,
+                    borderRadius: BorderRadius.circular(16.0),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        onPressed: () => _toggleAudioPlayback(message),
+                        icon: Icon(
+                          isPlaying ? Icons.pause : Icons.play_arrow,
+                          color: isOwnMessage
+                              ? Theme.of(context).colorScheme.onPrimary
+                              : Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                        iconSize: 28,
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(
+                          minWidth: 40,
+                          minHeight: 40,
+                        ),
+                        tooltip: isPlaying ? AppLocalizations.of(context)!.chatPause : AppLocalizations.of(context)!.chatPlay,
+                      ),
+                      const SizedBox(width: 8),
+                      if (duration != null && position != null)
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              LinearProgressIndicator(
+                                value: duration.inMilliseconds > 0
+                                    ? position.inMilliseconds / duration.inMilliseconds
+                                    : 0.0,
+                                backgroundColor: isOwnMessage
+                                    ? Theme.of(context).colorScheme.onPrimary.withOpacity(0.3)
+                                    : Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.3),
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  isOwnMessage
+                                      ? Theme.of(context).colorScheme.onPrimary
+                                      : Theme.of(context).colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    _formatDuration(position),
+                                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                          color: isOwnMessage
+                                              ? Theme.of(context).colorScheme.onPrimary.withOpacity(0.8)
+                                              : Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.8),
+                                          fontSize: 11,
+                                        ),
+                                  ),
+                                  Text(
+                                    _formatDuration(duration),
+                                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                          color: isOwnMessage
+                                              ? Theme.of(context).colorScheme.onPrimary.withOpacity(0.8)
+                                              : Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.8),
+                                          fontSize: 11,
+                                        ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        )
+                      else
+                        Icon(
+                          Icons.audiotrack,
+                          color: isOwnMessage
+                              ? Theme.of(context).colorScheme.onPrimary
+                              : Theme.of(context).colorScheme.onSurfaceVariant,
+                          size: 20,
+                        ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                  child: Text(
+                    _formatTime(message.sentAt),
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+                          fontSize: 11,
+                        ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (isOwnMessage) ...[
+            const SizedBox(width: 8),
+            _buildAvatar(message),
+          ],
+        ],
+      ),
+    );
+  }
+
   // Build regular text message widget (bubble style).
-  Widget _buildTextMessage(ChatMessage message, bool isCurrentUser) {
+  Widget _buildTextMessage(ChatMessage message, bool isCurrentUser, BuildContext context) {
     final userState = ref.watch(userProfileProvider);
     final currentUser = userState.value;
     final isOwnMessage = currentUser?.id == message.senderId;
@@ -959,7 +1924,7 @@ class _ChatViewState extends ConsumerState<ChatView> {
                   Padding(
                     padding: const EdgeInsets.only(bottom: 4.0, left: 4.0),
                     child: Text(
-                      _getSenderName(message),
+                      _getSenderName(message, context),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
                           ),
@@ -1035,7 +2000,7 @@ class _ChatViewState extends ConsumerState<ChatView> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Chat'),
+        title: Text(AppLocalizations.of(context)!.chatTitle),
       ),
       body: Column(
         children: [
@@ -1049,13 +2014,13 @@ class _ChatViewState extends ConsumerState<ChatView> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Text(
-                              'Error: ${chatState.error}',
+                              AppLocalizations.of(context)!.chatError(chatState.error ?? ''),
                               style: Theme.of(context).textTheme.bodyLarge,
                             ),
                             const SizedBox(height: 16),
                             ElevatedButton(
                               onPressed: _connectChat,
-                              child: const Text('Retry'),
+                              child: Text(AppLocalizations.of(context)!.commonRetry),
                             ),
                           ],
                         ),
@@ -1063,7 +2028,7 @@ class _ChatViewState extends ConsumerState<ChatView> {
                     : chatState.messages.isEmpty
                         ? Center(
                             child: Text(
-                              'No messages yet',
+                              AppLocalizations.of(context)!.chatNoMessages,
                               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                                     color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
                                   ),
@@ -1078,16 +2043,26 @@ class _ChatViewState extends ConsumerState<ChatView> {
                               
                               // Check if this is an update message.
                               if (isUpdateMessage(message.messageType)) {
-                                return _buildUpdateMessage(message);
+                                return _buildUpdateMessage(message, context);
                               }
                               
                               // Check if this is an image message.
                               if (message.messageType == MessageType.image) {
-                                return _buildImageMessage(message, false);
+                                return _buildImageMessage(message, false, context);
+                              }
+                              
+                              // Check if this is a file message.
+                              if (message.messageType == MessageType.file) {
+                                return _buildFileMessage(message, false, context);
+                              }
+                              
+                              // Check if this is an audio message.
+                              if (message.messageType == MessageType.audio) {
+                                return _buildAudioMessage(message, false, context);
                               }
                               
                               // Regular text message.
-                              return _buildTextMessage(message, false);
+                              return _buildTextMessage(message, false, context);
                             },
                           ),
           ),
@@ -1161,12 +2136,170 @@ class _ChatViewState extends ConsumerState<ChatView> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      _pendingImageFilename ?? 'Image',
+                      _pendingImageFilename ?? AppLocalizations.of(context)!.chatAttachmentImage,
                       style: Theme.of(context).textTheme.bodySmall,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
+                ],
+              ),
+            ),
+
+          // File preview (if pending)
+          if (_pendingFileBytes != null)
+            Container(
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface,
+                border: Border(
+                  bottom: BorderSide(
+                    color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+                  ),
+                ),
+              ),
+              padding: const EdgeInsets.all(8.0),
+              child: Row(
+                children: [
+                  // File icon
+                  Container(
+                    width: 64,
+                    height: 64,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.surfaceVariant,
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                    child: _isUploadingFile
+                        ? const Center(
+                            child: SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                          )
+                        : Center(
+                            child: Icon(
+                              Icons.insert_drive_file,
+                              size: 32,
+                              color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          _pendingFileFilename ?? AppLocalizations.of(context)!.chatAttachmentFile,
+                          style: Theme.of(context).textTheme.bodySmall,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        if (_pendingFileExtension != null)
+                          Text(
+                            _pendingFileExtension!.toUpperCase(),
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                                  fontSize: 10,
+                                ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  if (!_isUploadingFile)
+                    IconButton(
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(
+                        minWidth: 32,
+                        minHeight: 32,
+                      ),
+                      iconSize: 20,
+                      icon: Icon(
+                        Icons.close,
+                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                      ),
+                      onPressed: _removePendingFile,
+                    ),
+                ],
+              ),
+            ),
+
+          // Audio preview (if pending)
+          if (_pendingAudioBytes != null)
+            Container(
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface,
+                border: Border(
+                  bottom: BorderSide(
+                    color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+                  ),
+                ),
+              ),
+              padding: const EdgeInsets.all(8.0),
+              child: Row(
+                children: [
+                  // Audio icon
+                  Container(
+                    width: 64,
+                    height: 64,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.surfaceVariant,
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                    child: _isUploadingAudio
+                        ? const Center(
+                            child: SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                          )
+                        : Center(
+                            child: Icon(
+                              Icons.audiotrack,
+                              size: 32,
+                              color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          _pendingAudioFilename ?? AppLocalizations.of(context)!.chatAttachmentAudio,
+                          style: Theme.of(context).textTheme.bodySmall,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        if (_pendingAudioExtension != null)
+                          Text(
+                            _pendingAudioExtension!.toUpperCase(),
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                                  fontSize: 10,
+                                ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  if (!_isUploadingAudio)
+                    IconButton(
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(
+                        minWidth: 32,
+                        minHeight: 32,
+                      ),
+                      iconSize: 20,
+                      icon: Icon(
+                        Icons.close,
+                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                      ),
+                      onPressed: _removePendingAudio,
+                    ),
                 ],
               ),
             ),
@@ -1188,20 +2321,24 @@ class _ChatViewState extends ConsumerState<ChatView> {
                 padding: const EdgeInsets.all(8.0),
                 child: Row(
                   children: [
-                    // Paperclip button for image upload
+                    // Paperclip button for attachments (image, file, audio)
                     IconButton(
-                      onPressed: canSend && chatState.isConnected && !_isUploadingImage
-                          ? _pickImage
+                      onPressed: canSend && 
+                          chatState.isConnected && 
+                          !_isUploadingImage && 
+                          !_isUploadingFile && 
+                          !_isUploadingAudio
+                          ? _showAttachmentMenu
                           : null,
                       icon: const Icon(Icons.attach_file),
-                      tooltip: 'Attach image',
+                      tooltip: AppLocalizations.of(context)!.chatAttachFile,
                     ),
                     Expanded(
                       child: TextField(
                         controller: _messageController,
                         enabled: canSend && chatState.isConnected,
                         decoration: InputDecoration(
-                          hintText: _getHintText(canSend),
+                          hintText: _getHintText(canSend, context),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(24.0),
                           ),
@@ -1216,18 +2353,60 @@ class _ChatViewState extends ConsumerState<ChatView> {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    IconButton(
-                      onPressed: canSend && 
-                          chatState.isConnected && 
-                          (_hasText || (_pendingImageUrl != null && !_isUploadingImage))
-                          ? _sendMessage
-                          : null,
-                      icon: const Icon(Icons.send),
-                      style: IconButton.styleFrom(
-                        backgroundColor: Theme.of(context).colorScheme.primary,
-                        foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                      ),
-                    ),
+                    // Show record button when no text, send button when text exists
+                    _hasText || 
+                        (_pendingImageUrl != null && !_isUploadingImage) ||
+                        (_pendingFileUrl != null && !_isUploadingFile) ||
+                        (_pendingAudioUrl != null && !_isUploadingAudio)
+                        ? IconButton(
+                            onPressed: canSend && chatState.isConnected ? _sendMessage : null,
+                            icon: const Icon(Icons.send),
+                            style: IconButton.styleFrom(
+                              backgroundColor: Theme.of(context).colorScheme.primary,
+                              foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                            ),
+                          )
+                        : Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              IconButton(
+                                onPressed: canSend && 
+                                    chatState.isConnected && 
+                                    !_isUploadingImage && 
+                                    !_isUploadingFile && 
+                                    !_isUploadingAudio
+                                    ? _toggleRecording
+                                    : null,
+                                icon: Icon(
+                                  _isRecording ? Icons.stop : Icons.mic,
+                                  color: _isRecording 
+                                      ? Theme.of(context).colorScheme.error
+                                      : Theme.of(context).colorScheme.primary,
+                                ),
+                                style: IconButton.styleFrom(
+                                  backgroundColor: _isRecording
+                                      ? Theme.of(context).colorScheme.errorContainer
+                                      : Theme.of(context).colorScheme.primaryContainer,
+                                  foregroundColor: _isRecording
+                                      ? Theme.of(context).colorScheme.onErrorContainer
+                                      : Theme.of(context).colorScheme.onPrimaryContainer,
+                                ),
+                                tooltip: _isRecording ? AppLocalizations.of(context)!.chatStopRecording : AppLocalizations.of(context)!.chatRecordAudio,
+                              ),
+                              if (_isRecording)
+                                Positioned(
+                                  bottom: 4,
+                                  child: Text(
+                                    _formatRecordingDuration(_recordingDuration),
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      color: Theme.of(context).colorScheme.onErrorContainer,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
                   ],
                 ),
               ),

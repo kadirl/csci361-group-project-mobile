@@ -81,41 +81,44 @@ class _CompanyDetailViewState extends ConsumerState<CompanyDetailView> {
 
     final bool? result = await showDialog<bool>(
       context: context,
-      builder: (BuildContext dialogContext) => AlertDialog(
-        title: const Text('Send Linking Request'),
-        content: Form(
-          key: formKey,
-          child: TextFormField(
-            controller: messageController,
-            decoration: const InputDecoration(
-              labelText: 'Message',
-              hintText: 'Enter your message...',
-              border: OutlineInputBorder(),
+      builder: (BuildContext dialogContext) {
+        final l10n = AppLocalizations.of(context)!;
+        return AlertDialog(
+          title: Text(l10n.companiesSendLinking),
+          content: Form(
+            key: formKey,
+            child: TextFormField(
+              controller: messageController,
+              decoration: InputDecoration(
+              labelText: l10n.companiesLinkingMessage,
+              hintText: l10n.companiesLinkingMessagePlaceholder,
+                border: const OutlineInputBorder(),
+              ),
+              maxLines: 4,
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) {
+                  return l10n.companiesLinkingMessageRequired;
+                }
+                return null;
+              },
             ),
-            maxLines: 4,
-            validator: (value) {
-              if (value == null || value.trim().isEmpty) {
-                return 'Message cannot be empty';
-              }
-              return null;
-            },
           ),
-        ),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () {
-              if (formKey.currentState!.validate()) {
-                Navigator.of(dialogContext).pop(true);
-              }
-            },
-            child: const Text('Send'),
-          ),
-        ],
-      ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: Text(l10n.commonCancel),
+            ),
+            FilledButton(
+              onPressed: () {
+                if (formKey.currentState!.validate()) {
+                  Navigator.of(dialogContext).pop(true);
+                }
+              },
+              child: Text(l10n.companiesSendLinking),
+            ),
+          ],
+        );
+      },
     );
 
     if (result == true && messageController.text.trim().isNotEmpty) {
@@ -137,13 +140,13 @@ class _CompanyDetailViewState extends ConsumerState<CompanyDetailView> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Linking request sent successfully')),
+          SnackBar(content: Text(AppLocalizations.of(context)!.companiesLinkingRequestSent)),
         );
       }
     } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error sending linking request: $error')),
+          SnackBar(content: Text(AppLocalizations.of(context)!.companiesLinkingRequestError(error.toString()))),
         );
       }
     }
@@ -186,7 +189,7 @@ class _CompanyDetailViewState extends ConsumerState<CompanyDetailView> {
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
                 Text(
-                  'Failed to fetch',
+                  AppLocalizations.of(context)!.companiesFailedToFetch,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 const SizedBox(height: 8),
@@ -200,7 +203,7 @@ class _CompanyDetailViewState extends ConsumerState<CompanyDetailView> {
                   onPressed: () {
                     ref.invalidate(companyProductsProvider(widget.companyId));
                   },
-                  child: const Text('Retry'),
+                  child: Text(AppLocalizations.of(context)!.commonRetry),
                 ),
               ],
             ),
@@ -211,7 +214,7 @@ class _CompanyDetailViewState extends ConsumerState<CompanyDetailView> {
                 padding: const EdgeInsets.all(16.0),
                 child: Center(
                   child: Text(
-                    'No products available',
+                    AppLocalizations.of(context)!.companiesNoProducts,
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                 ),
@@ -222,7 +225,7 @@ class _CompanyDetailViewState extends ConsumerState<CompanyDetailView> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 Text(
-                  'Products',
+                  AppLocalizations.of(context)!.companiesProducts,
                   style: Theme.of(
                     context,
                   ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
@@ -247,7 +250,7 @@ class _CompanyDetailViewState extends ConsumerState<CompanyDetailView> {
           child: FilledButton(
             style: FilledButton.styleFrom(minimumSize: ButtonSizes.mdFill),
             onPressed: _showSendLinkingDialog,
-            child: const Text('Send Linking'),
+            child: Text(AppLocalizations.of(context)!.companiesSendLinking),
           ),
         ),
       );
@@ -261,7 +264,7 @@ class _CompanyDetailViewState extends ConsumerState<CompanyDetailView> {
             child: FilledButton(
               style: FilledButton.styleFrom(minimumSize: ButtonSizes.mdFill),
               onPressed: null,
-              child: const Text('Linking Pending'),
+              child: Text(AppLocalizations.of(context)!.companiesLinkingPending),
             ),
           ),
         );
@@ -272,7 +275,7 @@ class _CompanyDetailViewState extends ConsumerState<CompanyDetailView> {
             child: FilledButton(
               style: FilledButton.styleFrom(minimumSize: ButtonSizes.mdFill),
               onPressed: null,
-              child: const Text('Linking Rejected'),
+              child: Text(AppLocalizations.of(context)!.companiesLinkingRejected),
             ),
           ),
         );
@@ -283,7 +286,7 @@ class _CompanyDetailViewState extends ConsumerState<CompanyDetailView> {
             child: FilledButton(
               style: FilledButton.styleFrom(minimumSize: ButtonSizes.mdFill),
               onPressed: null,
-              child: const Text('Unlinked'),
+              child: Text(AppLocalizations.of(context)!.linkingsUnlinked),
             ),
           ),
         );
@@ -301,7 +304,7 @@ class _CompanyDetailViewState extends ConsumerState<CompanyDetailView> {
     );
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Company Details')),
+      appBar: AppBar(title: Text(AppLocalizations.of(context)!.companiesDetailsTitle)),
       body: companyAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) => Center(
@@ -311,7 +314,7 @@ class _CompanyDetailViewState extends ConsumerState<CompanyDetailView> {
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
                 Text(
-                  'Failed to fetch',
+                  AppLocalizations.of(context)!.companiesFailedToFetch,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 const SizedBox(height: 8),
@@ -325,7 +328,7 @@ class _CompanyDetailViewState extends ConsumerState<CompanyDetailView> {
                   onPressed: () {
                     ref.invalidate(companyByIdProvider(widget.companyId));
                   },
-                  child: const Text('Retry'),
+                  child: Text(AppLocalizations.of(context)!.commonRetry),
                 ),
               ],
             ),
@@ -424,7 +427,7 @@ class _CompanyDetailViewState extends ConsumerState<CompanyDetailView> {
                 if (company.description != null &&
                     company.description!.isNotEmpty) ...[
                   Text(
-                    'Description',
+                    AppLocalizations.of(context)!.companiesDescription,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
@@ -571,7 +574,7 @@ class _ProductCard extends StatelessWidget {
 
             // Stock information in smaller text right under the price.
             Text(
-              'Stock: ${product.stockQuantity}',
+              AppLocalizations.of(context)!.dashboardStock(product.stockQuantity, product.threshold),
               style: Theme.of(context).textTheme.bodySmall,
             ),
           ],

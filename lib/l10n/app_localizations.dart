@@ -380,6 +380,12 @@ abstract class AppLocalizations {
   /// **'Cancel'**
   String get commonCancel;
 
+  /// No description provided for @commonConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get commonConfirm;
+
   /// No description provided for @commonRetry.
   ///
   /// In en, this message translates to:
@@ -686,12 +692,6 @@ abstract class AppLocalizations {
   /// **'Failed to delete product: {error}'**
   String catalogDeleteProductErrorGeneric(Object error);
 
-  /// No description provided for @commonConfirm.
-  ///
-  /// In en, this message translates to:
-  /// **'Confirm'**
-  String get commonConfirm;
-
   /// No description provided for @staffCreateUserSuccess.
   ///
   /// In en, this message translates to:
@@ -721,6 +721,1772 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Failed to delete user: {error}'**
   String staffDeleteUserErrorGeneric(Object error);
+
+  /// No description provided for @chatTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat'**
+  String get chatTitle;
+
+  /// No description provided for @chatTypeMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Type a message...'**
+  String get chatTypeMessage;
+
+  /// No description provided for @chatCannotSendMessages.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot send messages'**
+  String get chatCannotSendMessages;
+
+  /// No description provided for @chatLoadingPermissions.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading permissions...'**
+  String get chatLoadingPermissions;
+
+  /// No description provided for @chatErrorLoadingPermissions.
+  ///
+  /// In en, this message translates to:
+  /// **'Error loading permissions'**
+  String get chatErrorLoadingPermissions;
+
+  /// No description provided for @chatOnlyConsumerContact.
+  ///
+  /// In en, this message translates to:
+  /// **'Only consumer contact can send messages'**
+  String get chatOnlyConsumerContact;
+
+  /// No description provided for @chatOnlyAssignedSalesman.
+  ///
+  /// In en, this message translates to:
+  /// **'Only assigned salesman can send messages'**
+  String get chatOnlyAssignedSalesman;
+
+  /// No description provided for @chatAttachmentImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Image'**
+  String get chatAttachmentImage;
+
+  /// No description provided for @chatAttachmentFile.
+  ///
+  /// In en, this message translates to:
+  /// **'File'**
+  String get chatAttachmentFile;
+
+  /// No description provided for @chatAttachmentAudio.
+  ///
+  /// In en, this message translates to:
+  /// **'Audio'**
+  String get chatAttachmentAudio;
+
+  /// No description provided for @chatSelectImageSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Image Source'**
+  String get chatSelectImageSource;
+
+  /// No description provided for @chatImageSourceGallery.
+  ///
+  /// In en, this message translates to:
+  /// **'Gallery'**
+  String get chatImageSourceGallery;
+
+  /// No description provided for @chatImageSourceCamera.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera'**
+  String get chatImageSourceCamera;
+
+  /// No description provided for @chatErrorUploadFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to upload file: {error}'**
+  String chatErrorUploadFile(Object error);
+
+  /// No description provided for @chatErrorUploadAudio.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to upload audio: {error}'**
+  String chatErrorUploadAudio(Object error);
+
+  /// No description provided for @chatErrorUploadImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to upload image: {error}'**
+  String chatErrorUploadImage(Object error);
+
+  /// No description provided for @chatMicrophonePermissionDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Microphone permission denied'**
+  String get chatMicrophonePermissionDenied;
+
+  /// No description provided for @chatErrorStartRecording.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to start recording: {error}'**
+  String chatErrorStartRecording(Object error);
+
+  /// No description provided for @chatRecordingFileNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Recording file not found'**
+  String get chatRecordingFileNotFound;
+
+  /// No description provided for @chatErrorProcessRecording.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to process recording: {error}'**
+  String chatErrorProcessRecording(Object error);
+
+  /// No description provided for @chatErrorSendImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to send image: {error}'**
+  String chatErrorSendImage(Object error);
+
+  /// No description provided for @chatErrorSendFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to send file: {error}'**
+  String chatErrorSendFile(Object error);
+
+  /// No description provided for @chatErrorSendAudio.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to send audio: {error}'**
+  String chatErrorSendAudio(Object error);
+
+  /// No description provided for @chatErrorSendMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to send message: {error}'**
+  String chatErrorSendMessage(Object error);
+
+  /// No description provided for @chatCannotOpenFileUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot open file URL'**
+  String get chatCannotOpenFileUrl;
+
+  /// No description provided for @chatErrorDownloadFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to download file: {error}'**
+  String chatErrorDownloadFile(Object error);
+
+  /// No description provided for @chatErrorPlayAudio.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to play audio: {error}'**
+  String chatErrorPlayAudio(Object error);
+
+  /// No description provided for @chatNoMessages.
+  ///
+  /// In en, this message translates to:
+  /// **'No messages yet'**
+  String get chatNoMessages;
+
+  /// No description provided for @chatError.
+  ///
+  /// In en, this message translates to:
+  /// **'Error: {error}'**
+  String chatError(Object error);
+
+  /// No description provided for @chatAttachFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Attach file'**
+  String get chatAttachFile;
+
+  /// No description provided for @chatDownloadFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Download file'**
+  String get chatDownloadFile;
+
+  /// No description provided for @chatPause.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause'**
+  String get chatPause;
+
+  /// No description provided for @chatPlay.
+  ///
+  /// In en, this message translates to:
+  /// **'Play'**
+  String get chatPlay;
+
+  /// No description provided for @chatStopRecording.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop recording'**
+  String get chatStopRecording;
+
+  /// No description provided for @chatRecordAudio.
+  ///
+  /// In en, this message translates to:
+  /// **'Record audio'**
+  String get chatRecordAudio;
+
+  /// No description provided for @chatFailedToLoadImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load image'**
+  String get chatFailedToLoadImage;
+
+  /// No description provided for @chatUserUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'User {userId}'**
+  String chatUserUnknown(Object userId);
+
+  /// No description provided for @chatOrderCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Order #{orderId} created with status {status}'**
+  String chatOrderCreated(Object orderId, Object status);
+
+  /// No description provided for @chatOrderCreatedNoId.
+  ///
+  /// In en, this message translates to:
+  /// **'Order created with status {status}'**
+  String chatOrderCreatedNoId(Object status);
+
+  /// No description provided for @chatComplaintCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Complaint #{complaintId} created with status {status}'**
+  String chatComplaintCreated(Object complaintId, Object status);
+
+  /// No description provided for @chatComplaintCreatedNoId.
+  ///
+  /// In en, this message translates to:
+  /// **'Complaint created with status {status}'**
+  String chatComplaintCreatedNoId(Object status);
+
+  /// No description provided for @chatOrderStatusChanged.
+  ///
+  /// In en, this message translates to:
+  /// **'Order #{orderId} status changed from {oldStatus} to {newStatus}'**
+  String chatOrderStatusChanged(
+    Object newStatus,
+    Object oldStatus,
+    Object orderId,
+  );
+
+  /// No description provided for @chatOrderStatusChangedNoId.
+  ///
+  /// In en, this message translates to:
+  /// **'Order status changed from {oldStatus} to {newStatus}'**
+  String chatOrderStatusChangedNoId(Object newStatus, Object oldStatus);
+
+  /// No description provided for @chatComplaintStatusChanged.
+  ///
+  /// In en, this message translates to:
+  /// **'Complaint #{complaintId} status changed from {oldStatus} to {newStatus}'**
+  String chatComplaintStatusChanged(
+    Object complaintId,
+    Object newStatus,
+    Object oldStatus,
+  );
+
+  /// No description provided for @chatComplaintStatusChangedNoId.
+  ///
+  /// In en, this message translates to:
+  /// **'Complaint status changed from {oldStatus} to {newStatus}'**
+  String chatComplaintStatusChangedNoId(Object newStatus, Object oldStatus);
+
+  /// No description provided for @chatOrderStatusRemoved.
+  ///
+  /// In en, this message translates to:
+  /// **'Order #{orderId} status removed (was {oldStatus})'**
+  String chatOrderStatusRemoved(Object oldStatus, Object orderId);
+
+  /// No description provided for @chatOrderStatusRemovedNoId.
+  ///
+  /// In en, this message translates to:
+  /// **'Order status removed (was {oldStatus})'**
+  String chatOrderStatusRemovedNoId(Object oldStatus);
+
+  /// No description provided for @chatComplaintStatusRemoved.
+  ///
+  /// In en, this message translates to:
+  /// **'Complaint #{complaintId} status removed (was {oldStatus})'**
+  String chatComplaintStatusRemoved(Object complaintId, Object oldStatus);
+
+  /// No description provided for @chatComplaintStatusRemovedNoId.
+  ///
+  /// In en, this message translates to:
+  /// **'Complaint status removed (was {oldStatus})'**
+  String chatComplaintStatusRemovedNoId(Object oldStatus);
+
+  /// No description provided for @chatBySender.
+  ///
+  /// In en, this message translates to:
+  /// **'By {senderName}'**
+  String chatBySender(Object senderName);
+
+  /// No description provided for @complaintDetailsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Complaint Details'**
+  String get complaintDetailsTitle;
+
+  /// No description provided for @complaintNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Complaint not found'**
+  String get complaintNotFound;
+
+  /// No description provided for @complaintInformation.
+  ///
+  /// In en, this message translates to:
+  /// **'Complaint Information'**
+  String get complaintInformation;
+
+  /// No description provided for @complaintDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Description'**
+  String get complaintDescription;
+
+  /// No description provided for @complaintCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Created'**
+  String get complaintCreated;
+
+  /// No description provided for @complaintUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Updated'**
+  String get complaintUpdated;
+
+  /// No description provided for @complaintResolutionNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Resolution Notes'**
+  String get complaintResolutionNotes;
+
+  /// No description provided for @complaintOrderCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Order Cancelled'**
+  String get complaintOrderCancelled;
+
+  /// No description provided for @complaintAssignedPersonnel.
+  ///
+  /// In en, this message translates to:
+  /// **'Assigned Personnel'**
+  String get complaintAssignedPersonnel;
+
+  /// No description provided for @complaintAssignedSalesman.
+  ///
+  /// In en, this message translates to:
+  /// **'Assigned Salesman'**
+  String get complaintAssignedSalesman;
+
+  /// No description provided for @complaintAssignedManager.
+  ///
+  /// In en, this message translates to:
+  /// **'Assigned Manager'**
+  String get complaintAssignedManager;
+
+  /// No description provided for @complaintNoManagerAssigned.
+  ///
+  /// In en, this message translates to:
+  /// **'No manager assigned'**
+  String get complaintNoManagerAssigned;
+
+  /// No description provided for @complaintNoPersonnelAssigned.
+  ///
+  /// In en, this message translates to:
+  /// **'No personnel assigned'**
+  String get complaintNoPersonnelAssigned;
+
+  /// No description provided for @complaintHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'History'**
+  String get complaintHistory;
+
+  /// No description provided for @complaintNoHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'No history available'**
+  String get complaintNoHistory;
+
+  /// No description provided for @complaintOpenChat.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Chat'**
+  String get complaintOpenChat;
+
+  /// No description provided for @complaintActions.
+  ///
+  /// In en, this message translates to:
+  /// **'Actions'**
+  String get complaintActions;
+
+  /// No description provided for @complaintEscalateToManager.
+  ///
+  /// In en, this message translates to:
+  /// **'Escalate to Manager'**
+  String get complaintEscalateToManager;
+
+  /// No description provided for @complaintResolve.
+  ///
+  /// In en, this message translates to:
+  /// **'Resolve'**
+  String get complaintResolve;
+
+  /// No description provided for @complaintClose.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get complaintClose;
+
+  /// No description provided for @complaintClaimComplaint.
+  ///
+  /// In en, this message translates to:
+  /// **'Claim Complaint'**
+  String get complaintClaimComplaint;
+
+  /// No description provided for @complaintEscalateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Escalate Complaint'**
+  String get complaintEscalateTitle;
+
+  /// No description provided for @complaintEscalateNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional: Add notes explaining why you are escalating:'**
+  String get complaintEscalateNotes;
+
+  /// No description provided for @complaintEscalateNotesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get complaintEscalateNotesLabel;
+
+  /// No description provided for @complaintEscalate.
+  ///
+  /// In en, this message translates to:
+  /// **'Escalate'**
+  String get complaintEscalate;
+
+  /// No description provided for @complaintEscalatedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Complaint escalated successfully'**
+  String get complaintEscalatedSuccess;
+
+  /// No description provided for @complaintEscalateError.
+  ///
+  /// In en, this message translates to:
+  /// **'Error escalating complaint: {error}'**
+  String complaintEscalateError(Object error);
+
+  /// No description provided for @complaintClaimTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Claim Complaint'**
+  String get complaintClaimTitle;
+
+  /// No description provided for @complaintClaimMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to claim this complaint? You will be responsible for managing it.'**
+  String get complaintClaimMessage;
+
+  /// No description provided for @complaintClaim.
+  ///
+  /// In en, this message translates to:
+  /// **'Claim'**
+  String get complaintClaim;
+
+  /// No description provided for @complaintClaimedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Complaint claimed successfully'**
+  String get complaintClaimedSuccess;
+
+  /// No description provided for @complaintClaimError.
+  ///
+  /// In en, this message translates to:
+  /// **'Error claiming complaint: {error}'**
+  String complaintClaimError(Object error);
+
+  /// No description provided for @complaintResolveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Resolve Complaint'**
+  String get complaintResolveTitle;
+
+  /// No description provided for @complaintResolveNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Please provide resolution notes:'**
+  String get complaintResolveNotes;
+
+  /// No description provided for @complaintResolveNotesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Resolution Notes'**
+  String get complaintResolveNotesLabel;
+
+  /// No description provided for @complaintCancelOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel Order'**
+  String get complaintCancelOrder;
+
+  /// No description provided for @complaintResolveNotesRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter resolution notes'**
+  String get complaintResolveNotesRequired;
+
+  /// No description provided for @complaintResolvedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Complaint resolved successfully'**
+  String get complaintResolvedSuccess;
+
+  /// No description provided for @complaintResolveError.
+  ///
+  /// In en, this message translates to:
+  /// **'Error resolving complaint: {error}'**
+  String complaintResolveError(Object error);
+
+  /// No description provided for @complaintCloseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Close Complaint'**
+  String get complaintCloseTitle;
+
+  /// No description provided for @complaintCloseNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Please provide notes explaining why the complaint is being closed:'**
+  String get complaintCloseNotes;
+
+  /// No description provided for @complaintClosedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Complaint closed successfully'**
+  String get complaintClosedSuccess;
+
+  /// No description provided for @complaintCloseError.
+  ///
+  /// In en, this message translates to:
+  /// **'Error closing complaint: {error}'**
+  String complaintCloseError(Object error);
+
+  /// No description provided for @complaintByUser.
+  ///
+  /// In en, this message translates to:
+  /// **'By: {userName}'**
+  String complaintByUser(Object userName);
+
+  /// No description provided for @complaintStatusOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'OPEN'**
+  String get complaintStatusOpen;
+
+  /// No description provided for @complaintStatusEscalated.
+  ///
+  /// In en, this message translates to:
+  /// **'ESCALATED'**
+  String get complaintStatusEscalated;
+
+  /// No description provided for @complaintStatusInProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'IN PROGRESS'**
+  String get complaintStatusInProgress;
+
+  /// No description provided for @complaintStatusResolved.
+  ///
+  /// In en, this message translates to:
+  /// **'RESOLVED'**
+  String get complaintStatusResolved;
+
+  /// No description provided for @complaintStatusClosed.
+  ///
+  /// In en, this message translates to:
+  /// **'CLOSED'**
+  String get complaintStatusClosed;
+
+  /// No description provided for @orderDetailsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Order Details'**
+  String get orderDetailsTitle;
+
+  /// No description provided for @orderNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Order not found'**
+  String get orderNotFound;
+
+  /// No description provided for @orderLinking.
+  ///
+  /// In en, this message translates to:
+  /// **'Linking'**
+  String get orderLinking;
+
+  /// No description provided for @orderCreateComplaint.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Complaint'**
+  String get orderCreateComplaint;
+
+  /// No description provided for @orderCreateComplaintReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Please provide a reason for your complaint:'**
+  String get orderCreateComplaintReason;
+
+  /// No description provided for @orderComplaintReasonLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason of Complaint'**
+  String get orderComplaintReasonLabel;
+
+  /// No description provided for @orderComplaintReasonRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a reason for the complaint'**
+  String get orderComplaintReasonRequired;
+
+  /// No description provided for @orderComplaintCreatedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Complaint created successfully'**
+  String get orderComplaintCreatedSuccess;
+
+  /// No description provided for @orderComplaintCreateError.
+  ///
+  /// In en, this message translates to:
+  /// **'Error creating complaint: {error}'**
+  String orderComplaintCreateError(Object error);
+
+  /// No description provided for @orderChangeStatusTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Change Order Status'**
+  String get orderChangeStatusTitle;
+
+  /// No description provided for @orderChangeStatusMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Change order status from \"{oldStatus}\" to \"{newStatus}\"?'**
+  String orderChangeStatusMessage(Object newStatus, Object oldStatus);
+
+  /// No description provided for @orderChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get orderChange;
+
+  /// No description provided for @orderStatusChanged.
+  ///
+  /// In en, this message translates to:
+  /// **'Order status changed to {status}'**
+  String orderStatusChanged(Object status);
+
+  /// No description provided for @orderStatusChangeError.
+  ///
+  /// In en, this message translates to:
+  /// **'Error changing order status: {error}'**
+  String orderStatusChangeError(Object error);
+
+  /// No description provided for @orderCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Created: {date}'**
+  String orderCreated(Object date);
+
+  /// No description provided for @orderUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Updated: {date}'**
+  String orderUpdated(Object date);
+
+  /// No description provided for @orderComplaint.
+  ///
+  /// In en, this message translates to:
+  /// **'Complaint'**
+  String get orderComplaint;
+
+  /// No description provided for @orderProducts.
+  ///
+  /// In en, this message translates to:
+  /// **'Products'**
+  String get orderProducts;
+
+  /// No description provided for @orderNoProducts.
+  ///
+  /// In en, this message translates to:
+  /// **'No products in this order'**
+  String get orderNoProducts;
+
+  /// No description provided for @orderTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get orderTotal;
+
+  /// No description provided for @orderQuantity.
+  ///
+  /// In en, this message translates to:
+  /// **'Quantity: {quantity}'**
+  String orderQuantity(Object quantity);
+
+  /// No description provided for @orderPricePerUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'Price per unit: {price} ₸'**
+  String orderPricePerUnit(Object price);
+
+  /// No description provided for @orderSubtotal.
+  ///
+  /// In en, this message translates to:
+  /// **'{subtotal} ₸'**
+  String orderSubtotal(Object subtotal);
+
+  /// No description provided for @orderProductId.
+  ///
+  /// In en, this message translates to:
+  /// **'Product #{productId}'**
+  String orderProductId(Object productId);
+
+  /// No description provided for @orderSupplier.
+  ///
+  /// In en, this message translates to:
+  /// **'Supplier'**
+  String get orderSupplier;
+
+  /// No description provided for @orderConsumer.
+  ///
+  /// In en, this message translates to:
+  /// **'Consumer'**
+  String get orderConsumer;
+
+  /// No description provided for @orderAssignedSalesperson.
+  ///
+  /// In en, this message translates to:
+  /// **'Assigned Salesperson'**
+  String get orderAssignedSalesperson;
+
+  /// No description provided for @orderConsumerStaff.
+  ///
+  /// In en, this message translates to:
+  /// **'Consumer Staff'**
+  String get orderConsumerStaff;
+
+  /// No description provided for @companiesCompany.
+  ///
+  /// In en, this message translates to:
+  /// **'Company'**
+  String get companiesCompany;
+
+  /// No description provided for @commonCreate.
+  ///
+  /// In en, this message translates to:
+  /// **'Create'**
+  String get commonCreate;
+
+  /// No description provided for @linkingsPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get linkingsPending;
+
+  /// No description provided for @linkingsAccepted.
+  ///
+  /// In en, this message translates to:
+  /// **'Accepted'**
+  String get linkingsAccepted;
+
+  /// No description provided for @linkingsRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Rejected'**
+  String get linkingsRejected;
+
+  /// No description provided for @linkingsUnlinked.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlinked'**
+  String get linkingsUnlinked;
+
+  /// No description provided for @linkingsNoLinkings.
+  ///
+  /// In en, this message translates to:
+  /// **'No linkings found'**
+  String get linkingsNoLinkings;
+
+  /// No description provided for @linkingsNoCompaniesMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'No companies found matching \"{query}\"'**
+  String linkingsNoCompaniesMatch(Object query);
+
+  /// No description provided for @linkingsSearchCompanies.
+  ///
+  /// In en, this message translates to:
+  /// **'Search companies...'**
+  String get linkingsSearchCompanies;
+
+  /// No description provided for @linkingsMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Message: {message}'**
+  String linkingsMessage(Object message);
+
+  /// No description provided for @linkingsCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Created: {date}'**
+  String linkingsCreated(Object date);
+
+  /// No description provided for @linkingsAcceptedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Linking accepted'**
+  String get linkingsAcceptedSuccess;
+
+  /// No description provided for @linkingsAcceptError.
+  ///
+  /// In en, this message translates to:
+  /// **'Error accepting linking: {error}'**
+  String linkingsAcceptError(Object error);
+
+  /// No description provided for @linkingsRejectedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Linking rejected'**
+  String get linkingsRejectedSuccess;
+
+  /// No description provided for @linkingsRejectError.
+  ///
+  /// In en, this message translates to:
+  /// **'Error rejecting linking: {error}'**
+  String linkingsRejectError(Object error);
+
+  /// No description provided for @linkingsDetailsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Linking Details'**
+  String get linkingsDetailsTitle;
+
+  /// No description provided for @linkingsFailedToLoadCompany.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load company'**
+  String get linkingsFailedToLoadCompany;
+
+  /// No description provided for @linkingsFailedToLoadContactPerson.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load contact person'**
+  String get linkingsFailedToLoadContactPerson;
+
+  /// No description provided for @linkingsFailedToLoadSalesperson.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load salesperson'**
+  String get linkingsFailedToLoadSalesperson;
+
+  /// No description provided for @linkingsCompany.
+  ///
+  /// In en, this message translates to:
+  /// **'Company'**
+  String get linkingsCompany;
+
+  /// No description provided for @linkingsConsumerContact.
+  ///
+  /// In en, this message translates to:
+  /// **'Consumer Contact'**
+  String get linkingsConsumerContact;
+
+  /// No description provided for @linkingsSupplierContact.
+  ///
+  /// In en, this message translates to:
+  /// **'Supplier Contact (Assigned Salesperson)'**
+  String get linkingsSupplierContact;
+
+  /// No description provided for @linkingsOpenChat.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Chat'**
+  String get linkingsOpenChat;
+
+  /// No description provided for @linkingsUnlinkTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlink Companies'**
+  String get linkingsUnlinkTitle;
+
+  /// No description provided for @linkingsUnlinkMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to unlink these companies? This action cannot be undone.'**
+  String get linkingsUnlinkMessage;
+
+  /// No description provided for @linkingsUnlink.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlink'**
+  String get linkingsUnlink;
+
+  /// No description provided for @linkingsUnlinkedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Companies unlinked'**
+  String get linkingsUnlinkedSuccess;
+
+  /// No description provided for @linkingsUnlinkError.
+  ///
+  /// In en, this message translates to:
+  /// **'Error unlinking: {error}'**
+  String linkingsUnlinkError(Object error);
+
+  /// No description provided for @linkingsReject.
+  ///
+  /// In en, this message translates to:
+  /// **'Reject'**
+  String get linkingsReject;
+
+  /// No description provided for @linkingsAccept.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept'**
+  String get linkingsAccept;
+
+  /// No description provided for @supplierComplaintsNoAssigned.
+  ///
+  /// In en, this message translates to:
+  /// **'No assigned complaints'**
+  String get supplierComplaintsNoAssigned;
+
+  /// No description provided for @supplierComplaintsNoEscalated.
+  ///
+  /// In en, this message translates to:
+  /// **'No escalated complaints'**
+  String get supplierComplaintsNoEscalated;
+
+  /// No description provided for @supplierComplaintsNoManaged.
+  ///
+  /// In en, this message translates to:
+  /// **'No managed complaints'**
+  String get supplierComplaintsNoManaged;
+
+  /// No description provided for @supplierComplaintsNoComplaints.
+  ///
+  /// In en, this message translates to:
+  /// **'No complaints'**
+  String get supplierComplaintsNoComplaints;
+
+  /// No description provided for @supplierComplaintsNoLinkingsComplaints.
+  ///
+  /// In en, this message translates to:
+  /// **'No complaints for your linkings'**
+  String get supplierComplaintsNoLinkingsComplaints;
+
+  /// No description provided for @supplierComplaintsEscalated.
+  ///
+  /// In en, this message translates to:
+  /// **'Escalated'**
+  String get supplierComplaintsEscalated;
+
+  /// No description provided for @supplierComplaintsMyManaged.
+  ///
+  /// In en, this message translates to:
+  /// **'My Managed'**
+  String get supplierComplaintsMyManaged;
+
+  /// No description provided for @supplierComplaintsAllComplaints.
+  ///
+  /// In en, this message translates to:
+  /// **'All Complaints'**
+  String get supplierComplaintsAllComplaints;
+
+  /// No description provided for @supplierComplaintsMyLinkings.
+  ///
+  /// In en, this message translates to:
+  /// **'My Linkings'**
+  String get supplierComplaintsMyLinkings;
+
+  /// No description provided for @supplierComplaintsClaim.
+  ///
+  /// In en, this message translates to:
+  /// **'Claim'**
+  String get supplierComplaintsClaim;
+
+  /// No description provided for @supplierComplaintsUserNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'User not found'**
+  String get supplierComplaintsUserNotFound;
+
+  /// No description provided for @supplierComplaintsUnknownRole.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown user role'**
+  String get supplierComplaintsUnknownRole;
+
+  /// No description provided for @dashboardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Dashboard'**
+  String get dashboardTitle;
+
+  /// No description provided for @dashboardRevenueTrend.
+  ///
+  /// In en, this message translates to:
+  /// **'Revenue Trend'**
+  String get dashboardRevenueTrend;
+
+  /// No description provided for @dashboardOrderStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Order Status'**
+  String get dashboardOrderStatus;
+
+  /// No description provided for @dashboardRecentOrders.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent Orders'**
+  String get dashboardRecentOrders;
+
+  /// No description provided for @dashboardLowStockAlert.
+  ///
+  /// In en, this message translates to:
+  /// **'Low Stock Alert'**
+  String get dashboardLowStockAlert;
+
+  /// No description provided for @dashboardTotalRevenue.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Revenue'**
+  String get dashboardTotalRevenue;
+
+  /// No description provided for @dashboardOrdersToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Orders Today'**
+  String get dashboardOrdersToday;
+
+  /// No description provided for @dashboardCreatedOrders.
+  ///
+  /// In en, this message translates to:
+  /// **'Created Orders'**
+  String get dashboardCreatedOrders;
+
+  /// No description provided for @dashboardLowStock.
+  ///
+  /// In en, this message translates to:
+  /// **'Low Stock'**
+  String get dashboardLowStock;
+
+  /// No description provided for @dashboardNoRevenueData.
+  ///
+  /// In en, this message translates to:
+  /// **'No revenue data available'**
+  String get dashboardNoRevenueData;
+
+  /// No description provided for @dashboardNoOrderData.
+  ///
+  /// In en, this message translates to:
+  /// **'No order data available'**
+  String get dashboardNoOrderData;
+
+  /// No description provided for @dashboardNoRecentOrders.
+  ///
+  /// In en, this message translates to:
+  /// **'No recent orders'**
+  String get dashboardNoRecentOrders;
+
+  /// No description provided for @dashboardNoLowStockAlerts.
+  ///
+  /// In en, this message translates to:
+  /// **'No low stock alerts'**
+  String get dashboardNoLowStockAlerts;
+
+  /// No description provided for @dashboardErrorLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Error loading dashboard: {error}'**
+  String dashboardErrorLoading(Object error);
+
+  /// No description provided for @dashboardStock.
+  ///
+  /// In en, this message translates to:
+  /// **'Stock: {current} / {threshold}'**
+  String dashboardStock(Object current, Object threshold);
+
+  /// No description provided for @cartEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Your cart is empty'**
+  String get cartEmpty;
+
+  /// No description provided for @cartEmptyMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Add products from companies to get started'**
+  String get cartEmptyMessage;
+
+  /// No description provided for @cartFailedToLoadProducts.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load products'**
+  String get cartFailedToLoadProducts;
+
+  /// No description provided for @cartCheckout.
+  ///
+  /// In en, this message translates to:
+  /// **'Checkout'**
+  String get cartCheckout;
+
+  /// No description provided for @cartConfirmCheckout.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm Checkout'**
+  String get cartConfirmCheckout;
+
+  /// No description provided for @cartCheckoutMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete order with {companyName}?'**
+  String cartCheckoutMessage(Object companyName);
+
+  /// No description provided for @cartTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Total: {total} ₸'**
+  String cartTotal(Object total);
+
+  /// No description provided for @cartItems.
+  ///
+  /// In en, this message translates to:
+  /// **'Items: {count}'**
+  String cartItems(Object count);
+
+  /// No description provided for @cartUserCompanyNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'User company not found'**
+  String get cartUserCompanyNotFound;
+
+  /// No description provided for @cartVerifyLinkingError.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to verify linking: {error}'**
+  String cartVerifyLinkingError(Object error);
+
+  /// No description provided for @cartLinkingNotAccepted.
+  ///
+  /// In en, this message translates to:
+  /// **'Linking with this supplier is not accepted'**
+  String get cartLinkingNotAccepted;
+
+  /// No description provided for @cartNoValidProducts.
+  ///
+  /// In en, this message translates to:
+  /// **'No valid products to order'**
+  String get cartNoValidProducts;
+
+  /// No description provided for @cartOrderCreatedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Order created successfully'**
+  String get cartOrderCreatedSuccess;
+
+  /// No description provided for @cartOrderCreateError.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to create order: {error}'**
+  String cartOrderCreateError(Object error);
+
+  /// No description provided for @cartErrorLoadingCompany.
+  ///
+  /// In en, this message translates to:
+  /// **'Error loading company: {error}'**
+  String cartErrorLoadingCompany(Object error);
+
+  /// No description provided for @cartTotalLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Total: {total} ₸'**
+  String cartTotalLabel(Object total);
+
+  /// No description provided for @cartPricePerUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'{price} ₸ / {unit}'**
+  String cartPricePerUnit(Object price, Object unit);
+
+  /// No description provided for @cartItemTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Total: {total} ₸'**
+  String cartItemTotal(Object total);
+
+  /// No description provided for @cartRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get cartRemove;
+
+  /// No description provided for @cartQuantity.
+  ///
+  /// In en, this message translates to:
+  /// **'Quantity ({unit})'**
+  String cartQuantity(Object unit);
+
+  /// No description provided for @companiesSearchCompanies.
+  ///
+  /// In en, this message translates to:
+  /// **'Search companies...'**
+  String get companiesSearchCompanies;
+
+  /// No description provided for @companiesErrorLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Error loading companies'**
+  String get companiesErrorLoading;
+
+  /// No description provided for @companiesNoCompanies.
+  ///
+  /// In en, this message translates to:
+  /// **'No companies yet'**
+  String get companiesNoCompanies;
+
+  /// No description provided for @companiesNoMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'No companies found matching \"{query}\"'**
+  String companiesNoMatch(Object query);
+
+  /// No description provided for @companiesDetailsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Company Details'**
+  String get companiesDetailsTitle;
+
+  /// No description provided for @companiesFailedToFetch.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to fetch'**
+  String get companiesFailedToFetch;
+
+  /// No description provided for @companiesDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Description'**
+  String get companiesDescription;
+
+  /// No description provided for @companiesProducts.
+  ///
+  /// In en, this message translates to:
+  /// **'Products'**
+  String get companiesProducts;
+
+  /// No description provided for @companiesNoProducts.
+  ///
+  /// In en, this message translates to:
+  /// **'No products available'**
+  String get companiesNoProducts;
+
+  /// No description provided for @companiesSendLinking.
+  ///
+  /// In en, this message translates to:
+  /// **'Send Linking'**
+  String get companiesSendLinking;
+
+  /// No description provided for @companiesLinkingPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Linking Pending'**
+  String get companiesLinkingPending;
+
+  /// No description provided for @companiesLinkingRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Linking Rejected'**
+  String get companiesLinkingRejected;
+
+  /// No description provided for @companiesUnlinked.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlinked'**
+  String get companiesUnlinked;
+
+  /// No description provided for @companiesSendLinkingRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'Send Linking Request'**
+  String get companiesSendLinkingRequest;
+
+  /// No description provided for @companiesLinkingMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Message'**
+  String get companiesLinkingMessage;
+
+  /// No description provided for @companiesLinkingMessagePlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your message...'**
+  String get companiesLinkingMessagePlaceholder;
+
+  /// No description provided for @companiesLinkingMessageRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Message cannot be empty'**
+  String get companiesLinkingMessageRequired;
+
+  /// No description provided for @companiesLinkingRequestSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Linking request sent successfully'**
+  String get companiesLinkingRequestSent;
+
+  /// No description provided for @companiesLinkingRequestError.
+  ///
+  /// In en, this message translates to:
+  /// **'Error sending linking request: {error}'**
+  String companiesLinkingRequestError(Object error);
+
+  /// No description provided for @ordersNoLinkings.
+  ///
+  /// In en, this message translates to:
+  /// **'No linkings found'**
+  String get ordersNoLinkings;
+
+  /// No description provided for @ordersNoOrders.
+  ///
+  /// In en, this message translates to:
+  /// **'No orders'**
+  String get ordersNoOrders;
+
+  /// No description provided for @ordersNoOrdersStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'No orders with status: {status}'**
+  String ordersNoOrdersStatus(Object status);
+
+  /// No description provided for @ordersNoCompaniesMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'No companies found matching \"{query}\"'**
+  String ordersNoCompaniesMatch(Object query);
+
+  /// No description provided for @ordersSearchCompanies.
+  ///
+  /// In en, this message translates to:
+  /// **'Search companies...'**
+  String get ordersSearchCompanies;
+
+  /// No description provided for @ordersAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get ordersAll;
+
+  /// No description provided for @ordersLinkingNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Linking #{linkingId}'**
+  String ordersLinkingNumber(Object linkingId);
+
+  /// No description provided for @ordersOrderNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Order #{orderId}'**
+  String ordersOrderNumber(Object orderId);
+
+  /// No description provided for @ordersCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Created: {date}'**
+  String ordersCreated(Object date);
+
+  /// No description provided for @productDetailsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Product Details'**
+  String get productDetailsTitle;
+
+  /// No description provided for @productAddToCart.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to Cart'**
+  String get productAddToCart;
+
+  /// No description provided for @productDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get productDetails;
+
+  /// No description provided for @productUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'Unit'**
+  String get productUnit;
+
+  /// No description provided for @productStockQuantity.
+  ///
+  /// In en, this message translates to:
+  /// **'Stock quantity'**
+  String get productStockQuantity;
+
+  /// No description provided for @productRetailPrice.
+  ///
+  /// In en, this message translates to:
+  /// **'Retail price'**
+  String get productRetailPrice;
+
+  /// No description provided for @productBulkPrice.
+  ///
+  /// In en, this message translates to:
+  /// **'Bulk price'**
+  String get productBulkPrice;
+
+  /// No description provided for @productMinimumOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimum order'**
+  String get productMinimumOrder;
+
+  /// No description provided for @productThreshold.
+  ///
+  /// In en, this message translates to:
+  /// **'Threshold'**
+  String get productThreshold;
+
+  /// No description provided for @productAddedToCart.
+  ///
+  /// In en, this message translates to:
+  /// **'Added {quantity} {unit} to cart'**
+  String productAddedToCart(Object quantity, Object unit);
+
+  /// No description provided for @catalogNoProducts.
+  ///
+  /// In en, this message translates to:
+  /// **'No products yet'**
+  String get catalogNoProducts;
+
+  /// No description provided for @catalogNoProductsMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'No products found matching \"{query}\"'**
+  String catalogNoProductsMatch(Object query);
+
+  /// No description provided for @catalogSearchProducts.
+  ///
+  /// In en, this message translates to:
+  /// **'Search products...'**
+  String get catalogSearchProducts;
+
+  /// No description provided for @catalogStock.
+  ///
+  /// In en, this message translates to:
+  /// **'Stock: {quantity}'**
+  String catalogStock(Object quantity);
+
+  /// No description provided for @catalogUserNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'User profile or company ID not found.'**
+  String get catalogUserNotFound;
+
+  /// No description provided for @catalogCompanyNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Company not found.'**
+  String get catalogCompanyNotFound;
+
+  /// No description provided for @catalogSupplierOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Catalog is available for suppliers only.'**
+  String get catalogSupplierOnly;
+
+  /// No description provided for @addToCartTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{productName}'**
+  String addToCartTitle(Object productName);
+
+  /// No description provided for @addToCartPricePerUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'Price per {unit}:'**
+  String addToCartPricePerUnit(Object unit);
+
+  /// No description provided for @addToCartQuantity.
+  ///
+  /// In en, this message translates to:
+  /// **'Quantity ({unit})'**
+  String addToCartQuantity(Object unit);
+
+  /// No description provided for @addToCartEnterQuantity.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter quantity'**
+  String get addToCartEnterQuantity;
+
+  /// No description provided for @addToCartQuantityRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a quantity'**
+  String get addToCartQuantityRequired;
+
+  /// No description provided for @addToCartInvalidNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a valid number'**
+  String get addToCartInvalidNumber;
+
+  /// No description provided for @addToCartQuantityGreaterThanZero.
+  ///
+  /// In en, this message translates to:
+  /// **'Quantity must be greater than 0'**
+  String get addToCartQuantityGreaterThanZero;
+
+  /// No description provided for @addToCartMinimumOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimum order is {minimum} {unit}'**
+  String addToCartMinimumOrder(Object minimum, Object unit);
+
+  /// No description provided for @addToCartOnlyAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Only {stock} {unit} available'**
+  String addToCartOnlyAvailable(Object stock, Object unit);
+
+  /// No description provided for @addToCartAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Available: {stock} {unit}'**
+  String addToCartAvailable(Object stock, Object unit);
+
+  /// No description provided for @addToCartMinimum.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimum: {minimum} {unit}'**
+  String addToCartMinimum(Object minimum, Object unit);
+
+  /// No description provided for @addToCartButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to Cart'**
+  String get addToCartButton;
+
+  /// No description provided for @settingsEnglish.
+  ///
+  /// In en, this message translates to:
+  /// **'English'**
+  String get settingsEnglish;
+
+  /// No description provided for @settingsRussian.
+  ///
+  /// In en, this message translates to:
+  /// **'Русский'**
+  String get settingsRussian;
+
+  /// No description provided for @settingsSignupFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Signup failed'**
+  String get settingsSignupFailed;
+
+  /// No description provided for @userProfileCompany.
+  ///
+  /// In en, this message translates to:
+  /// **'Company'**
+  String get userProfileCompany;
+
+  /// No description provided for @userProfileLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading...'**
+  String get userProfileLoading;
+
+  /// No description provided for @userProfileUpdatedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile updated successfully'**
+  String get userProfileUpdatedSuccess;
+
+  /// No description provided for @userProfileUserIdMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'User ID is missing'**
+  String get userProfileUserIdMissing;
+
+  /// No description provided for @userProfileFieldRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'{fieldLabel} is required.'**
+  String userProfileFieldRequired(Object fieldLabel);
+
+  /// No description provided for @userProfileFieldInvalidInteger.
+  ///
+  /// In en, this message translates to:
+  /// **'{fieldLabel} must be a valid integer.'**
+  String userProfileFieldInvalidInteger(Object fieldLabel);
+
+  /// No description provided for @userEditUserIdMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'User ID is missing'**
+  String get userEditUserIdMissing;
+
+  /// No description provided for @userEditProfileUpdatedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile updated successfully'**
+  String get userEditProfileUpdatedSuccess;
+
+  /// No description provided for @companyProfileCompanyLogo.
+  ///
+  /// In en, this message translates to:
+  /// **'Company Logo'**
+  String get companyProfileCompanyLogo;
+
+  /// No description provided for @companyProfileSelectLogo.
+  ///
+  /// In en, this message translates to:
+  /// **'Select company logo'**
+  String get companyProfileSelectLogo;
+
+  /// No description provided for @companyProfileUpdatedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Company profile updated successfully'**
+  String get companyProfileUpdatedSuccess;
+
+  /// No description provided for @companyProfileCompanyIdMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'Company ID is missing'**
+  String get companyProfileCompanyIdMissing;
+
+  /// No description provided for @companyProfileNameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Name is required'**
+  String get companyProfileNameRequired;
+
+  /// No description provided for @companyProfileLocationRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Location is required'**
+  String get companyProfileLocationRequired;
+
+  /// No description provided for @companyEditLogo.
+  ///
+  /// In en, this message translates to:
+  /// **'Company Logo'**
+  String get companyEditLogo;
+
+  /// No description provided for @companyEditLogoPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Select company logo'**
+  String get companyEditLogoPlaceholder;
+
+  /// No description provided for @companyEditCompanyIdMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'Company ID is missing'**
+  String get companyEditCompanyIdMissing;
+
+  /// No description provided for @companyEditProfileUpdatedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Company profile updated successfully'**
+  String get companyEditProfileUpdatedSuccess;
+
+  /// No description provided for @staffManagementUserNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'User not found'**
+  String get staffManagementUserNotFound;
+
+  /// No description provided for @staffManagementFieldRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'{fieldLabel} is required.'**
+  String staffManagementFieldRequired(Object fieldLabel);
+
+  /// No description provided for @imageGalleryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{current} / {total}'**
+  String imageGalleryTitle(Object current, Object total);
+
+  /// No description provided for @commonNA.
+  ///
+  /// In en, this message translates to:
+  /// **'N/A'**
+  String get commonNA;
+
+  /// No description provided for @commonBy.
+  ///
+  /// In en, this message translates to:
+  /// **'By'**
+  String get commonBy;
+
+  /// No description provided for @commonNotAssigned.
+  ///
+  /// In en, this message translates to:
+  /// **'Not assigned'**
+  String get commonNotAssigned;
+
+  /// No description provided for @commonLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading...'**
+  String get commonLoading;
+
+  /// No description provided for @commonError.
+  ///
+  /// In en, this message translates to:
+  /// **'Error'**
+  String get commonError;
+
+  /// No description provided for @commonOK.
+  ///
+  /// In en, this message translates to:
+  /// **'OK'**
+  String get commonOK;
+
+  /// No description provided for @commonEnglish.
+  ///
+  /// In en, this message translates to:
+  /// **'English'**
+  String get commonEnglish;
+
+  /// No description provided for @commonRussian.
+  ///
+  /// In en, this message translates to:
+  /// **'Русский'**
+  String get commonRussian;
 }
 
 class _AppLocalizationsDelegate

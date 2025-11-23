@@ -9,6 +9,7 @@ import '../../../data/repositories/complaint_repository.dart';
 import '../../../data/repositories/company_repository.dart';
 import '../../../data/repositories/linking_repository.dart';
 import '../../../data/repositories/order_repository.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../shared/complaints/complaint_detail_view.dart';
 import '../../shared/complaints/complaint_list_item.dart';
 
@@ -208,16 +209,17 @@ class _SupplierComplaintsViewState extends ConsumerState<SupplierComplaintsView>
       return const Center(child: CircularProgressIndicator());
     }
 
+    final l10n = AppLocalizations.of(context)!;
     if (_error != null) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text('Error: $_error'),
+            Text('${l10n.commonError}: $_error'),
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: _loadComplaints,
-              child: const Text('Retry'),
+              child: Text(l10n.commonRetry),
             ),
           ],
         ),
@@ -225,7 +227,7 @@ class _SupplierComplaintsViewState extends ConsumerState<SupplierComplaintsView>
     }
 
     if (appUser == null) {
-      return const Center(child: Text('User not found'));
+      return Center(child: Text(l10n.supplierComplaintsUserNotFound));
     }
 
     // Salesman view
@@ -238,16 +240,17 @@ class _SupplierComplaintsViewState extends ConsumerState<SupplierComplaintsView>
       return _buildManagerView();
     }
 
-    return const Center(child: Text('Unknown user role'));
+    return Center(child: Text(l10n.supplierComplaintsUnknownRole));
   }
 
   // Build salesman view
   Widget _buildSalesmanView() {
+    final l10n = AppLocalizations.of(context)!;
     return RefreshIndicator(
       onRefresh: _loadComplaints,
       child: _assignedComplaints.isEmpty
-          ? const Center(
-              child: Text('No assigned complaints'),
+          ? Center(
+              child: Text(l10n.supplierComplaintsNoAssigned),
             )
           : ListView.builder(
               padding: const EdgeInsets.all(16.0),
@@ -281,16 +284,17 @@ class _SupplierComplaintsViewState extends ConsumerState<SupplierComplaintsView>
 
   // Build manager view with tabs
   Widget _buildManagerView() {
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       children: [
         TabBar(
           controller: _tabController,
           isScrollable: true,
-          tabs: const [
-            Tab(text: 'Escalated'),
-            Tab(text: 'My Managed'),
-            Tab(text: 'All Complaints'),
-            Tab(text: 'My Linkings'),
+          tabs: [
+            Tab(text: l10n.supplierComplaintsEscalated),
+            Tab(text: l10n.supplierComplaintsMyManaged),
+            Tab(text: l10n.supplierComplaintsAllComplaints),
+            Tab(text: l10n.supplierComplaintsMyLinkings),
           ],
         ),
         Expanded(
@@ -301,8 +305,8 @@ class _SupplierComplaintsViewState extends ConsumerState<SupplierComplaintsView>
               RefreshIndicator(
                 onRefresh: _loadComplaints,
                 child: _escalatedComplaints.isEmpty
-                    ? const Center(
-                        child: Text('No escalated complaints'),
+                    ? Center(
+                        child: Text(l10n.supplierComplaintsNoEscalated),
                       )
                     : ListView.builder(
                         padding: const EdgeInsets.all(16.0),
@@ -316,7 +320,7 @@ class _SupplierComplaintsViewState extends ConsumerState<SupplierComplaintsView>
                                 complaint: complaint,
                                 consumerCompany: snapshot.data,
                                 showQuickAction: true,
-                                quickActionLabel: 'Claim',
+                                quickActionLabel: l10n.supplierComplaintsClaim,
                                 onQuickAction: () async {
                                   // Navigate to detail view where they can claim
                                   await Navigator.of(context).push(
@@ -350,8 +354,8 @@ class _SupplierComplaintsViewState extends ConsumerState<SupplierComplaintsView>
               RefreshIndicator(
                 onRefresh: _loadComplaints,
                 child: _managedComplaints.isEmpty
-                    ? const Center(
-                        child: Text('No managed complaints'),
+                    ? Center(
+                        child: Text(l10n.supplierComplaintsNoManaged),
                       )
                     : ListView.builder(
                         padding: const EdgeInsets.all(16.0),
@@ -385,8 +389,8 @@ class _SupplierComplaintsViewState extends ConsumerState<SupplierComplaintsView>
               RefreshIndicator(
                 onRefresh: _loadComplaints,
                 child: _allComplaints.isEmpty
-                    ? const Center(
-                        child: Text('No complaints'),
+                    ? Center(
+                        child: Text(l10n.supplierComplaintsNoComplaints),
                       )
                     : ListView.builder(
                         padding: const EdgeInsets.all(16.0),
@@ -420,8 +424,8 @@ class _SupplierComplaintsViewState extends ConsumerState<SupplierComplaintsView>
               RefreshIndicator(
                 onRefresh: _loadComplaints,
                 child: _linkingsComplaints.isEmpty
-                    ? const Center(
-                        child: Text('No complaints for your linkings'),
+                    ? Center(
+                        child: Text(l10n.supplierComplaintsNoLinkingsComplaints),
                       )
                     : ListView.builder(
                         padding: const EdgeInsets.all(16.0),

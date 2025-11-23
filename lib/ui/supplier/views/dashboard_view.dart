@@ -2,8 +2,8 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:swe_mobile/core/providers/company_profile_provider.dart';
 import 'package:swe_mobile/data/models/order.dart';
+import 'package:swe_mobile/l10n/app_localizations.dart';
 import 'package:swe_mobile/ui/shared/orders/order_detail_view.dart';
 import 'package:swe_mobile/ui/supplier/models/dashboard_data.dart';
 import 'package:swe_mobile/ui/supplier/view_models/dashboard_viewmodel.dart';
@@ -13,14 +13,8 @@ class SupplierDashboardView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final dashboardState = ref.watch(dashboardViewModelProvider);
-    final companyState = ref.watch(companyProfileProvider);
-    
-    final companyName = companyState.when(
-      data: (company) => company?.name ?? 'Dashboard',
-      loading: () => 'Dashboard',
-      error: (_, __) => 'Dashboard',
-    );
 
     return Scaffold(
       floatingActionButton: FloatingActionButton(
@@ -38,19 +32,19 @@ class SupplierDashboardView extends ConsumerWidget {
               children: [
                 _buildKPIGrid(context, data),
                 const SizedBox(height: 24),
-                _buildSectionTitle(context, 'Revenue Trend'),
+                _buildSectionTitle(context, l10n.dashboardRevenueTrend),
                 const SizedBox(height: 16),
                 _buildRevenueChart(context, data),
                 const SizedBox(height: 24),
-                _buildSectionTitle(context, 'Order Status'),
+                _buildSectionTitle(context, l10n.dashboardOrderStatus),
                 const SizedBox(height: 16),
                 _buildStatusPieChart(context, data),
                 const SizedBox(height: 24),
-                _buildSectionTitle(context, 'Recent Orders'),
+                _buildSectionTitle(context, l10n.dashboardRecentOrders),
                 const SizedBox(height: 8),
                 _buildRecentOrdersList(context, data),
                 const SizedBox(height: 24),
-                _buildSectionTitle(context, 'Low Stock Alert'),
+                _buildSectionTitle(context, l10n.dashboardLowStockAlert),
                 const SizedBox(height: 8),
                 _buildLowStockList(context, data),
                 const SizedBox(height: 40),
@@ -59,18 +53,21 @@ class SupplierDashboardView extends ConsumerWidget {
           ),
         ),
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text('Error loading dashboard: $error'),
-              ElevatedButton(
-                onPressed: () => ref.read(dashboardViewModelProvider.notifier).refresh(),
-                child: const Text('Retry'),
-              ),
-            ],
-          ),
-        ),
+        error: (error, stack) {
+          final l10n = AppLocalizations.of(context)!;
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(l10n.dashboardErrorLoading(error.toString())),
+                ElevatedButton(
+                  onPressed: () => ref.read(dashboardViewModelProvider.notifier).refresh(),
+                  child: Text(l10n.commonRetry),
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
@@ -98,28 +95,28 @@ class SupplierDashboardView extends ConsumerWidget {
       children: [
         _buildKPICard(
           context,
-          'Total Revenue',
+          AppLocalizations.of(context)!.dashboardTotalRevenue,
           currencyFormat.format(data.totalRevenue),
           Icons.attach_money,
           Colors.green,
         ),
         _buildKPICard(
           context,
-          'Orders Today',
+          AppLocalizations.of(context)!.dashboardOrdersToday,
           data.ordersTodayCount.toString(),
           Icons.today,
           Colors.blue,
         ),
         _buildKPICard(
           context,
-          'Created Orders',
+          AppLocalizations.of(context)!.dashboardCreatedOrders,
           data.pendingOrdersCount.toString(),
           Icons.pending_actions,
           Colors.orange,
         ),
         _buildKPICard(
           context,
-          'Low Stock',
+          AppLocalizations.of(context)!.dashboardLowStock,
           data.lowStockCount.toString(),
           Icons.warning_amber_rounded,
           Colors.red,
@@ -165,9 +162,9 @@ class SupplierDashboardView extends ConsumerWidget {
 
   Widget _buildRevenueChart(BuildContext context, DashboardData data) {
     if (data.revenueTrend.isEmpty) {
-      return const SizedBox(
+      return SizedBox(
         height: 200,
-        child: Center(child: Text('No revenue data available')),
+        child: Center(child: Text(AppLocalizations.of(context)!.dashboardNoRevenueData)),
       );
     }
 
@@ -231,9 +228,9 @@ class SupplierDashboardView extends ConsumerWidget {
 
   Widget _buildStatusPieChart(BuildContext context, DashboardData data) {
     if (data.orderStatusDistribution.isEmpty) {
-      return const SizedBox(
+      return SizedBox(
         height: 200,
-        child: Center(child: Text('No order data available')),
+        child: Center(child: Text(AppLocalizations.of(context)!.dashboardNoOrderData)),
       );
     }
 
@@ -306,7 +303,7 @@ class SupplierDashboardView extends ConsumerWidget {
 
   Widget _buildRecentOrdersList(BuildContext context, DashboardData data) {
     if (data.recentOrders.isEmpty) {
-      return const Card(child: Padding(padding: EdgeInsets.all(16), child: Text('No recent orders')));
+      return Card(child: Padding(padding: const EdgeInsets.all(16), child: Text(AppLocalizations.of(context)!.dashboardNoRecentOrders)));
     }
 
     return Card(
@@ -318,7 +315,7 @@ class SupplierDashboardView extends ConsumerWidget {
         itemBuilder: (context, index) {
           final order = data.recentOrders[index];
           return ListTile(
-            title: Text('Order #${order.orderId}'),
+            title: Text('${AppLocalizations.of(context)!.orderDetailsTitle.split(' ').first} #${order.orderId}'),
             subtitle: Text(DateFormat('MMM dd, yyyy').format(DateTime.tryParse(order.createdAt) ?? DateTime.now())),
             trailing: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -356,7 +353,7 @@ class SupplierDashboardView extends ConsumerWidget {
 
   Widget _buildLowStockList(BuildContext context, DashboardData data) {
     if (data.lowStockProducts.isEmpty) {
-      return const Card(child: Padding(padding: EdgeInsets.all(16), child: Text('No low stock alerts')));
+      return Card(child: Padding(padding: const EdgeInsets.all(16), child: Text(AppLocalizations.of(context)!.dashboardNoLowStockAlerts)));
     }
 
     return SizedBox(

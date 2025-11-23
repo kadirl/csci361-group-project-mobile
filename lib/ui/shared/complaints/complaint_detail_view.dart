@@ -13,6 +13,7 @@ import '../../../data/repositories/complaint_repository.dart';
 import '../../../data/repositories/linking_repository.dart';
 import '../../../data/repositories/order_repository.dart';
 import '../../../data/repositories/user_repository.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../shared/chat/chat_view.dart';
 
 /// Complaint detail view showing full information about a complaint.
@@ -149,9 +150,10 @@ class _ComplaintDetailViewState extends ConsumerState<ComplaintDetailView> {
   }
 
   // Format date string
-  String _formatDate(String? dateString) {
+  String _formatDate(String? dateString, BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     if (dateString == null || dateString.isEmpty) {
-      return 'N/A';
+      return l10n.commonNA;
     }
 
     try {
@@ -180,42 +182,44 @@ class _ComplaintDetailViewState extends ConsumerState<ComplaintDetailView> {
   }
 
   // Get status display name
-  String _getStatusDisplayName(ComplaintStatus status) {
+  String _getStatusDisplayName(ComplaintStatus status, BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     switch (status) {
       case ComplaintStatus.open:
-        return 'OPEN';
+        return l10n.complaintStatusOpen;
       case ComplaintStatus.escalated:
-        return 'ESCALATED';
+        return l10n.complaintStatusEscalated;
       case ComplaintStatus.inProgress:
-        return 'IN PROGRESS';
+        return l10n.complaintStatusInProgress;
       case ComplaintStatus.resolved:
-        return 'RESOLVED';
+        return l10n.complaintStatusResolved;
       case ComplaintStatus.closed:
-        return 'CLOSED';
+        return l10n.complaintStatusClosed;
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     if (_isLoading) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Complaint Details')),
+        appBar: AppBar(title: Text(l10n.complaintDetailsTitle)),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
 
     if (_error != null || _complaint == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Complaint Details')),
+        appBar: AppBar(title: Text(l10n.complaintDetailsTitle)),
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text('Error: ${_error ?? 'Complaint not found'}'),
+              Text('${l10n.commonError}: ${_error ?? l10n.complaintNotFound}'),
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: _loadComplaint,
-                child: const Text('Retry'),
+                child: Text(l10n.commonRetry),
               ),
             ],
           ),
@@ -238,7 +242,7 @@ class _ComplaintDetailViewState extends ConsumerState<ComplaintDetailView> {
             Row(
               children: [
                 Chip(
-                  label: Text(_getStatusDisplayName(complaint.status)),
+                  label: Text(_getStatusDisplayName(complaint.status, context)),
                   backgroundColor: _getStatusColor(complaint.status).withOpacity(0.2),
                   labelStyle: TextStyle(
                     color: _getStatusColor(complaint.status),
@@ -251,7 +255,7 @@ class _ComplaintDetailViewState extends ConsumerState<ComplaintDetailView> {
 
             // Complaint information
             Text(
-              'Complaint Information',
+              l10n.complaintInformation,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
@@ -264,7 +268,7 @@ class _ComplaintDetailViewState extends ConsumerState<ComplaintDetailView> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Description',
+                      l10n.complaintDescription,
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
                             fontWeight: FontWeight.w600,
                           ),
@@ -282,14 +286,14 @@ class _ComplaintDetailViewState extends ConsumerState<ComplaintDetailView> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Created',
+                                l10n.complaintCreated,
                                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
                                       fontWeight: FontWeight.w600,
                                     ),
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                _formatDate(complaint.createdAt),
+                                _formatDate(complaint.createdAt, context),
                                 style: Theme.of(context).textTheme.bodyMedium,
                               ),
                             ],
@@ -300,14 +304,14 @@ class _ComplaintDetailViewState extends ConsumerState<ComplaintDetailView> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Updated',
+                                l10n.complaintUpdated,
                                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
                                       fontWeight: FontWeight.w600,
                                     ),
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                _formatDate(complaint.updatedAt),
+                                _formatDate(complaint.updatedAt, context),
                                 style: Theme.of(context).textTheme.bodyMedium,
                               ),
                             ],
@@ -318,7 +322,7 @@ class _ComplaintDetailViewState extends ConsumerState<ComplaintDetailView> {
                     if (complaint.resolutionNotes != null) ...[
                       const SizedBox(height: 16),
                       Text(
-                        'Resolution Notes',
+                        l10n.complaintResolutionNotes,
                         style: Theme.of(context).textTheme.titleSmall?.copyWith(
                               fontWeight: FontWeight.w600,
                             ),
@@ -332,7 +336,7 @@ class _ComplaintDetailViewState extends ConsumerState<ComplaintDetailView> {
                     if (complaint.cancelOrder == true) ...[
                       const SizedBox(height: 16),
                       Chip(
-                        label: const Text('Order Cancelled'),
+                        label: Text(l10n.complaintOrderCancelled),
                         backgroundColor: Colors.red.withOpacity(0.2),
                         labelStyle: const TextStyle(
                           color: Colors.red,
@@ -348,7 +352,7 @@ class _ComplaintDetailViewState extends ConsumerState<ComplaintDetailView> {
 
             // Assigned personnel
             Text(
-              'Assigned Personnel',
+              l10n.complaintAssignedPersonnel,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
@@ -367,7 +371,7 @@ class _ComplaintDetailViewState extends ConsumerState<ComplaintDetailView> {
                             complaint.status != ComplaintStatus.inProgress)) ...[
                       _buildPersonnelRow(
                         context,
-                        'Assigned Salesman',
+                        l10n.complaintAssignedSalesman,
                         complaint.assignedSalesmanId ?? _defaultSalesmanId!,
                       ),
                       const SizedBox(height: 12),
@@ -376,13 +380,13 @@ class _ComplaintDetailViewState extends ConsumerState<ComplaintDetailView> {
                     if (complaint.assignedManagerId != null) ...[
                       _buildPersonnelRow(
                         context,
-                        'Assigned Manager',
+                        l10n.complaintAssignedManager,
                         complaint.assignedManagerId!,
                       ),
                     ] else if (complaint.status == ComplaintStatus.escalated ||
                         complaint.status == ComplaintStatus.inProgress) ...[
                       Text(
-                        'No manager assigned',
+                        l10n.complaintNoManagerAssigned,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                               fontStyle: FontStyle.italic,
                               color: Theme.of(context)
@@ -399,7 +403,7 @@ class _ComplaintDetailViewState extends ConsumerState<ComplaintDetailView> {
                         complaint.status != ComplaintStatus.escalated &&
                         complaint.status != ComplaintStatus.inProgress) ...[
                       Text(
-                        'No personnel assigned',
+                        l10n.complaintNoPersonnelAssigned,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                               fontStyle: FontStyle.italic,
                               color: Theme.of(context)
@@ -417,7 +421,7 @@ class _ComplaintDetailViewState extends ConsumerState<ComplaintDetailView> {
 
             // History timeline
             Text(
-              'History',
+              l10n.complaintHistory,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
@@ -430,7 +434,7 @@ class _ComplaintDetailViewState extends ConsumerState<ComplaintDetailView> {
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Text(
-                    'No history available',
+                    l10n.complaintNoHistory,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           fontStyle: FontStyle.italic,
                         ),
@@ -460,7 +464,7 @@ class _ComplaintDetailViewState extends ConsumerState<ComplaintDetailView> {
                       );
                     },
                     icon: const Icon(Icons.chat_bubble_outline),
-                    label: const Text('Open Chat'),
+                    label: Text(l10n.complaintOpenChat),
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16.0),
                     ),
@@ -471,7 +475,7 @@ class _ComplaintDetailViewState extends ConsumerState<ComplaintDetailView> {
             // Actions section
             if (_canPerformActions()) ...[
               Text(
-                'Actions',
+                l10n.complaintActions,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
@@ -540,6 +544,7 @@ class _ComplaintDetailViewState extends ConsumerState<ComplaintDetailView> {
 
   // Build action buttons based on user role and complaint status
   List<Widget> _buildActionButtons(BuildContext context, Complaint complaint) {
+    final l10n = AppLocalizations.of(context)!;
     final userState = ref.read(userProfileProvider);
     final appUser = userState.value;
     if (appUser == null) return [];
@@ -557,11 +562,12 @@ class _ComplaintDetailViewState extends ConsumerState<ComplaintDetailView> {
     if (appUser.role == UserRole.staff &&
         complaint.status == ComplaintStatus.open &&
         isAssignedSalesman) {
+      final l10n = AppLocalizations.of(context)!;
       buttons.add(
         FilledButton.icon(
           onPressed: () => _handleEscalate(context, complaint),
           icon: const Icon(Icons.arrow_upward),
-          label: const Text('Escalate to Manager'),
+          label: Text(l10n.complaintEscalateToManager),
           style: FilledButton.styleFrom(
             minimumSize: const Size(double.infinity, 48),
             backgroundColor: Colors.orange,
@@ -573,7 +579,7 @@ class _ComplaintDetailViewState extends ConsumerState<ComplaintDetailView> {
         FilledButton.icon(
           onPressed: () => _handleResolve(context, complaint),
           icon: const Icon(Icons.check_circle),
-          label: const Text('Resolve'),
+          label: Text(l10n.complaintResolve),
           style: FilledButton.styleFrom(
             minimumSize: const Size(double.infinity, 48),
             backgroundColor: Colors.green,
@@ -589,7 +595,7 @@ class _ComplaintDetailViewState extends ConsumerState<ComplaintDetailView> {
         FilledButton.icon(
           onPressed: () => _handleResolve(context, complaint),
           icon: const Icon(Icons.check_circle),
-          label: const Text('Resolve'),
+          label: Text(l10n.complaintResolve),
           style: FilledButton.styleFrom(
             minimumSize: const Size(double.infinity, 48),
             backgroundColor: Colors.green,
@@ -601,7 +607,7 @@ class _ComplaintDetailViewState extends ConsumerState<ComplaintDetailView> {
         FilledButton.icon(
           onPressed: () => _handleClose(context, complaint),
           icon: const Icon(Icons.close),
-          label: const Text('Close'),
+          label: Text(l10n.complaintClose),
           style: FilledButton.styleFrom(
             minimumSize: const Size(double.infinity, 48),
             backgroundColor: Colors.grey,
@@ -617,7 +623,7 @@ class _ComplaintDetailViewState extends ConsumerState<ComplaintDetailView> {
         FilledButton.icon(
           onPressed: () => _handleClaim(context, complaint),
           icon: const Icon(Icons.assignment),
-          label: const Text('Claim Complaint'),
+          label: Text(l10n.complaintClaimComplaint),
           style: FilledButton.styleFrom(
             minimumSize: const Size(double.infinity, 48),
             backgroundColor: Colors.blue,
@@ -634,7 +640,7 @@ class _ComplaintDetailViewState extends ConsumerState<ComplaintDetailView> {
         FilledButton.icon(
           onPressed: () => _handleResolve(context, complaint),
           icon: const Icon(Icons.check_circle),
-          label: const Text('Resolve'),
+          label: Text(l10n.complaintResolve),
           style: FilledButton.styleFrom(
             minimumSize: const Size(double.infinity, 48),
             backgroundColor: Colors.green,
@@ -646,7 +652,7 @@ class _ComplaintDetailViewState extends ConsumerState<ComplaintDetailView> {
         FilledButton.icon(
           onPressed: () => _handleClose(context, complaint),
           icon: const Icon(Icons.close),
-          label: const Text('Close'),
+          label: Text(l10n.complaintClose),
           style: FilledButton.styleFrom(
             minimumSize: const Size(double.infinity, 48),
             backgroundColor: Colors.grey,
@@ -660,23 +666,24 @@ class _ComplaintDetailViewState extends ConsumerState<ComplaintDetailView> {
 
   // Handle escalate action
   Future<void> _handleEscalate(BuildContext context, Complaint complaint) async {
+    final l10n = AppLocalizations.of(context)!;
     final TextEditingController notesController = TextEditingController();
 
     final bool? confirmed = await showDialog<bool>(
       context: context,
       builder: (BuildContext dialogContext) => AlertDialog(
-        title: const Text('Escalate Complaint'),
+        title: Text(l10n.complaintEscalateTitle),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Optional: Add notes explaining why you are escalating:'),
+            Text(l10n.complaintEscalateNotes),
             const SizedBox(height: 16),
             TextField(
               controller: notesController,
-              decoration: const InputDecoration(
-                labelText: 'Notes',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: l10n.complaintEscalateNotesLabel,
+                border: const OutlineInputBorder(),
               ),
               maxLines: 3,
             ),
@@ -685,11 +692,11 @@ class _ComplaintDetailViewState extends ConsumerState<ComplaintDetailView> {
         actions: <Widget>[
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Cancel'),
+            child: Text(l10n.commonCancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('Escalate'),
+            child: Text(l10n.complaintEscalate),
           ),
         ],
       ),
@@ -716,8 +723,8 @@ class _ComplaintDetailViewState extends ConsumerState<ComplaintDetailView> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Complaint escalated successfully'),
+          SnackBar(
+            content: Text(l10n.complaintEscalatedSuccess),
           ),
         );
       }
@@ -725,7 +732,7 @@ class _ComplaintDetailViewState extends ConsumerState<ComplaintDetailView> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error escalating complaint: $error'),
+            content: Text(l10n.complaintEscalateError(error.toString())),
           ),
         );
       }
@@ -734,21 +741,20 @@ class _ComplaintDetailViewState extends ConsumerState<ComplaintDetailView> {
 
   // Handle claim action
   Future<void> _handleClaim(BuildContext context, Complaint complaint) async {
+    final l10n = AppLocalizations.of(context)!;
     final bool? confirmed = await showDialog<bool>(
       context: context,
       builder: (BuildContext dialogContext) => AlertDialog(
-        title: const Text('Claim Complaint'),
-        content: const Text(
-          'Are you sure you want to claim this complaint? You will be responsible for managing it.',
-        ),
+        title: Text(l10n.complaintClaimTitle),
+        content: Text(l10n.complaintClaimMessage),
         actions: <Widget>[
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Cancel'),
+            child: Text(l10n.commonCancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('Claim'),
+            child: Text(l10n.complaintClaim),
           ),
         ],
       ),
@@ -766,8 +772,8 @@ class _ComplaintDetailViewState extends ConsumerState<ComplaintDetailView> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Complaint claimed successfully'),
+          SnackBar(
+            content: Text(l10n.complaintClaimedSuccess),
           ),
         );
       }
@@ -775,7 +781,7 @@ class _ComplaintDetailViewState extends ConsumerState<ComplaintDetailView> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error claiming complaint: $error'),
+            content: Text(l10n.complaintClaimError(error.toString())),
           ),
         );
       }
@@ -784,6 +790,7 @@ class _ComplaintDetailViewState extends ConsumerState<ComplaintDetailView> {
 
   // Handle resolve action
   Future<void> _handleResolve(BuildContext context, Complaint complaint) async {
+    final l10n = AppLocalizations.of(context)!;
     final TextEditingController notesController = TextEditingController();
     bool cancelOrder = false;
 
@@ -791,18 +798,18 @@ class _ComplaintDetailViewState extends ConsumerState<ComplaintDetailView> {
       context: context,
       builder: (BuildContext dialogContext) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
-          title: const Text('Resolve Complaint'),
+          title: Text(l10n.complaintResolveTitle),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Please provide resolution notes:'),
+              Text(l10n.complaintResolveNotes),
               const SizedBox(height: 16),
               TextField(
                 controller: notesController,
-                decoration: const InputDecoration(
-                  labelText: 'Resolution Notes',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: l10n.complaintResolveNotesLabel,
+                  border: const OutlineInputBorder(),
                 ),
                 maxLines: 3,
               ),
@@ -811,7 +818,7 @@ class _ComplaintDetailViewState extends ConsumerState<ComplaintDetailView> {
               if (ref.read(userProfileProvider).value?.role == UserRole.manager ||
                   ref.read(userProfileProvider).value?.role == UserRole.owner) ...[
                 CheckboxListTile(
-                  title: const Text('Cancel Order'),
+                  title: Text(l10n.complaintCancelOrder),
                   value: cancelOrder,
                   onChanged: (value) {
                     setDialogState(() {
@@ -825,21 +832,21 @@ class _ComplaintDetailViewState extends ConsumerState<ComplaintDetailView> {
           actions: <Widget>[
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(false),
-              child: const Text('Cancel'),
+              child: Text(l10n.commonCancel),
             ),
             FilledButton(
               onPressed: () {
                 if (notesController.text.trim().isEmpty) {
                   ScaffoldMessenger.of(dialogContext).showSnackBar(
-                    const SnackBar(
-                      content: Text('Please enter resolution notes'),
+                    SnackBar(
+                      content: Text(l10n.complaintResolveNotesRequired),
                     ),
                   );
                   return;
                 }
                 Navigator.of(dialogContext).pop(true);
               },
-              child: const Text('Resolve'),
+              child: Text(l10n.complaintResolve),
             ),
           ],
         ),
@@ -851,8 +858,8 @@ class _ComplaintDetailViewState extends ConsumerState<ComplaintDetailView> {
     final String notes = notesController.text.trim();
     if (notes.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please enter resolution notes'),
+        SnackBar(
+          content: Text(l10n.complaintResolveNotesRequired),
         ),
       );
       return;
@@ -876,8 +883,8 @@ class _ComplaintDetailViewState extends ConsumerState<ComplaintDetailView> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Complaint resolved successfully'),
+          SnackBar(
+            content: Text(l10n.complaintResolvedSuccess),
           ),
         );
       }
@@ -885,7 +892,7 @@ class _ComplaintDetailViewState extends ConsumerState<ComplaintDetailView> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error resolving complaint: $error'),
+            content: Text(l10n.complaintResolveError(error.toString())),
           ),
         );
       }
@@ -894,6 +901,7 @@ class _ComplaintDetailViewState extends ConsumerState<ComplaintDetailView> {
 
   // Handle close action
   Future<void> _handleClose(BuildContext context, Complaint complaint) async {
+    final l10n = AppLocalizations.of(context)!;
     final TextEditingController notesController = TextEditingController();
     bool cancelOrder = false;
 
@@ -901,24 +909,24 @@ class _ComplaintDetailViewState extends ConsumerState<ComplaintDetailView> {
       context: context,
       builder: (BuildContext dialogContext) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
-          title: const Text('Close Complaint'),
+          title: Text(l10n.complaintCloseTitle),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Please provide notes explaining why the complaint is being closed:'),
+              Text(l10n.complaintCloseNotes),
               const SizedBox(height: 16),
               TextField(
                 controller: notesController,
-                decoration: const InputDecoration(
-                  labelText: 'Resolution Notes',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: l10n.complaintResolveNotesLabel,
+                  border: const OutlineInputBorder(),
                 ),
                 maxLines: 3,
               ),
               const SizedBox(height: 16),
               CheckboxListTile(
-                title: const Text('Cancel Order'),
+                title: Text(l10n.complaintCancelOrder),
                 value: cancelOrder,
                 onChanged: (value) {
                   setDialogState(() {
@@ -931,21 +939,21 @@ class _ComplaintDetailViewState extends ConsumerState<ComplaintDetailView> {
           actions: <Widget>[
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(false),
-              child: const Text('Cancel'),
+              child: Text(l10n.commonCancel),
             ),
             FilledButton(
               onPressed: () {
                 if (notesController.text.trim().isEmpty) {
                   ScaffoldMessenger.of(dialogContext).showSnackBar(
-                    const SnackBar(
-                      content: Text('Please enter resolution notes'),
+                    SnackBar(
+                      content: Text(l10n.complaintResolveNotesRequired),
                     ),
                   );
                   return;
                 }
                 Navigator.of(dialogContext).pop(true);
               },
-              child: const Text('Close'),
+              child: Text(l10n.complaintClose),
             ),
           ],
         ),
@@ -957,8 +965,8 @@ class _ComplaintDetailViewState extends ConsumerState<ComplaintDetailView> {
     final String notes = notesController.text.trim();
     if (notes.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please enter resolution notes'),
+        SnackBar(
+          content: Text(l10n.complaintResolveNotesRequired),
         ),
       );
       return;
@@ -982,8 +990,8 @@ class _ComplaintDetailViewState extends ConsumerState<ComplaintDetailView> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Complaint closed successfully'),
+          SnackBar(
+            content: Text(l10n.complaintClosedSuccess),
           ),
         );
       }
@@ -991,7 +999,7 @@ class _ComplaintDetailViewState extends ConsumerState<ComplaintDetailView> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error closing complaint: $error'),
+            content: Text(l10n.complaintCloseError(error.toString())),
           ),
         );
       }
@@ -1066,7 +1074,7 @@ class _ComplaintDetailViewState extends ConsumerState<ComplaintDetailView> {
                   Row(
                     children: [
                       Chip(
-                        label: Text(_getStatusDisplayName(entry.status)),
+                        label: Text(_getStatusDisplayName(entry.status, context)),
                         backgroundColor:
                             _getStatusColor(entry.status).withOpacity(0.2),
                         labelStyle: TextStyle(
@@ -1077,7 +1085,7 @@ class _ComplaintDetailViewState extends ConsumerState<ComplaintDetailView> {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        _formatDate(entry.updatedAt),
+                        _formatDate(entry.updatedAt, context),
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
                     ],
@@ -1092,7 +1100,7 @@ class _ComplaintDetailViewState extends ConsumerState<ComplaintDetailView> {
                   if (entry.userName != null) ...[
                     const SizedBox(height: 4),
                     Text(
-                      'By: ${entry.userName}',
+                      AppLocalizations.of(context)!.complaintByUser(entry.userName!),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             fontStyle: FontStyle.italic,
                           ),

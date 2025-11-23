@@ -7,6 +7,7 @@ import '../../../../data/models/company.dart';
 import '../../../../data/models/product.dart';
 import '../../../../data/models/app_user.dart';
 import '../../../../data/repositories/product_repository.dart';
+import '../../../../l10n/app_localizations.dart';
 import 'product/product_detail_view.dart';
 import 'product/create_product_view.dart';
 
@@ -118,21 +119,22 @@ class _SupplierCatalogViewState extends ConsumerState<SupplierCatalogView> {
       return const Center(child: CircularProgressIndicator());
     }
 
+    final l10n = AppLocalizations.of(context)!;
     // Get user profile which contains company_id.
     final appUser = userState.value;
     if (appUser == null || appUser.companyId == null) {
-      return const Center(child: Text('User profile or company ID not found.'));
+      return Center(child: Text(l10n.catalogUserNotFound));
     }
 
     // If company is missing, block access.
     final company = companyState.value;
     if (company == null) {
-      return const Center(child: Text('Company not found.'));
+      return Center(child: Text(l10n.catalogCompanyNotFound));
     }
 
     // Enforce supplier-only access.
     if (company.companyType != CompanyType.supplier) {
-      return const Center(child: Text('Catalog is available for suppliers only.'));
+      return Center(child: Text(l10n.catalogSupplierOnly));
     }
 
     // Show loading state while products are being loaded.
@@ -142,7 +144,7 @@ class _SupplierCatalogViewState extends ConsumerState<SupplierCatalogView> {
 
     // Show error state if products failed to load.
     if (_productsError != null) {
-      return Center(child: Text('Failed to load catalog: $_productsError'));
+      return Center(child: Text('${l10n.commonError}: $_productsError'));
     }
 
     // Get cached products or empty list.
@@ -191,7 +193,7 @@ class _SupplierCatalogViewState extends ConsumerState<SupplierCatalogView> {
                         },
                       )
                     : null,
-                hintText: 'Search products...',
+                hintText: l10n.catalogSearchProducts,
                 border: const OutlineInputBorder(),
               ),
             ),
@@ -200,13 +202,13 @@ class _SupplierCatalogViewState extends ConsumerState<SupplierCatalogView> {
           // Expand to show the list of product cards.
           Expanded(
             child: allProducts.isEmpty
-                ? const Center(child: Text('No products yet'))
+                ? Center(child: Text(l10n.catalogNoProducts))
                 : filteredProducts.isEmpty
                     ? Center(
                         child: Text(
                           _searchQuery.isEmpty
-                              ? 'No products yet'
-                              : 'No products found matching "$_searchQuery"',
+                              ? l10n.catalogNoProducts
+                              : l10n.catalogNoProductsMatch(_searchQuery),
                         ),
                       )
                     : ListView.builder(
@@ -242,6 +244,7 @@ class _ProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     // Build a clean, readable tile with key product attributes.
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
@@ -318,7 +321,7 @@ class _ProductCard extends StatelessWidget {
 
               // Stock information in smaller text right under the price.
               Text(
-                'Stock: ${product.stockQuantity}',
+                l10n.catalogStock(product.stockQuantity),
                 style: Theme.of(context).textTheme.bodySmall,
               ),
             ],

@@ -135,9 +135,10 @@ class _LinkingDetailViewState extends ConsumerState<LinkingDetailView> {
   }
 
   // Format date string to human-readable format.
-  String _formatDate(String? dateString) {
+  String _formatDate(String? dateString, BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     if (dateString == null || dateString.isEmpty) {
-      return 'N/A';
+      return l10n.commonNA;
     }
 
     try {
@@ -175,16 +176,17 @@ class _LinkingDetailViewState extends ConsumerState<LinkingDetailView> {
       final linkingRepo = ref.read(linkingRepositoryProvider);
       await linkingRepo.acceptLinking(linkingId: widget.linking.linkingId!);
 
+      final l10n = AppLocalizations.of(context)!;
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Linking accepted')),
+          SnackBar(content: Text(l10n.linkingsAcceptedSuccess)),
         );
         Navigator.of(context).pop(true); // Return true to indicate refresh needed
       }
     } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error accepting linking: $error')),
+          SnackBar(content: Text(AppLocalizations.of(context)!.linkingsAcceptError(error.toString()))),
         );
       }
     } finally {
@@ -210,16 +212,17 @@ class _LinkingDetailViewState extends ConsumerState<LinkingDetailView> {
       final linkingRepo = ref.read(linkingRepositoryProvider);
       await linkingRepo.rejectLinking(linkingId: widget.linking.linkingId!);
 
+      final l10n = AppLocalizations.of(context)!;
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Linking rejected')),
+          SnackBar(content: Text(l10n.linkingsRejectedSuccess)),
         );
         Navigator.of(context).pop(true); // Return true to indicate refresh needed
       }
     } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error rejecting linking: $error')),
+          SnackBar(content: Text(AppLocalizations.of(context)!.linkingsRejectError(error.toString()))),
         );
       }
     } finally {
@@ -233,20 +236,21 @@ class _LinkingDetailViewState extends ConsumerState<LinkingDetailView> {
 
   // Handle unlink action with confirmation.
   Future<void> _handleUnlink() async {
+    final l10n = AppLocalizations.of(context)!;
     // Show confirmation dialog.
     final bool? confirmed = await showDialog<bool>(
       context: context,
       builder: (BuildContext dialogContext) => AlertDialog(
-        title: const Text('Unlink Companies'),
-        content: const Text('Are you sure you want to unlink these companies? This action cannot be undone.'),
+        title: Text(l10n.linkingsUnlinkTitle),
+        content: Text(l10n.linkingsUnlinkMessage),
         actions: <Widget>[
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Cancel'),
+            child: Text(l10n.commonCancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('Unlink'),
+            child: Text(l10n.linkingsUnlink),
           ),
         ],
       ),
@@ -266,14 +270,14 @@ class _LinkingDetailViewState extends ConsumerState<LinkingDetailView> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Companies unlinked')),
+          SnackBar(content: Text(l10n.linkingsUnlinkedSuccess)),
         );
         Navigator.of(context).pop(true); // Return true to indicate refresh needed
       }
     } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error unlinking: $error')),
+          SnackBar(content: Text(l10n.linkingsUnlinkError(error.toString()))),
         );
       }
     } finally {
@@ -296,9 +300,10 @@ class _LinkingDetailViewState extends ConsumerState<LinkingDetailView> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Linking Details'),
+        title: Text(l10n.linkingsDetailsTitle),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -310,7 +315,7 @@ class _LinkingDetailViewState extends ConsumerState<LinkingDetailView> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Linking #${widget.linking.linkingId ?? 'N/A'}',
+                  '${l10n.orderLinking} #${widget.linking.linkingId ?? l10n.commonNA}',
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
@@ -333,14 +338,14 @@ class _LinkingDetailViewState extends ConsumerState<LinkingDetailView> {
 
             // Linking date time
             Text(
-              'Created: ${_formatDate(widget.linking.createdAt)}',
+              l10n.linkingsCreated(_formatDate(widget.linking.createdAt, context)),
               style: Theme.of(context).textTheme.bodyMedium,
             ),
             const SizedBox(height: 24),
 
             // Company card
             Text(
-              'Company',
+              l10n.companiesCompany,
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 8),
@@ -361,7 +366,7 @@ class _LinkingDetailViewState extends ConsumerState<LinkingDetailView> {
                   child: _isLoadingCompany
                       ? const Center(child: CircularProgressIndicator())
                       : _company == null
-                          ? const Text('Failed to load company')
+                          ? Text(l10n.linkingsFailedToLoadCompany)
                           : Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: <Widget>[
@@ -429,7 +434,7 @@ class _LinkingDetailViewState extends ConsumerState<LinkingDetailView> {
             // Consumer side contact person (requester)
             if (widget.linking.requestedByUserId != 0) ...[
               Text(
-                'Consumer Contact',
+                l10n.linkingsConsumerContact,
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               const SizedBox(height: 8),
@@ -443,7 +448,7 @@ class _LinkingDetailViewState extends ConsumerState<LinkingDetailView> {
                     child: _isLoadingRequester
                         ? const Center(child: CircularProgressIndicator())
                         : _requester == null
-                            ? const Text('Failed to load contact person')
+                            ? Text(l10n.linkingsFailedToLoadContactPerson)
                             : Row(
                                 children: [
                                   Expanded(
@@ -477,7 +482,7 @@ class _LinkingDetailViewState extends ConsumerState<LinkingDetailView> {
             // Supplier side assigned salesperson (if available)
             if (widget.linking.assignedSalesmanUserId != null) ...[
               Text(
-                'Supplier Contact (Assigned Salesperson)',
+                l10n.linkingsSupplierContact,
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               const SizedBox(height: 8),
@@ -491,7 +496,7 @@ class _LinkingDetailViewState extends ConsumerState<LinkingDetailView> {
                     child: _isLoadingSalesperson
                         ? const Center(child: CircularProgressIndicator())
                         : _salesperson == null
-                            ? const Text('Failed to load salesperson')
+                            ? Text(l10n.linkingsFailedToLoadSalesperson)
                             : Row(
                                 children: [
                                   Expanded(
@@ -536,7 +541,7 @@ class _LinkingDetailViewState extends ConsumerState<LinkingDetailView> {
                   );
                 },
                 icon: const Icon(Icons.chat),
-                label: const Text('Open Chat'),
+                label: Text(l10n.linkingsOpenChat),
                 style: FilledButton.styleFrom(
                   minimumSize: const Size(double.infinity, 48),
                 ),
@@ -574,6 +579,7 @@ class _LinkingDetailViewState extends ConsumerState<LinkingDetailView> {
 
   // Build buttons for pending status.
   Widget _buildPendingButtons() {
+    final l10n = AppLocalizations.of(context)!;
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -593,7 +599,7 @@ class _LinkingDetailViewState extends ConsumerState<LinkingDetailView> {
                           strokeWidth: 2,
                         ),
                       )
-                    : const Text('Reject'),
+                    : Text(l10n.linkingsReject),
               ),
             ),
             const SizedBox(width: 16),
@@ -612,7 +618,7 @@ class _LinkingDetailViewState extends ConsumerState<LinkingDetailView> {
                           valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                         ),
                       )
-                    : const Text('Accept'),
+                    : Text(l10n.linkingsAccept),
               ),
             ),
           ],
@@ -623,6 +629,7 @@ class _LinkingDetailViewState extends ConsumerState<LinkingDetailView> {
 
   // Build unlink button for accepted status.
   Widget _buildUnlinkButton() {
+    final l10n = AppLocalizations.of(context)!;
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -639,7 +646,7 @@ class _LinkingDetailViewState extends ConsumerState<LinkingDetailView> {
                     strokeWidth: 2,
                   ),
                 )
-              : const Text('Unlink'),
+              : Text(l10n.linkingsUnlink),
         ),
       ),
     );

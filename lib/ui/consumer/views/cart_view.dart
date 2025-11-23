@@ -13,6 +13,7 @@ import '../../../data/repositories/company_repository.dart';
 import '../../../data/repositories/linking_repository.dart';
 import '../../../data/repositories/order_repository.dart';
 import '../../../data/repositories/product_repository.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../supplier/views/catalog/product/product_detail_view.dart';
 import 'company_detail_view.dart';
 
@@ -137,12 +138,12 @@ class ConsumerCartView extends ConsumerWidget {
               ),
               const SizedBox(height: 16),
               Text(
-                'Your cart is empty',
+                AppLocalizations.of(context)!.cartEmpty,
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               const SizedBox(height: 8),
               Text(
-                'Add products from companies to get started',
+                AppLocalizations.of(context)!.cartEmptyMessage,
                 style: Theme.of(context).textTheme.bodyMedium,
                 textAlign: TextAlign.center,
               ),
@@ -174,7 +175,7 @@ class ConsumerCartView extends ConsumerWidget {
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
               Text(
-                'Failed to load products',
+                AppLocalizations.of(context)!.cartFailedToLoadProducts,
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               const SizedBox(height: 8),
@@ -188,7 +189,7 @@ class ConsumerCartView extends ConsumerWidget {
                 onPressed: () {
                   ref.invalidate(cartProductsProvider);
                 },
-                child: const Text('Retry'),
+                child: Text(AppLocalizations.of(context)!.commonRetry),
               ),
             ],
           ),
@@ -315,30 +316,31 @@ class ConsumerCartView extends ConsumerWidget {
       print('[CHECKOUT] Item - Product ID: ${item.product.id}, Name: ${item.product.name}, Quantity: ${item.cartItem.count}');
     }
     
+    final l10n = AppLocalizations.of(context)!;
     // Show confirmation dialog
     print('[CHECKOUT] Showing confirmation dialog');
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (BuildContext dialogContext) => AlertDialog(
-        title: const Text('Confirm Checkout'),
+        title: Text(l10n.cartConfirmCheckout),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             Text(
-              'Complete order with $companyName?',
+              l10n.cartCheckoutMessage(companyName),
               style: Theme.of(dialogContext).textTheme.bodyLarge,
             ),
             const SizedBox(height: 16),
             Text(
-              'Total: $totalPrice ₸',
+              l10n.cartTotal(totalPrice),
               style: Theme.of(dialogContext).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
             ),
             const SizedBox(height: 8),
             Text(
-              'Items: ${items.length}',
+              l10n.cartItems(items.length),
               style: Theme.of(dialogContext).textTheme.bodyMedium,
             ),
           ],
@@ -346,11 +348,11 @@ class ConsumerCartView extends ConsumerWidget {
         actions: <Widget>[
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Cancel'),
+            child: Text(l10n.commonCancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('Confirm'),
+            child: Text(l10n.commonConfirm),
           ),
         ],
       ),
@@ -373,8 +375,8 @@ class ConsumerCartView extends ConsumerWidget {
       print('[CHECKOUT] ERROR: User company ID is null');
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('User company not found'),
+          SnackBar(
+            content: Text(l10n.cartUserCompanyNotFound),
             backgroundColor: Colors.red,
           ),
         );
@@ -395,7 +397,7 @@ class ConsumerCartView extends ConsumerWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to verify linking: $e'),
+            content: Text(l10n.cartVerifyLinkingError(e.toString())),
             backgroundColor: Colors.red,
           ),
         );
@@ -407,8 +409,8 @@ class ConsumerCartView extends ConsumerWidget {
       print('[CHECKOUT] ERROR: Linking is null or not accepted. Status: ${linking?.status}');
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Linking with this supplier is not accepted'),
+          SnackBar(
+            content: Text(l10n.cartLinkingNotAccepted),
             backgroundColor: Colors.red,
           ),
         );
@@ -426,8 +428,8 @@ class ConsumerCartView extends ConsumerWidget {
       print('[CHECKOUT] ERROR: No valid items after filtering');
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('No valid products to order'),
+          SnackBar(
+            content: Text(l10n.cartNoValidProducts),
             backgroundColor: Colors.red,
           ),
         );
@@ -482,8 +484,8 @@ class ConsumerCartView extends ConsumerWidget {
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Order created successfully'),
+          SnackBar(
+            content: Text(l10n.cartOrderCreatedSuccess),
             backgroundColor: Colors.green,
           ),
         );
@@ -495,7 +497,7 @@ class ConsumerCartView extends ConsumerWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to create order: $e'),
+            content: Text(l10n.cartOrderCreateError(e.toString())),
             backgroundColor: Colors.red,
           ),
         );
@@ -540,7 +542,7 @@ class _CompanyCartGroupWidget extends ConsumerWidget {
       error: (error, stackTrace) => Card(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
-          child: Text('Error loading company: $error'),
+          child: Text(AppLocalizations.of(context)!.cartErrorLoadingCompany(error.toString())),
         ),
       ),
       data: (company) {
@@ -597,7 +599,7 @@ class _CompanyCartGroupWidget extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: <Widget>[
                     Text(
-                      'Total: ${group.totalPrice} ₸',
+                      AppLocalizations.of(context)!.cartTotalLabel(group.totalPrice),
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
@@ -622,7 +624,7 @@ class _CompanyCartGroupWidget extends ConsumerWidget {
                         style: OutlinedButton.styleFrom(
                           minimumSize: ButtonSizes.mdFill,
                         ),
-                        child: const Text('Checkout'),
+                        child: Text(AppLocalizations.of(context)!.cartCheckout),
                       ),
                     ),
                   ],
@@ -780,14 +782,14 @@ class _CartItemWidgetState extends State<_CartItemWidget> {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          '${product.retailPrice} ₸ / ${product.unit}',
+                          AppLocalizations.of(context)!.cartPricePerUnit(product.retailPrice, product.unit),
                           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                 fontWeight: FontWeight.w500,
                               ),
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'Total: $itemTotal ₸',
+                          AppLocalizations.of(context)!.cartItemTotal(itemTotal),
                           style: Theme.of(context).textTheme.titleSmall?.copyWith(
                                 fontWeight: FontWeight.bold,
                                 color: Theme.of(context).colorScheme.primary,
@@ -841,7 +843,7 @@ class _CartItemWidgetState extends State<_CartItemWidget> {
                 icon: const Icon(Icons.delete_outline),
                 onPressed: () => widget.onRemove(product.id!),
                 color: Theme.of(context).colorScheme.error,
-                tooltip: 'Remove',
+                tooltip: AppLocalizations.of(context)!.cartRemove,
               ),
             ],
           ),

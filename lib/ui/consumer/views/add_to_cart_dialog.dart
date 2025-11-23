@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../../data/models/product.dart';
+import '../../../l10n/app_localizations.dart';
 
 // Dialog for adding products to cart with quantity selection
 class AddToCartDialog extends StatefulWidget {
@@ -42,9 +43,10 @@ class _AddToCartDialogState extends State<AddToCartDialog> {
   void _validateQuantity() {
     final input = _quantityController.text.trim();
     
+    final l10n = AppLocalizations.of(context)!;
     if (input.isEmpty) {
       setState(() {
-        _errorMessage = 'Please enter a quantity';
+        _errorMessage = l10n.addToCartQuantityRequired;
         _quantity = 0;
       });
       return;
@@ -54,7 +56,7 @@ class _AddToCartDialogState extends State<AddToCartDialog> {
     
     if (quantity == null) {
       setState(() {
-        _errorMessage = 'Please enter a valid number';
+        _errorMessage = l10n.addToCartInvalidNumber;
         _quantity = 0;
       });
       return;
@@ -62,7 +64,7 @@ class _AddToCartDialogState extends State<AddToCartDialog> {
 
     if (quantity <= 0) {
       setState(() {
-        _errorMessage = 'Quantity must be greater than 0';
+        _errorMessage = l10n.addToCartQuantityGreaterThanZero;
         _quantity = 0;
       });
       return;
@@ -70,8 +72,7 @@ class _AddToCartDialogState extends State<AddToCartDialog> {
 
     if (quantity < widget.product.minimumOrder) {
       setState(() {
-        _errorMessage =
-            'Minimum order is ${widget.product.minimumOrder} ${widget.product.unit}';
+        _errorMessage = l10n.addToCartMinimumOrder(widget.product.minimumOrder, widget.product.unit);
         _quantity = quantity;
       });
       return;
@@ -79,8 +80,7 @@ class _AddToCartDialogState extends State<AddToCartDialog> {
 
     if (quantity > widget.product.stockQuantity) {
       setState(() {
-        _errorMessage =
-            'Only ${widget.product.stockQuantity} ${widget.product.unit} available';
+        _errorMessage = l10n.addToCartOnlyAvailable(widget.product.stockQuantity, widget.product.unit);
         _quantity = quantity;
       });
       return;
@@ -103,6 +103,7 @@ class _AddToCartDialogState extends State<AddToCartDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return AlertDialog(
       title: Text(widget.product.name),
       content: SingleChildScrollView(
@@ -115,7 +116,7 @@ class _AddToCartDialogState extends State<AddToCartDialog> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
                 Text(
-                  'Price per ${widget.product.unit}:',
+                  l10n.addToCartPricePerUnit(widget.product.unit),
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
                 Text(
@@ -133,8 +134,8 @@ class _AddToCartDialogState extends State<AddToCartDialog> {
             TextField(
               controller: _quantityController,
               decoration: InputDecoration(
-                labelText: 'Quantity (${widget.product.unit})',
-                hintText: 'Enter quantity',
+                labelText: l10n.cartQuantity(widget.product.unit),
+                hintText: l10n.addToCartEnterQuantity,
                 errorText: _errorMessage,
                 border: const OutlineInputBorder(),
                 prefixIcon: IconButton(
@@ -167,14 +168,14 @@ class _AddToCartDialogState extends State<AddToCartDialog> {
 
             // Stock and minimum order info
             Text(
-              'Available: ${widget.product.stockQuantity} ${widget.product.unit}',
+              l10n.addToCartAvailable(widget.product.stockQuantity, widget.product.unit),
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
                   ),
             ),
             if (widget.product.minimumOrder > 1)
               Text(
-                'Minimum: ${widget.product.minimumOrder} ${widget.product.unit}',
+                l10n.addToCartMinimum(widget.product.minimumOrder, widget.product.unit),
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
                     ),
@@ -193,7 +194,7 @@ class _AddToCartDialogState extends State<AddToCartDialog> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: <Widget>[
                   Text(
-                    'Total:',
+                    l10n.orderTotal,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
@@ -214,13 +215,13 @@ class _AddToCartDialogState extends State<AddToCartDialog> {
       actions: <Widget>[
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+          child: Text(l10n.commonCancel),
         ),
         FilledButton(
           onPressed: _errorMessage == null && _quantity > 0
               ? () => Navigator.of(context).pop(_quantity)
               : null,
-          child: const Text('Add to Cart'),
+          child: Text(l10n.addToCartButton),
         ),
       ],
     );

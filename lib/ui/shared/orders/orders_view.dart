@@ -10,6 +10,7 @@ import '../../../data/models/order.dart';
 import '../../../data/repositories/company_repository.dart';
 import '../../../data/repositories/linking_repository.dart';
 import '../../../data/repositories/order_repository.dart';
+import '../../../l10n/app_localizations.dart';
 import '../linkings/linking_detail_view.dart';
 import 'order_detail_view.dart';
 
@@ -198,9 +199,10 @@ class _OrdersViewState extends ConsumerState<OrdersView> {
   }
 
   // Format date string to human-readable format
-  String _formatDate(String? dateString) {
+  String _formatDate(String? dateString, BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     if (dateString == null || dateString.isEmpty) {
-      return 'N/A';
+      return l10n.commonNA;
     }
 
     try {
@@ -214,6 +216,7 @@ class _OrdersViewState extends ConsumerState<OrdersView> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     if (_isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -223,11 +226,11 @@ class _OrdersViewState extends ConsumerState<OrdersView> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text('Error: $_error'),
+            Text('${l10n.commonError}: $_error'),
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: _loadData,
-              child: const Text('Retry'),
+              child: Text(l10n.commonRetry),
             ),
           ],
         ),
@@ -235,7 +238,7 @@ class _OrdersViewState extends ConsumerState<OrdersView> {
     }
 
     if (_cachedLinkings == null || _cachedLinkings!.isEmpty) {
-      return const Center(child: Text('No linkings found'));
+      return Center(child: Text(l10n.ordersNoLinkings));
     }
 
     // Build list of linkings with their orders
@@ -280,7 +283,7 @@ class _OrdersViewState extends ConsumerState<OrdersView> {
                       },
                     )
                   : null,
-              hintText: 'Search companies...',
+              hintText: l10n.ordersSearchCompanies,
               border: const OutlineInputBorder(),
             ),
           ),
@@ -296,9 +299,9 @@ class _OrdersViewState extends ConsumerState<OrdersView> {
                   child: Text(
                     _searchQuery.isEmpty
                         ? (_selectedStatus == null
-                            ? 'No orders found'
-                            : 'No orders with status: ${_selectedStatus!.name}')
-                        : 'No companies found matching "$_searchQuery"',
+                            ? l10n.ordersNoOrders
+                            : l10n.ordersNoOrdersStatus(_selectedStatus!.name))
+                        : l10n.ordersNoCompaniesMatch(_searchQuery),
                   ),
                 )
               : ListView.builder(
@@ -315,6 +318,7 @@ class _OrdersViewState extends ConsumerState<OrdersView> {
 
   // Build status filter chips
   Widget _buildStatusFilterChips() {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: SingleChildScrollView(
@@ -322,7 +326,7 @@ class _OrdersViewState extends ConsumerState<OrdersView> {
         padding: const EdgeInsets.symmetric(horizontal: 16.0),
         child: Row(
           children: [
-            _buildStatusChip(null, 'All'),
+            _buildStatusChip(null, l10n.ordersAll),
             const SizedBox(width: 8),
             ...OrderStatus.values.map(
               (status) => Padding(
@@ -352,8 +356,9 @@ class _OrdersViewState extends ConsumerState<OrdersView> {
 
   // Build a linking group with its orders
   Widget _buildLinkingGroup(_LinkingOrdersGroup group) {
+    final l10n = AppLocalizations.of(context)!;
     final company = group.company;
-    final companyName = company?.name ?? 'Company #${widget.companyIdToLoad(group.linking)}';
+    final companyName = company?.name ?? '${l10n.companiesCompany} #${widget.companyIdToLoad(group.linking)}';
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -401,7 +406,7 @@ class _OrdersViewState extends ConsumerState<OrdersView> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Linking #${group.linking.linkingId ?? 'N/A'}',
+                            '${l10n.orderLinking} #${group.linking.linkingId ?? l10n.commonNA}',
                             style: Theme.of(context).textTheme.titleMedium?.copyWith(
                                   fontWeight: FontWeight.w600,
                                 ),
@@ -422,9 +427,9 @@ class _OrdersViewState extends ConsumerState<OrdersView> {
 
           // Orders list
           if (group.orders.isEmpty)
-            const Padding(
-              padding: EdgeInsets.all(16.0),
-              child: Text('No orders'),
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Text(l10n.ordersNoOrders),
             )
           else
             ...group.orders.map((order) => _buildOrderCard(order)),
@@ -435,6 +440,7 @@ class _OrdersViewState extends ConsumerState<OrdersView> {
 
   // Build an order card
   Widget _buildOrderCard(Order order) {
+    final l10n = AppLocalizations.of(context)!;
     return InkWell(
       onTap: () async {
         final result = await Navigator.of(context).push(
@@ -465,14 +471,14 @@ class _OrdersViewState extends ConsumerState<OrdersView> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Order #${order.orderId}',
+                    '${l10n.orderDetailsTitle.split(' ').first} #${order.orderId}',
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
                           fontWeight: FontWeight.w600,
                         ),
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    _formatDate(order.createdAt),
+                    _formatDate(order.createdAt, context),
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
                 ],

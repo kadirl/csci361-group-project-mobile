@@ -237,7 +237,7 @@ class _StaffMemberFormViewState extends ConsumerState<StaffMemberFormView> {
             actions: <Widget>[
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
-                child: const Text('OK'),
+                child: Text(AppLocalizations.of(context)!.commonOK),
               ),
             ],
           );

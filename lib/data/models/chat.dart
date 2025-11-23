@@ -4,9 +4,10 @@ import 'package:flutter/foundation.dart';
 enum MessageType {
   text,
   image,
+  file,
+  audio,
   complaint, // Update message type
   order, // Update message type
-  // Add other message types as needed (e.g., audio, file, etc.)
 }
 
 /// Parse a raw message type string from backend into a MessageType enum.
@@ -16,6 +17,10 @@ MessageType parseMessageType(String? raw) {
       return MessageType.text;
     case 'image':
       return MessageType.image;
+    case 'file':
+      return MessageType.file;
+    case 'audio':
+      return MessageType.audio;
     case 'complaint':
       return MessageType.complaint;
     case 'order':

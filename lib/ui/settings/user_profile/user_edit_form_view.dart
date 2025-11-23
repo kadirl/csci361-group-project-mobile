@@ -229,7 +229,7 @@ class _UserEditFormViewState extends ConsumerState<UserEditFormView> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('User ID is missing'),
+            content: Text(AppLocalizations.of(context)!.userEditUserIdMissing),
           ),
         );
       }
@@ -258,7 +258,7 @@ class _UserEditFormViewState extends ConsumerState<UserEditFormView> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Profile updated successfully'),
+            content: Text(AppLocalizations.of(context)!.userEditProfileUpdatedSuccess),
           ),
         );
         Navigator.of(context).pop();
@@ -274,7 +274,7 @@ class _UserEditFormViewState extends ConsumerState<UserEditFormView> {
             actions: <Widget>[
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
-                child: const Text('OK'),
+                child: Text(AppLocalizations.of(context)!.commonOK),
               ),
             ],
           );

@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 
 import '../../../data/models/complaint.dart';
 import '../../../data/models/company.dart';
+import '../../../l10n/app_localizations.dart';
 
 /// Widget for displaying a complaint in a list.
 class ComplaintListItem extends StatelessWidget {
@@ -24,9 +25,10 @@ class ComplaintListItem extends StatelessWidget {
   final VoidCallback? onQuickAction;
 
   // Format date string
-  String _formatDate(String? dateString) {
+  String _formatDate(String? dateString, BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     if (dateString == null || dateString.isEmpty) {
-      return 'N/A';
+      return l10n.commonNA;
     }
 
     try {
@@ -55,23 +57,25 @@ class ComplaintListItem extends StatelessWidget {
   }
 
   // Get status display name
-  String _getStatusDisplayName(ComplaintStatus status) {
+  String _getStatusDisplayName(ComplaintStatus status, BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     switch (status) {
       case ComplaintStatus.open:
-        return 'OPEN';
+        return l10n.complaintStatusOpen;
       case ComplaintStatus.escalated:
-        return 'ESCALATED';
+        return l10n.complaintStatusEscalated;
       case ComplaintStatus.inProgress:
-        return 'IN PROGRESS';
+        return l10n.complaintStatusInProgress;
       case ComplaintStatus.resolved:
-        return 'RESOLVED';
+        return l10n.complaintStatusResolved;
       case ComplaintStatus.closed:
-        return 'CLOSED';
+        return l10n.complaintStatusClosed;
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       child: InkWell(
@@ -86,14 +90,14 @@ class ComplaintListItem extends StatelessWidget {
                 children: [
                   Expanded(
                     child: Text(
-                      'Order #${complaint.orderId}',
+                      '${l10n.orderDetailsTitle.split(' ').first} #${complaint.orderId}',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.w600,
                           ),
                     ),
                   ),
                   Chip(
-                    label: Text(_getStatusDisplayName(complaint.status)),
+                    label: Text(_getStatusDisplayName(complaint.status, context)),
                     backgroundColor: _getStatusColor(complaint.status).withOpacity(0.2),
                     labelStyle: TextStyle(
                       color: _getStatusColor(complaint.status),
@@ -127,7 +131,7 @@ class ComplaintListItem extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    _formatDate(complaint.createdAt),
+                    _formatDate(complaint.createdAt, context),
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
                         ),

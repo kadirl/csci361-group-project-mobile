@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../data/models/company.dart';
 import '../../../data/repositories/company_repository.dart';
+import '../../../l10n/app_localizations.dart';
 import 'company_detail_view.dart';
 
 // Provider to load all companies.
@@ -92,7 +93,7 @@ class _ConsumerCompaniesViewState extends ConsumerState<ConsumerCompaniesView> {
                         },
                       )
                     : null,
-                hintText: 'Search companies...',
+                hintText: AppLocalizations.of(context)!.companiesSearchCompanies,
                 border: const OutlineInputBorder(),
               ),
             ),
@@ -109,7 +110,7 @@ class _ConsumerCompaniesViewState extends ConsumerState<ConsumerCompaniesView> {
                     mainAxisSize: MainAxisSize.min,
                     children: <Widget>[
                       Text(
-                        'Error loading companies',
+                        AppLocalizations.of(context)!.companiesErrorLoading,
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                       const SizedBox(height: 8),
@@ -123,7 +124,7 @@ class _ConsumerCompaniesViewState extends ConsumerState<ConsumerCompaniesView> {
                         onPressed: () {
                           ref.invalidate(companiesListProvider);
                         },
-                        child: const Text('Retry'),
+                        child: Text(AppLocalizations.of(context)!.commonRetry),
                       ),
                     ],
                   ),
@@ -134,15 +135,15 @@ class _ConsumerCompaniesViewState extends ConsumerState<ConsumerCompaniesView> {
                 final List<Company> filteredCompanies = _filterCompanies(companies, _searchQuery);
 
                 if (companies.isEmpty) {
-                  return const Center(child: Text('No companies yet'));
+                  return Center(child: Text(AppLocalizations.of(context)!.companiesNoCompanies));
                 }
 
                 if (filteredCompanies.isEmpty) {
                   return Center(
                     child: Text(
                       _searchQuery.isEmpty
-                          ? 'No companies yet'
-                          : 'No companies found matching "$_searchQuery"',
+                          ? AppLocalizations.of(context)!.companiesNoCompanies
+                          : AppLocalizations.of(context)!.companiesNoMatch(_searchQuery),
                     ),
                   );
                 }

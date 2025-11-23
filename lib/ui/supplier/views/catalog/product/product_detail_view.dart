@@ -45,7 +45,7 @@ class _ProductDetailViewState extends ConsumerState<ProductDetailView> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Product Details'),
+        title: Text(localization.productDetailsTitle),
         actions: <Widget>[
           // Edit button - opens edit view.
           if (canManage)
@@ -144,16 +144,16 @@ class _ProductDetailViewState extends ConsumerState<ProductDetailView> {
 
             // Quantities and pricing
             Text(
-              'Details',
+              localization.productDetails,
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 8),
-            _kv('Unit', widget.product.unit),
-            _kv('Stock quantity', widget.product.stockQuantity.toString()),
-            _kv('Retail price', widget.product.retailPrice.toString()),
-            _kv('Bulk price', widget.product.bulkPrice.toString()),
-            _kv('Minimum order', widget.product.minimumOrder.toString()),
-            _kv('Threshold', widget.product.threshold.toString()),
+            _kv(localization.productUnit, widget.product.unit),
+            _kv(localization.productStockQuantity, widget.product.stockQuantity.toString()),
+            _kv(localization.productRetailPrice, widget.product.retailPrice.toString()),
+            _kv(localization.productBulkPrice, widget.product.bulkPrice.toString()),
+            _kv(localization.productMinimumOrder, widget.product.minimumOrder.toString()),
+            _kv(localization.productThreshold, widget.product.threshold.toString()),
           ],
         ),
       ),
@@ -167,7 +167,7 @@ class _ProductDetailViewState extends ConsumerState<ProductDetailView> {
                     minimumSize: ButtonSizes.mdFill,
                   ),
                   onPressed: () => _showAddToCartDialog(context),
-                  child: const Text('Add to Cart'),
+                  child: Text(localization.productAddToCart),
                 ),
               ),
             )
@@ -192,10 +192,11 @@ class _ProductDetailViewState extends ConsumerState<ProductDetailView> {
             );
 
         if (mounted) {
+          final l10n = AppLocalizations.of(context)!;
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                'Added $result ${widget.product.unit} to cart',
+                l10n.productAddedToCart(result, widget.product.unit),
               ),
               backgroundColor: Colors.green,
             ),

@@ -67,13 +67,13 @@ class UserProfileView extends ConsumerWidget {
               _InfoTile(label: l10n.userRole, value: user.role.name),
               _InfoTile(label: l10n.userLocale, value: user.locale),
               companyAsync.when(
-                loading: () => const ListTile(
-                  title: Text('Company'),
-                  subtitle: Text('Loading...'),
+                loading: () => ListTile(
+                  title: Text(l10n.companyLabel),
+                  subtitle: Text(l10n.commonLoading),
                 ),
-                error: (_, __) => const ListTile(
-                  title: Text('Company'),
-                  subtitle: Text('—'),
+                error: (_, __) => ListTile(
+                  title: Text(l10n.companyLabel),
+                  subtitle: const Text('—'),
                 ),
                 data: (company) => _InfoTile(
                   label: l10n.companyLabel,

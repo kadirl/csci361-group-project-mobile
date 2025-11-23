@@ -119,7 +119,7 @@ class _CompanyEditFormViewState extends ConsumerState<CompanyEditFormView> {
                 // Logo image picker section
                 if (_currentLogoUrl != null) ...<Widget>[
                   Text(
-                    'Company Logo',
+                    l10n.companyEditLogo,
                     style: Theme.of(context).textTheme.titleSmall,
                   ),
                   const SizedBox(height: 8),
@@ -171,8 +171,8 @@ class _CompanyEditFormViewState extends ConsumerState<CompanyEditFormView> {
                 if (_currentLogoUrl == null)
                   ProductImagesPicker(
                     maxImages: 1,
-                    labelText: 'Company Logo',
-                    placeholderText: 'Select company logo',
+                    labelText: l10n.companyEditLogo,
+                    placeholderText: l10n.companyEditLogoPlaceholder,
                     uploadImage: _uploadLogoImageToS3,
                     onImagesChanged: _handleLogoImageChanged,
                     isEnabled: true,
@@ -315,8 +315,8 @@ class _CompanyEditFormViewState extends ConsumerState<CompanyEditFormView> {
     if (companyId == null) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Company ID is missing'),
+          SnackBar(
+            content: Text(l10n.companyEditCompanyIdMissing),
           ),
         );
       }
@@ -363,8 +363,8 @@ class _CompanyEditFormViewState extends ConsumerState<CompanyEditFormView> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Company profile updated successfully'),
+          SnackBar(
+            content: Text(l10n.companyEditProfileUpdatedSuccess),
           ),
         );
         Navigator.of(context).pop();
@@ -380,7 +380,7 @@ class _CompanyEditFormViewState extends ConsumerState<CompanyEditFormView> {
             actions: <Widget>[
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
-                child: const Text('OK'),
+                child: Text(l10n.commonOK),
               ),
             ],
           );

@@ -7,6 +7,7 @@ import '../../../../data/models/company.dart';
 import '../../../../data/models/linking.dart';
 import '../../../../data/repositories/company_repository.dart';
 import '../../../../data/repositories/linking_repository.dart';
+import '../../../../l10n/app_localizations.dart';
 import 'linking_detail_view.dart';
 
 /// Shared linkings view with tabs for different linking statuses.
@@ -166,9 +167,10 @@ class _LinkingsViewState extends ConsumerState<LinkingsView>
   }
 
   // Format date string to human-readable format.
-  String _formatDate(String? dateString) {
+  String _formatDate(String? dateString, BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     if (dateString == null || dateString.isEmpty) {
-      return 'N/A';
+      return l10n.commonNA;
     }
 
     try {
@@ -201,7 +203,7 @@ class _LinkingsViewState extends ConsumerState<LinkingsView>
                       },
                     )
                   : null,
-              hintText: 'Search companies...',
+              hintText: AppLocalizations.of(context)!.linkingsSearchCompanies,
               border: const OutlineInputBorder(),
             ),
           ),
@@ -223,10 +225,10 @@ class _LinkingsViewState extends ConsumerState<LinkingsView>
                 label: Text(
                   '${_filterLinkingsByStatus(LinkingStatus.pending).length}',
                 ),
-                child: const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Text('Pending'),
-                ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Text(AppLocalizations.of(context)!.linkingsPending),
+                  ),
               ),
             ),
             Tab(
@@ -240,10 +242,10 @@ class _LinkingsViewState extends ConsumerState<LinkingsView>
                 label: Text(
                   '${_filterLinkingsByStatus(LinkingStatus.accepted).length}',
                 ),
-                child: const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Text('Accepted'),
-                ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Text(AppLocalizations.of(context)!.linkingsAccepted),
+                  ),
               ),
             ),
             Tab(
@@ -257,10 +259,10 @@ class _LinkingsViewState extends ConsumerState<LinkingsView>
                 label: Text(
                   '${_filterLinkingsByStatus(LinkingStatus.rejected).length}',
                 ),
-                child: const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Text('Rejected'),
-                ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Text(AppLocalizations.of(context)!.linkingsRejected),
+                  ),
               ),
             ),
             Tab(
@@ -274,10 +276,10 @@ class _LinkingsViewState extends ConsumerState<LinkingsView>
                 label: Text(
                   '${_filterLinkingsByStatus(LinkingStatus.unlinked).length}',
                 ),
-                child: const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Text('Unlinked'),
-                ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Text(AppLocalizations.of(context)!.linkingsUnlinked),
+                  ),
               ),
             ),
           ],
@@ -291,11 +293,11 @@ class _LinkingsViewState extends ConsumerState<LinkingsView>
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text('Error: $_linkingsError'),
+                      Text('${AppLocalizations.of(context)!.commonError}: $_linkingsError'),
                       const SizedBox(height: 16),
                       ElevatedButton(
                         onPressed: _loadLinkings,
-                        child: const Text('Retry'),
+                        child: Text(AppLocalizations.of(context)!.commonRetry),
                       ),
                     ],
                   ),
@@ -331,8 +333,8 @@ class _LinkingsViewState extends ConsumerState<LinkingsView>
       return Center(
         child: Text(
           _searchQuery.isEmpty
-              ? 'No linkings found'
-              : 'No companies found matching "$_searchQuery"',
+              ? AppLocalizations.of(context)!.linkingsNoLinkings
+              : AppLocalizations.of(context)!.linkingsNoCompaniesMatch(_searchQuery),
         ),
       );
     }
@@ -372,17 +374,17 @@ class _LinkingsViewState extends ConsumerState<LinkingsView>
         },
         child: ListTile(
           leading: _buildCompanyLogo(_getCompany(companyId)),
-          title: Text(_getCompany(companyId)?.name ?? 'Company #$companyId'),
+          title: Text(_getCompany(companyId)?.name ?? '${AppLocalizations.of(context)!.companiesCompany} #$companyId'),
           subtitle: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               if (linking.message != null) ...[
                 const SizedBox(height: 4),
-                Text('Message: ${linking.message}'),
+                Text(AppLocalizations.of(context)!.linkingsMessage(linking.message!)),
               ],
               if (linking.createdAt != null) ...[
                 const SizedBox(height: 4),
-                Text('Created: ${_formatDate(linking.createdAt)}'),
+                Text(AppLocalizations.of(context)!.linkingsCreated(_formatDate(linking.createdAt, context))),
               ],
             ],
           ),
@@ -408,12 +410,12 @@ class _LinkingsViewState extends ConsumerState<LinkingsView>
         IconButton(
           icon: const Icon(Icons.check, color: Colors.green),
           onPressed: () => _handleAcceptLinking(linking),
-          tooltip: 'Accept',
+          tooltip: AppLocalizations.of(context)!.linkingsAccept,
         ),
         IconButton(
           icon: const Icon(Icons.close, color: Colors.red),
           onPressed: () => _handleRejectLinking(linking),
-          tooltip: 'Reject',
+          tooltip: AppLocalizations.of(context)!.linkingsReject,
         ),
       ],
     );
@@ -425,6 +427,7 @@ class _LinkingsViewState extends ConsumerState<LinkingsView>
       return;
     }
 
+    final l10n = AppLocalizations.of(context)!;
     try {
       final linkingRepo = ref.read(linkingRepositoryProvider);
       await linkingRepo.acceptLinking(linkingId: linking.linkingId!);
@@ -435,12 +438,12 @@ class _LinkingsViewState extends ConsumerState<LinkingsView>
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(const SnackBar(content: Text('Linking accepted')));
+        ).showSnackBar(SnackBar(content: Text(l10n.linkingsAcceptedSuccess)));
       }
     } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error accepting linking: $error')),
+          SnackBar(content: Text(l10n.linkingsAcceptError(error.toString()))),
         );
       }
     }
@@ -452,6 +455,7 @@ class _LinkingsViewState extends ConsumerState<LinkingsView>
       return;
     }
 
+    final l10n = AppLocalizations.of(context)!;
     try {
       final linkingRepo = ref.read(linkingRepositoryProvider);
       await linkingRepo.rejectLinking(linkingId: linking.linkingId!);
@@ -462,12 +466,12 @@ class _LinkingsViewState extends ConsumerState<LinkingsView>
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(const SnackBar(content: Text('Linking rejected')));
+        ).showSnackBar(SnackBar(content: Text(l10n.linkingsRejectedSuccess)));
       }
     } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error rejecting linking: $error')),
+          SnackBar(content: Text(l10n.linkingsRejectError(error.toString()))),
         );
       }
     }

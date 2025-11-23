@@ -152,6 +152,17 @@ Future<void> _showLocalePicker(
                 }
               },
             ),
+            RadioListTile<Locale>(
+              title: Text(AppLocalizations.of(context)!.settingsKazakh),
+              value: const Locale('kk'),
+              groupValue: currentLocale,
+              onChanged: (value) {
+                if (value != null) {
+                  ref.read(appLocaleProvider.notifier).setLocale(value);
+                  Navigator.of(context).pop();
+                }
+              },
+            ),
           ],
         ),
       );

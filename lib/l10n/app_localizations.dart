@@ -6,6 +6,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/intl.dart' as intl;
 
 import 'app_localizations_en.dart';
+import 'app_localizations_kk.dart';
 import 'app_localizations_ru.dart';
 
 // ignore_for_file: type=lint
@@ -95,6 +96,7 @@ abstract class AppLocalizations {
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
     Locale('en'),
+    Locale('kk'),
     Locale('ru'),
   ];
 
@@ -2362,6 +2364,12 @@ abstract class AppLocalizations {
   /// **'Русский'**
   String get settingsRussian;
 
+  /// No description provided for @settingsKazakh.
+  ///
+  /// In en, this message translates to:
+  /// **'Қазақша'**
+  String get settingsKazakh;
+
   /// No description provided for @settingsSignupFailed.
   ///
   /// In en, this message translates to:
@@ -2541,6 +2549,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Русский'**
   String get commonRussian;
+
+  /// No description provided for @commonKazakh.
+  ///
+  /// In en, this message translates to:
+  /// **'Қазақша'**
+  String get commonKazakh;
 }
 
 class _AppLocalizationsDelegate
@@ -2554,7 +2568,7 @@ class _AppLocalizationsDelegate
 
   @override
   bool isSupported(Locale locale) =>
-      <String>['en', 'ru'].contains(locale.languageCode);
+      <String>['en', 'kk', 'ru'].contains(locale.languageCode);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
@@ -2565,6 +2579,8 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
   switch (locale.languageCode) {
     case 'en':
       return AppLocalizationsEn();
+    case 'kk':
+      return AppLocalizationsKk();
     case 'ru':
       return AppLocalizationsRu();
   }

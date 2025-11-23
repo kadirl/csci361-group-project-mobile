@@ -410,6 +410,7 @@
 
   "settingsEnglish": "English",
   "settingsRussian": "Русский",
+  "settingsKazakh": "Қазақша",
   "settingsSignupFailed": "Signup failed",
 
   "userProfileCompany": "Company",
@@ -444,7 +445,8 @@
   "commonError": "Error",
   "commonOK": "OK",
   "commonEnglish": "English",
-  "commonRussian": "Русский"
+  "commonRussian": "Русский",
+  "commonKazakh": "Қазақша"
 }
 
 

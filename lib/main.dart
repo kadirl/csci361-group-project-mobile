@@ -43,6 +43,7 @@ class MyApp extends ConsumerWidget {
       supportedLocales: const [
         Locale('en', ''), // English
         Locale('ru', ''), // Russian
+        Locale('kk', ''), // Kazakh
       ],
       // Use app-level locale so it can be changed at runtime.
       locale: currentLocale,

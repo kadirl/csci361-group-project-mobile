@@ -1322,6 +1322,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsRussian => 'Русский';
 
   @override
+  String get settingsKazakh => 'Қазақша';
+
+  @override
   String get settingsSignupFailed => 'Signup failed';
 
   @override
@@ -1420,4 +1423,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get commonRussian => 'Русский';
+
+  @override
+  String get commonKazakh => 'Қазақша';
 }

@@ -386,6 +386,7 @@
   "addToCartButton": "Добавить в корзину",
   "settingsEnglish": "English",
   "settingsRussian": "Русский",
+  "settingsKazakh": "Қазақша",
   "settingsSignupFailed": "Регистрация не удалась",
   "userProfileCompany": "Компания",
   "userProfileLoading": "Загрузка...",
@@ -415,7 +416,8 @@
   "commonError": "Ошибка",
   "commonOK": "ОК",
   "commonEnglish": "English",
-  "commonRussian": "Русский"
+  "commonRussian": "Русский",
+  "commonKazakh": "Қазақша"
 }
 
 

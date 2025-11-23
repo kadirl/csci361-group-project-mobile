@@ -48,6 +48,16 @@ class ComplaintRepository {
     return _service.getCompanyComplaints();
   }
 
+  /// Get complaint by order ID.
+  Future<Complaint?> getComplaintByOrderId({required int orderId}) {
+    return _service.getComplaintByOrderId(orderId: orderId);
+  }
+
+  /// Check if a complaint exists for an order.
+  Future<bool> checkComplaintExists({required int orderId}) {
+    return _service.checkComplaintExists(orderId: orderId);
+  }
+
   /// Get details of a specific complaint.
   Future<Complaint> getComplaintDetails({required int complaintId}) {
     return _service.getComplaintDetails(complaintId: complaintId);

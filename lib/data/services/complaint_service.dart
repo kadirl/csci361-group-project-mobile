@@ -26,6 +26,61 @@ class ComplaintService {
 
   static const String _complaintsPath = 'complaints/';
 
+  /// Get complaint by order ID.
+  Future<Complaint?> getComplaintByOrderId({required int orderId}) async {
+    final String path = '${_complaintsPath}order/$orderId';
+    log('ComplaintService -> GET $path');
+
+    try {
+      final Response<dynamic> response = await _dio.get<dynamic>(path);
+      log('ComplaintService -> Response status: ${response.statusCode}');
+      log('ComplaintService -> Response data: ${response.data}');
+      final Complaint? complaint = _parseComplaintResponse(response);
+      log('ComplaintService -> Parsed complaint: ${complaint?.complaintId}');
+      return complaint;
+    } on DioException catch (error, stackTrace) {
+      // 404 means no complaint exists for this order - return null
+      if (error.response?.statusCode == 404) {
+        log('ComplaintService -> No complaint found for order $orderId (404)');
+        return null;
+      }
+      log('ComplaintService -> Error getting complaint: ${error.message}, status: ${error.response?.statusCode}');
+      _logAndRethrow(error, stackTrace);
+    }
+  }
+
+  /// Check if a complaint exists for an order.
+  Future<bool> checkComplaintExists({required int orderId}) async {
+    final String path = '${_complaintsPath}order/$orderId/exists';
+    log('ComplaintService -> GET $path');
+
+    try {
+      final Response<dynamic> response = await _dio.get<dynamic>(path);
+      final dynamic body = response.data;
+
+      if (body is Map) {
+        // Handle both JSON boolean (true/false) and Python boolean (True/False)
+        final dynamic exists = body['exists'];
+        if (exists is bool) {
+          return exists;
+        }
+        if (exists == true || exists == 'true' || exists == 'True') {
+          return true;
+        }
+        return false;
+      }
+
+      return false;
+    } on DioException catch (error, stackTrace) {
+      // 404 means no complaint exists - return false
+      if (error.response?.statusCode == 404) {
+        log('ComplaintService -> No complaint exists for order $orderId');
+        return false;
+      }
+      _logAndRethrow(error, stackTrace);
+    }
+  }
+
   /// Create a complaint for an order.
   Future<Complaint> createComplaintForOrder({
     required int orderId,
@@ -189,7 +244,21 @@ class ComplaintService {
       final Response<dynamic> response = await _dio.get<dynamic>(path);
       final dynamic body = response.data;
 
-      // API returns array of history entries
+      log('ComplaintService -> History response: $body');
+
+      // API returns object with complaint_id and history array
+      if (body is Map) {
+        final dynamic historyList = body['history'];
+        if (historyList is List) {
+          return historyList
+              .whereType<Map<dynamic, dynamic>>()
+              .map((e) => Map<String, dynamic>.from(e))
+              .map(ComplaintHistoryEntry.fromJson)
+              .toList();
+        }
+      }
+
+      // Fallback: if body is directly a list
       if (body is List) {
         return body
             .whereType<Map<dynamic, dynamic>>()
@@ -278,17 +347,27 @@ class ComplaintService {
   Complaint _parseComplaintResponse(Response<dynamic> response) {
     final dynamic body = response.data;
 
+    log('ComplaintService -> Parsing complaint response: $body');
+
     // Accept either a direct complaint map or a wrapped { "complaint": { ... } }.
     if (body is Map && body['complaint'] is Map) {
       final Map<String, dynamic> wrapped =
           Map<String, dynamic>.from(body['complaint'] as Map);
+      log('ComplaintService -> Found wrapped complaint: $wrapped');
       return Complaint.fromJson(wrapped);
     }
     if (body is Map<String, dynamic>) {
+      log('ComplaintService -> Parsing direct complaint map');
+      log('ComplaintService -> assigned_salesman_id: ${body['assigned_salesman_id']}');
+      log('ComplaintService -> assigned_manager_id: ${body['assigned_manager_id']}');
       return Complaint.fromJson(body);
     }
     if (body is Map<dynamic, dynamic>) {
-      return Complaint.fromJson(Map<String, dynamic>.from(body));
+      log('ComplaintService -> Parsing dynamic complaint map');
+      final Map<String, dynamic> converted = Map<String, dynamic>.from(body);
+      log('ComplaintService -> assigned_salesman_id: ${converted['assigned_salesman_id']}');
+      log('ComplaintService -> assigned_manager_id: ${converted['assigned_manager_id']}');
+      return Complaint.fromJson(converted);
     }
 
     throw const FormatException('Unexpected complaint payload format.');

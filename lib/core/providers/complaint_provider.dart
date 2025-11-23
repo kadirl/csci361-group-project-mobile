@@ -45,18 +45,13 @@ class OrderComplaintNotifier extends Notifier<ComplaintState> {
     try {
       final repository = ref.read(complaintRepositoryProvider);
 
-      // Get all complaints created by the current user
-      final List<Complaint> myComplaints = await repository.getMyComplaints();
-
-      // Find complaint for this order
-      final List<Complaint> complaintsForOrder = myComplaints
-          .where((complaint) => complaint.orderId == orderId)
-          .toList();
-      final Complaint? complaintForOrder =
-          complaintsForOrder.isNotEmpty ? complaintsForOrder.first : null;
+      // Use the new endpoint to get complaint by order ID
+      final Complaint? complaint = await repository.getComplaintByOrderId(
+        orderId: orderId,
+      );
 
       state = state.copyWith(
-        complaint: complaintForOrder,
+        complaint: complaint,
         isLoading: false,
       );
     } catch (e, stackTrace) {
@@ -127,19 +122,17 @@ final orderComplaintProvider =
 
 /// Provider for getting a complaint by order ID.
 /// This provider automatically loads the complaint when the orderId changes.
+/// Uses the new GET /complaints/order/{order_id} endpoint.
 final complaintByOrderIdProvider =
     FutureProvider.family<Complaint?, int>((ref, orderId) async {
   final repository = ref.read(complaintRepositoryProvider);
 
   try {
-    // Get all complaints created by the current user
-    final List<Complaint> myComplaints = await repository.getMyComplaints();
-
-    // Find complaint for this order
-    final List<Complaint> complaintsForOrder = myComplaints
-        .where((complaint) => complaint.orderId == orderId)
-        .toList();
-    return complaintsForOrder.isNotEmpty ? complaintsForOrder.first : null;
+    // Use the new endpoint to get complaint by order ID
+    final Complaint? complaint = await repository.getComplaintByOrderId(
+      orderId: orderId,
+    );
+    return complaint;
   } catch (e) {
     log('complaintByOrderIdProvider -> Error: $e');
     return null;

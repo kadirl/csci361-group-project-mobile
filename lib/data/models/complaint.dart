@@ -101,8 +101,13 @@ class Complaint {
           (json['updated_at'] as String?) ??
           '',
       consumerStaffId: (json['consumer_staff_id'] as num?)?.toInt(),
-      assignedSalesmanId: (json['assigned_salesman_id'] as num?)?.toInt(),
-      assignedManagerId: (json['assigned_manager_id'] as num?)?.toInt(),
+      // Try multiple possible field names for assigned personnel
+      assignedSalesmanId: (json['assigned_salesman_id'] as num?)?.toInt() ??
+          (json['assignedSalesmanId'] as num?)?.toInt() ??
+          (json['assigned_salesman_user_id'] as num?)?.toInt(),
+      assignedManagerId: (json['assigned_manager_id'] as num?)?.toInt() ??
+          (json['assignedManagerId'] as num?)?.toInt() ??
+          (json['assigned_manager_user_id'] as num?)?.toInt(),
       resolutionNotes: json['resolution_notes'] as String?,
       cancelOrder: json['cancel_order'] as bool?,
       additionalData: extra,
@@ -173,7 +178,7 @@ class ComplaintHistoryEntry {
     required this.historyId,
     required this.complaintId,
     required this.status,
-    required this.createdAt,
+    required this.updatedAt,
     this.notes,
     this.userId,
     this.userName,
@@ -182,7 +187,7 @@ class ComplaintHistoryEntry {
   final int historyId;
   final int complaintId;
   final ComplaintStatus status;
-  final String createdAt;
+  final String updatedAt;
   final String? notes;
   final int? userId;
   final String? userName;
@@ -192,10 +197,18 @@ class ComplaintHistoryEntry {
     return ComplaintHistoryEntry(
       historyId: (json['history_id'] as int?) ?? (json['id'] as int?) ?? 0,
       complaintId: json['complaint_id'] as int? ?? 0,
-      status: parseComplaintStatus(json['status'] as String?),
-      createdAt: json['created_at'] as String? ?? '',
+      // API returns 'new_status' not 'status'
+      status: parseComplaintStatus(
+        (json['new_status'] as String?) ?? (json['status'] as String?),
+      ),
+      // API returns 'updated_at' not 'created_at'
+      updatedAt: (json['updated_at'] as String?) ??
+          (json['created_at'] as String?) ??
+          '',
       notes: json['notes'] as String?,
-      userId: (json['user_id'] as num?)?.toInt(),
+      // API returns 'changed_by_user_id' not 'user_id'
+      userId: (json['changed_by_user_id'] as num?)?.toInt() ??
+          (json['user_id'] as num?)?.toInt(),
       userName: json['user_name'] as String?,
     );
   }

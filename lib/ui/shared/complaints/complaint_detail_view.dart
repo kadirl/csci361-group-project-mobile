@@ -2,13 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../../../core/providers/company_profile_provider.dart';
 import '../../../core/providers/user_profile_provider.dart';
 import '../../../data/models/app_user.dart';
+import '../../../data/models/company.dart';
 import '../../../data/models/complaint.dart';
+import '../../../data/models/linking.dart';
+import '../../../data/models/order.dart';
 import '../../../data/repositories/complaint_repository.dart';
 import '../../../data/repositories/linking_repository.dart';
 import '../../../data/repositories/order_repository.dart';
 import '../../../data/repositories/user_repository.dart';
+import '../../shared/chat/chat_view.dart';
 
 /// Complaint detail view showing full information about a complaint.
 class ComplaintDetailView extends ConsumerStatefulWidget {
@@ -30,6 +35,8 @@ class _ComplaintDetailViewState extends ConsumerState<ComplaintDetailView> {
   bool _isLoadingHistory = false;
   String? _error;
   int? _defaultSalesmanId; // Salesman from linking (default assignment)
+  Order? _order; // Order for this complaint
+  Linking? _linking; // Linking for this complaint
 
   @override
   void initState() {
@@ -55,8 +62,9 @@ class _ComplaintDetailViewState extends ConsumerState<ComplaintDetailView> {
       final orderRepo = ref.read(orderRepositoryProvider);
       final order = await orderRepo.getOrder(orderId: complaint.orderId);
 
-      // Load linking to get assigned salesman (default assignment)
+      // Load linking to get assigned salesman (default assignment) and for chat
       int? defaultSalesmanId;
+      Linking? linking;
       try {
         final linkingRepo = ref.read(linkingRepositoryProvider);
         final userState = ref.read(userProfileProvider);
@@ -70,7 +78,8 @@ class _ComplaintDetailViewState extends ConsumerState<ComplaintDetailView> {
               .where((l) => l.linkingId == order.linkingId)
               .toList();
           if (linkingList.isNotEmpty) {
-            defaultSalesmanId = linkingList.first.assignedSalesmanUserId;
+            linking = linkingList.first;
+            defaultSalesmanId = linking.assignedSalesmanUserId;
           }
         }
       } catch (e) {
@@ -84,6 +93,8 @@ class _ComplaintDetailViewState extends ConsumerState<ComplaintDetailView> {
         debugPrint('  - defaultSalesmanId (from linking): $defaultSalesmanId');
         setState(() {
           _complaint = complaint;
+          _order = order;
+          _linking = linking;
           _defaultSalesmanId = defaultSalesmanId;
           _isLoading = false;
         });
@@ -430,6 +441,33 @@ class _ComplaintDetailViewState extends ConsumerState<ComplaintDetailView> {
               ..._history.map((entry) => _buildHistoryEntry(context, entry)),
             const SizedBox(height: 24),
 
+            // Open Chat button
+            if (_order != null && _linking != null)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 24.0),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) => ChatView(
+                            orderId: _order!.orderId,
+                            order: _order!,
+                            linking: _linking!,
+                          ),
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.chat_bubble_outline),
+                    label: const Text('Open Chat'),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16.0),
+                    ),
+                  ),
+                ),
+              ),
+
             // Actions section
             if (_canPerformActions()) ...[
               Text(
@@ -455,19 +493,32 @@ class _ComplaintDetailViewState extends ConsumerState<ComplaintDetailView> {
     final appUser = userState.value;
     if (appUser == null) return false;
 
+    // Consumers cannot change complaint status
+    final companyState = ref.read(companyProfileProvider);
+    final company = companyState.value;
+    if (company?.companyType == CompanyType.consumer) {
+      return false;
+    }
+
     final complaint = _complaint!;
 
-    // Salesman can escalate open complaints assigned to them
+    // Check if salesman is assigned (explicitly or by default from linking)
+    final bool isAssignedSalesman = complaint.assignedSalesmanId == appUser.id ||
+        (_defaultSalesmanId == appUser.id &&
+            complaint.assignedSalesmanId == null &&
+            complaint.status != ComplaintStatus.escalated &&
+            complaint.status != ComplaintStatus.inProgress);
+
+    // Salesman can escalate/resolve open complaints assigned to them
     if (appUser.role == UserRole.staff &&
         complaint.status == ComplaintStatus.open &&
-        complaint.assignedSalesmanId == appUser.id) {
+        isAssignedSalesman) {
       return true;
     }
 
-    // Salesman can resolve open complaints assigned to them
-    if (appUser.role == UserRole.staff &&
-        complaint.status == ComplaintStatus.open &&
-        complaint.assignedSalesmanId == appUser.id) {
+    // Manager/Owner can resolve/close any open complaint
+    if ((appUser.role == UserRole.manager || appUser.role == UserRole.owner) &&
+        complaint.status == ComplaintStatus.open) {
       return true;
     }
 
@@ -477,7 +528,7 @@ class _ComplaintDetailViewState extends ConsumerState<ComplaintDetailView> {
       return true;
     }
 
-    // Manager can resolve/resolve in_progress complaints assigned to them
+    // Manager can resolve/close in_progress complaints assigned to them
     if ((appUser.role == UserRole.manager || appUser.role == UserRole.owner) &&
         complaint.status == ComplaintStatus.inProgress &&
         complaint.assignedManagerId == appUser.id) {
@@ -495,10 +546,17 @@ class _ComplaintDetailViewState extends ConsumerState<ComplaintDetailView> {
 
     final List<Widget> buttons = [];
 
+    // Check if salesman is assigned (explicitly or by default from linking)
+    final bool isAssignedSalesman = complaint.assignedSalesmanId == appUser.id ||
+        (_defaultSalesmanId == appUser.id &&
+            complaint.assignedSalesmanId == null &&
+            complaint.status != ComplaintStatus.escalated &&
+            complaint.status != ComplaintStatus.inProgress);
+
     // Salesman actions for open complaints
     if (appUser.role == UserRole.staff &&
         complaint.status == ComplaintStatus.open &&
-        complaint.assignedSalesmanId == appUser.id) {
+        isAssignedSalesman) {
       buttons.add(
         FilledButton.icon(
           onPressed: () => _handleEscalate(context, complaint),
@@ -519,6 +577,34 @@ class _ComplaintDetailViewState extends ConsumerState<ComplaintDetailView> {
           style: FilledButton.styleFrom(
             minimumSize: const Size(double.infinity, 48),
             backgroundColor: Colors.green,
+          ),
+        ),
+      );
+    }
+
+    // Manager/Owner actions for open complaints (can resolve/close without escalation)
+    if ((appUser.role == UserRole.manager || appUser.role == UserRole.owner) &&
+        complaint.status == ComplaintStatus.open) {
+      buttons.add(
+        FilledButton.icon(
+          onPressed: () => _handleResolve(context, complaint),
+          icon: const Icon(Icons.check_circle),
+          label: const Text('Resolve'),
+          style: FilledButton.styleFrom(
+            minimumSize: const Size(double.infinity, 48),
+            backgroundColor: Colors.green,
+          ),
+        ),
+      );
+      buttons.add(const SizedBox(height: 8));
+      buttons.add(
+        FilledButton.icon(
+          onPressed: () => _handleClose(context, complaint),
+          icon: const Icon(Icons.close),
+          label: const Text('Close'),
+          style: FilledButton.styleFrom(
+            minimumSize: const Size(double.infinity, 48),
+            backgroundColor: Colors.grey,
           ),
         ),
       );

@@ -427,13 +427,32 @@ class _ChatViewState extends ConsumerState<ChatView> {
         final String? newStatus = data['new_status'] as String?;
         final int? entityId = (data['id'] as num?)?.toInt();
         
-        if (oldStatus != null && newStatus != null) {
-          // Capitalize first letter of status
-          String formatStatus(String status) {
-            if (status.isEmpty) return status;
-            return status[0].toUpperCase() + status.substring(1);
-          }
+        // Capitalize first letter of status
+        String formatStatus(String status) {
+          if (status.isEmpty) return status;
+          return status[0].toUpperCase() + status.substring(1);
+        }
+        
+        // Handle case where old_status is null (new entity created)
+        if (oldStatus == null && newStatus != null) {
+          final String formattedNewStatus = formatStatus(newStatus);
           
+          if (entity == 'order') {
+            if (entityId != null) {
+              return 'Order #$entityId created with status $formattedNewStatus';
+            } else {
+              return 'Order created with status $formattedNewStatus';
+            }
+          } else if (entity == 'complaint') {
+            if (entityId != null) {
+              return 'Complaint #$entityId created with status $formattedNewStatus';
+            } else {
+              return 'Complaint created with status $formattedNewStatus';
+            }
+          }
+        }
+        // Handle case where both statuses are present (status change)
+        else if (oldStatus != null && newStatus != null) {
           final String formattedOldStatus = formatStatus(oldStatus);
           final String formattedNewStatus = formatStatus(newStatus);
           
@@ -448,6 +467,24 @@ class _ChatViewState extends ConsumerState<ChatView> {
               return 'Complaint #$entityId status changed from $formattedOldStatus to $formattedNewStatus';
             } else {
               return 'Complaint status changed from $formattedOldStatus to $formattedNewStatus';
+            }
+          }
+        }
+        // Handle case where only new_status is null (shouldn't happen, but handle gracefully)
+        else if (oldStatus != null && newStatus == null) {
+          final String formattedOldStatus = formatStatus(oldStatus);
+          
+          if (entity == 'order') {
+            if (entityId != null) {
+              return 'Order #$entityId status removed (was $formattedOldStatus)';
+            } else {
+              return 'Order status removed (was $formattedOldStatus)';
+            }
+          } else if (entity == 'complaint') {
+            if (entityId != null) {
+              return 'Complaint #$entityId status removed (was $formattedOldStatus)';
+            } else {
+              return 'Complaint status removed (was $formattedOldStatus)';
             }
           }
         }
